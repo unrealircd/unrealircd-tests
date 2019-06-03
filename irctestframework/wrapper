@@ -21,6 +21,7 @@ fi
 LOGFILE="logs/`echo "$1"|sed 's/\.\///g'|sed 's/\//__/g'|sed 's/\.py//g'`.log"
 export PYTHONIOENCODING=utf-8
 timeout --kill-after=5 --signal=INT $TIMEOUT $* 1>$LOGFILE 2>&1
+wait
 if [ "$?" -eq 0 ]; then
 	mv $LOGFILE logs/success
 else
