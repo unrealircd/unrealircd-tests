@@ -1,5 +1,7 @@
 #!/bin/bash
-MAXPARALLEL="25"
+if [ "$MAXPARALLEL" = "" ]; then
+	MAXPARALLEL="25"
+fi
 TIMEOUT="40"
 
 export PYTHONPATH="`pwd`:$PYTHONPATH"
