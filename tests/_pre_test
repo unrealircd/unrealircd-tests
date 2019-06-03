@@ -1,0 +1,27 @@
+#!/usr/bin/python
+#
+# NOTE: This test is special, due not use it as a template
+# if you are adding new tests. Pick some other test instead.
+#
+# This test is special in the sense that multisync is not
+# available since not all servers are linked yet, so we
+# only connect 1 instance at a time and recreate the IrcTest()
+# m object. This is not regular procedure.
+#
+
+import irctestframework.irctest
+import time
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+m.send(c1a, "OPER netadmin test")
+m.send(c1a, "CONNECT irc2.test.net")
+m.expect(c1a, "irc1<->irc2 should be linked", "Link irc1.test.net -> irc2.test.net is now synced", timeout=10)
+
+m = irctestframework.irctest.IrcTest()
+c3a = m.new('c3a')
+m.connect()
+m.send(c3a, "OPER netadmin test")
+m.send(c3a, "CONNECT irc2.test.net")
+m.expect(c3a, "irc3<->irc2 should be linked", "Link irc3.test.net -> irc2.test.net is now synced", timeout=10)

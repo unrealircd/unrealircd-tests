@@ -1,0 +1,36 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.joinall(chan, creator = c2a)
+m.send(c2a, "MODE " + chan + " +G")
+m.expect(c1a, "users in channel", "JOIN")
+m.expect(c1a, "MODE +G", "MODE.*\+G")
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :aa fucked bb")
+m.expect(c3a, "should censor badwords with +G", ":c1a.*PRIVMSG.*aa <censored> bb")
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :aa sunshine bb")
+m.expect(c3a, "should not censor non-badwords with +G", ":c1a.*PRIVMSG.*aa sunshine bb")
+print
+
+m.send(c2a, "MODE " + chan + " -G")
+m.expect(c1a, "MODE -G", "MODE.*\-G")
+print
+m.clearlog()
+
+m.send(c1a, "PRIVMSG " + chan + " :aa fucked bb")
+m.expect(c3a, "should not censor badwords without +G", ":c1a.*PRIVMSG.*aa fucked bb")
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :aa sunshine bb")
+m.expect(c3a, "should not censor non-badwords without +G", ":c1a.*PRIVMSG.*aa sunshine bb")
+print

@@ -1,0 +1,89 @@
+#!/bin/bash
+MAXPARALLEL="25"
+TIMEOUT="40"
+
+export PYTHONPATH="`pwd`:$PYTHONPATH"
+export TIMEOUT
+
+rm -rf logs
+mkdir logs
+mkdir logs/success
+mkdir logs/failure
+
+if [ "$1" = "-boot" -o "$1" = "" ]; then
+	shift
+
+	# Boot the ircd
+	echo "Booting IRC server..."
+	killall -9 valgrind valgrind.bin memcheck memcheck-amd64-linux memcheck-x86-linux ircd unrealircd val 1>/dev/null 2>&1
+	sleep 1
+	cp -av ircdconfig/* ~/unrealircd/conf/ || exit 1
+	cd ~/unrealircd/ || exit 1
+	bin/unrealircd -f irc2.conf
+	bin/unrealircd -f irc1.conf
+	bin/unrealircd -f irc3.conf
+	cd -
+	
+	timeout --kill-after=5 --signal=INT 10 tests/_pre_test || (echo "Linking failed"; exit 1)
+fi
+
+if [ "$1" = "" ]; then
+	# Run all tests:
+	find tests -type f|grep -vF '~'|grep -vF _pre_test|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+	wait
+else
+	# Run specific tests:
+	for f in $*
+	do
+		irctestframework/wrapper $f
+	done
+fi
+
+cd logs/success
+echo
+echo "==================================================================================================="
+echo ">>> SUCCESFUL TESTS"
+for f in *.log
+do
+	name="`echo $f|sed 's/__/\//g'|sed 's/\.log//g'`"
+	if [ "$f" == "*.log" ]; then
+		continue
+	fi
+	echo -e "\u2714 $name"
+done
+cd - 1>/dev/null 2>&1
+echo "==================================================================================================="
+
+failed=0
+cd logs/failure
+for f in *.log
+do
+	name="`echo $f|sed 's/__/\//g'|sed 's/\.log//g'`"
+	if [ "$f" == "*.log" ]; then
+		continue
+	fi
+	echo
+	echo "==================================================================================================="
+	echo ">>> FAILED TEST: $name"
+	cat $f
+	echo "==================================================================================================="
+	echo
+	failed=1
+done
+
+if [ "$failed" = 1 ]; then
+	echo
+	echo "======[ SUMMARY ]======"
+	for f in *.log
+	do
+		name="`echo $f|sed 's/__/\//g'|sed 's/\.log//g'`"
+		if [ "$f" == "*.log" ]; then
+			continue
+		fi
+		echo "TEST FAILED: $name"
+	done
+fi
+
+cd - 1>/dev/null 2>&1
+
+exit $failed

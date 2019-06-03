@@ -1,0 +1,62 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+c3b = m.new('c3b')
+m.connect()
+
+chan = m.randchan()
+m.send(c1a, "JOIN " + chan)
+m.send(c1a, "MODE " + chan + " +D")
+m.expect(c1a, "MODE +D", "MODE.*\+D")
+print
+
+# Now join the rest
+# Actually c1a is the actual creator (see above),
+# we just use creator=c2a here to force c2a to be second user :)
+m.joinall(chan, creator = c2a)
+m.send(c2a, "JOIN " + chan)
+m.send(c3a, "JOIN " + chan)
+m.send(c3b, "JOIN " + chan)
+m.expect(c1a, "Chanop should see all joins (1 of 2)", ":c2a.*JOIN")
+m.expect(c1a, "Chanop should see all joins (2 of 2)", ":c3a.*JOIN")
+m.not_expect(c2a, "Non-chanop should not see joins", ":c3a.*JOIN")
+print
+m.clearlog()
+
+m.send(c1a, "MODE " + chan + " +v $c2a")
+m.not_expect(c1a, "When doing +v on user, chanop should not see duplicate joins", ":c2a.*JOIN")
+m.not_expect(c2a, "When doing +v on user, and we are the affected user, we should not see a self-join", ":c2a.*JOIN")
+m.expect(c3a, "When doing +v on a user, we should see the user joining", ":c2a.*JOIN")
+print
+m.clearlog()
+
+m.send(c3b, "PRIVMSG " + chan + " :hello everyone")
+m.not_expect(c1a, "When user msgs for the first time, chanop should not see duplicate joins", ":c3b.*JOIN")
+m.not_expect(c3b, "When we send a msg for the first time, we should not see a self-join", ":c3b.*JOIN")
+m.expect(c3a, "When user msgs for the first time, we should see the user joining (local)", ":c3b.*JOIN")
+m.expect(c2a, "When user msgs for the first time, we should see the user joining (remote)", ":c3b.*JOIN")
+print
+m.clearlog()
+
+m.send(c3b, "PRIVMSG " + chan + " :second message")
+m.not_expect_all("On second message there should not be any (duplicate) JOIN", ":c3b.*JOIN")
+print
+m.clearlog()
+
+m.send(c1a, "MODE " + chan + " -D")
+m.expect(c1a, "MODE -D", "MODE.*\-D")
+m.expect_all("MODE +d when there are invisible users", "MODE.*\+d")
+print
+m.clearlog()
+
+m.send(c3a, "PRIVMSG " + chan + " :i am the last invisible client")
+m.not_expect(c1a, "When user msgs for the first time (even if chan is -D+d) chanop should not see duplicate joins", ":c3a.*JOIN")
+m.not_expect(c3a, "When we send a msg for the first time (even if chan is -D+d) we should not see a self-join", ":c3a.*JOIN")
+m.expect(c3b, "When user msgs for the first time (even if chan is -D+d) we should see the user joining (local)", ":c3a.*JOIN")
+m.expect(c2a, "When user msgs for the first time (even if chan is -D+d) we should see the user joining (remote)", ":c3a.*JOIN")
+m.expect_all("MODE -d now that there are no remaining invisible users", "MODE.*\-d")
+print

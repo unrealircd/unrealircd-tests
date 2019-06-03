@@ -1,0 +1,28 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.joinall(chan, creator = c1a, skip = c3a)
+m.expect(c2a, "users in channel", "JOIN")
+m.expect(c2a, "c1a has ops", "353.*@c1a")
+print
+
+m.send(c1a, "MODE " + chan + " +hv $c1a $c1a")
+m.expect(c1a, "c1a now has +vho", "MODE.*\+hv")
+print
+
+m.send(c3a, "CAP REQ multi-prefix")
+m.expect(c3a, "CAP ACK for multi-prefix", "CAP.*ACK.*multi-prefix")
+print
+
+m.send(c3a, "JOIN " + chan)
+m.expect(c3a, "with CAP multi-prefix it should show all prefixes", "353.*@%\+c1a")
+m.expect(c2a, "without CAP multi-prefix it should only show the highest prefix", "353.*@c1a")
+print
+

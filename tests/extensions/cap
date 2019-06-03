@@ -1,0 +1,23 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send(c1a, "CAP LS")
+m.expect(c1a, "versionless CAP LS should not show capability values", " CAP .* LS :.*unrealircd.org/link-security( |$)")
+print
+
+m.send(c2a, "CAP LS 300")
+m.expect(c2a, "CAP LS 300 should not show capability values", " CAP .* LS :.*unrealircd.org/link-security( |$)")
+print
+
+m.send(c3a, "CAP LS 302")
+m.expect(c3a, "CAP LS 302 should show capability values", " CAP .* LS :.*unrealircd.org/link-security=[0-9]+")
+print
+
+m.send(c1a, "CAP LIST")
+m.expect(c1a, "CAP LIST should not show any caps if none requested", " CAP .* LIST :$")

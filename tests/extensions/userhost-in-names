@@ -1,0 +1,21 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.joinall(chan, skip = c1a)
+m.expect(c3a, "two users in channel", "JOIN")
+print
+
+m.send(c1a, "CAP REQ userhost-in-names")
+m.send(c1a, "JOIN " + chan)
+m.expect(c1a, "userhost in NAMES w/UHNAMES", "353.*$c3a!~?username@")
+print
+
+m.send(c3a, "NAMES " + chan)
+m.expect(c3a, "userhost NOT in NAMES wo/UHNAMES", "353.*$c1a([^!]+|$)")

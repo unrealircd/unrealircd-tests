@@ -1,0 +1,21 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.send(c1a, "CAP REQ extended-join")
+m.joinall(chan, skip = c1a, creator=c1a)
+m.expect(c1a, "users in channel", "JOIN")
+m.expect(c1a, "CAP extended-join should result in extended join (1-hop)", ":c2a.*JOIN.*:Test framework")
+m.expect(c1a, "CAP extended-join should result in extended join (2-hops)", ":c3a.*JOIN.*:Test framework")
+m.not_expect(c2a, "without CAP extended-join no extended join should be generated", ":c1a.*JOIN.*:Test framework")
+m.not_expect(c2a, "without CAP extended-join no extended join should be generated", ":c3a.*JOIN.*:Test framework")
+m.not_expect(c3a, "without CAP extended-join no extended join should be generated", ":c1a.*JOIN.*:Test framework")
+m.not_expect(c3a, "without CAP extended-join no extended join should be generated", ":c2a.*JOIN.*:Test framework")
+
+print

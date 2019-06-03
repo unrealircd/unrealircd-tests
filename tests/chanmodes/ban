@@ -1,0 +1,84 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.joinall(chan, skip = c3a, creator=c1a)
+m.expect(c1a, "users in channel", "JOIN")
+print
+
+# Since we have so many ban test types we use
+# some abstraction so you can easily add stuff:
+
+bantests = [
+      { "matchban":"c3a*!*@*",
+        "nomatchban":"c3aNOMATCH*!*@*",
+        "bantype":"by nick",
+      },
+      { "matchban":"*!*username@*",
+        "nomatchban":"*!*nomatch@*",
+        "bantype":"by username",
+      },
+      { "matchban":"*!*@Clk-6C400E48",
+        "nomatchban":"*!*@Clk-6C400E99",
+        "bantype":"by cloaked hostname",
+      },
+#      { "matchban":"*!*@231FD6C8.9CC7FEA8.DA4798D7.IP",
+#        "nomatchban":"*!*@231FD6C8.9CC7FEA8.9999999.IP",
+#        "bantype":"by cloaked IP",
+#      },
+      { "matchban":"*!*@localhost",
+        "nomatchban":"*!*@nomatchhost",
+        "bantype":"by real hostname",
+      },
+      { "matchban":"*!*@127.0.0.1",
+        "nomatchban":"*!*@127.0.0.91",
+        "bantype":"by real IP",
+      },
+      { "matchban":"*!*@127.0.0.1/16",
+        "nomatchban":"*!*@127.5.0.1/16",
+        "bantype":"by real IP with CIDR",
+      },
+      { "matchban":"*!*@this.is.a.test",
+        "nomatchban":"*!*@not.a.match",
+        "bantype":"by vhost",
+        "specialcmd":"VHOST test test"
+      },
+      # A ban on a cloakedhost should still work if using a vhost:
+      { "matchban":"*!*@Clk-6C400E48",
+        "nomatchban":"*!*@Clk-9999999",
+        "bantype":"by cloakedhost when using vhost",
+        "specialcmd":"VHOST test test"
+      },
+    ]
+
+for t in bantests:
+  if t.get('specialcmd'):
+    m.send(c3a, t['specialcmd'])
+    print
+
+  m.send(c1a, "MODE " + chan + " +b " + t['matchban'])
+  m.send(c3a, "JOIN " + chan)
+  m.expect(c3a, "unable to join if banned by " + t['bantype'] + " (474 error)", "474.*Cannot join")
+  m.not_expect(c1a, "unable to join if banned by " + t['bantype'] + " (no JOIN)", ":c3a.*JOIN")
+  print
+  
+  m.send(c1a, "MODE " + chan + " -b+b " + t['matchban'] + ' ' + t['nomatchban'])
+  m.clearlog()
+  print
+  
+  m.send(c3a, "JOIN " + chan)
+  m.not_expect(c3a, "can join if not banned " + t['bantype'] + " (should be no 474 error)", "474.*Cannot join")
+  m.expect(c1a, "can join if not banned " + t['bantype'] + " (JOIN)", ":c3a.*JOIN")
+  print
+
+  m.send(c3a, "PART " + chan)
+  m.send(c3a, "MODE $c3a -x+x")
+  m.send(c1a, "MODE " + chan + " -b " + t['nomatchban'])
+  m.clearlog()
+  print
