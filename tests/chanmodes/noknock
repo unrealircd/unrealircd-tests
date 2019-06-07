@@ -1,0 +1,22 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.joinall(chan, creator = c2a, skip = c3a)
+m.expect(c1a, "users in channel", "JOIN")
+print
+
+m.send(c2a, "MODE " + chan + " +iK")
+m.expect(c1a, "MODE +iK", ":c2a.*MODE.*\+iK")
+print
+
+m.send(c3a, "KNOCK " + chan)
+m.expect(c3a, "Should get an error (numeric 480)", "480.*No knock")
+m.not_expect(c1a, "Should not see a knock in channel", "Knock")
+print
