@@ -1,0 +1,33 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan1 = m.randchan()
+chan2 = m.randchan()
+
+m.send(c1a, "OPER netadmin test")
+m.send(c1a, "JOIN " + chan1)
+m.expect(c1a, "first user in channel", ":c1a.*JOIN")
+print
+
+m.send(c1a, "MODE " + chan1 + " +l 2")
+m.expect(c1a, "MODE +l 2", ":c1a.*MODE.*\+l 2")
+m.send(c1a, "MODE " + chan1 + " +L " + chan2)
+m.expect(c1a, "MODE +L ...", ":c1a.*MODE.*\+L " + chan2)
+print
+
+m.send(c2a, "JOIN " + chan1)
+m.expect(c2a, "can join channel if +l is not reached", ":c2a.*JOIN.*" + chan1)
+print
+
+m.send(c3a, "JOIN " + chan1)
+m.expect(c3a, "nummeric 470 to indicate redirect", "470.*has become full")
+m.expect(c3a, "JOIN to 2nd channel", ":c3a.*JOIN.*" + chan2)
+m.not_expect(c1a, "should not see any JOIN in primary channel if limit reached", ":c3a.*JOIN")
+print
+m.clearlog()

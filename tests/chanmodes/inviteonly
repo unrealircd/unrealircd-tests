@@ -1,0 +1,30 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.joinall(chan, creator = c1a, skip = c3a)
+m.expect(c1a, "first user in channel", ":c1a.*JOIN")
+m.expect(c2a, "second user in channel", ":c2a.*JOIN")
+print
+
+m.send(c1a, "MODE " + chan + " +i")
+m.expect(c2a, "MODE +i", ":c1a.*MODE.*\+i")
+print
+
+m.send(c3a, "JOIN " + chan)
+m.expect(c3a, "unable to join with +i (numeric 473)", "473.*Cannot join channel.*\+i")
+m.not_expect(c1a, "should not see JOIN for user if +i", ":c3a.*JOIN")
+print
+m.clearlog()
+
+m.send(c1a, "MODE " + chan + " +I c3a*!*@*")
+m.send(c3a, "JOIN " + chan)
+m.not_expect(c3a, "no unable to join (numeric 473) with matching invex (+I)", "473.*Cannot join channel.*\+i")
+m.expect(c1a, "should see JOIN for user if +i with matching invex (+I)", ":c3a.*JOIN")
+print
