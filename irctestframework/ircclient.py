@@ -7,52 +7,6 @@ import re
 import time
 
 class IrcClient(asynchat.async_chat):
-    def bgcolor(self, name):
-        if name[2:3] == 'a':
-            c = '80'
-        else:
-            c = '120'
-        if name[:2] == 'c1':
-            # red
-            return '\033[48;2;'+c+';0;0m'
-        if name[:2] == 'c2':
-            # yellow
-            return '\033[48;2;'+c+';'+c+';0m'
-        if name[:2] == 'c3':
-            # green
-            return '\033[48;2;00;'+c+';0m'
-        return '\033[48;2;210;105;180m' # error
-    def fgcolor(self, name):
-        if name[2:3] == 'a':
-            c = '192'
-            suffix = ''
-        else:
-            c = '255'
-            suffix = '\033[51m'
-        if name[:2] == 'c1':
-            # red
-            return '\033[38;2;'+c+';00;00m' + suffix
-        if name[:2] == 'c2':
-            # yellow
-            return '\033[38;2;'+c+';'+c+';00m' + suffix
-        if name[:2] == 'c3':
-            # green
-            return '\033[38;2;00;'+c+';00m' + suffix
-        return '\033[38;2;210;105;180m' # error
-    def log(self, message):
-        standard = self.bgcolor(self.name) + "\033[38;2;210;210;210m"
-        m = standard + message + "\033[0m"
-        m = re.sub("(c1a_[a-z]{8})", self.fgcolor('c1a')+r'\1' + standard, m)
-        m = re.sub("(c2a_[a-z]{8})", self.fgcolor('c2a')+r'\1' + standard, m)
-        m = re.sub("(c3a_[a-z]{8})", self.fgcolor('c3a')+r'\1' + standard, m)
-        m = re.sub("(c1b_[a-z]{8})", self.fgcolor('c1b')+r'\1' + standard, m)
-        m = re.sub("(c2b_[a-z]{8})", self.fgcolor('c2b')+r'\1' + standard, m)
-        m = re.sub("(c3b_[a-z]{8})", self.fgcolor('c3b')+r'\1' + standard, m)
-        print m
-#        print "\033[" + str(self.color) + "m" + message + "\033[0m"
-#        for name,obj in self.clients.iteritems():
-#            str = str.replace("$" + name, obj.nick)
-
     def __init__(self, (host, port), name, color, syncchan):
         asynchat.async_chat.__init__(self)
         self.set_terminator('\r\n')
@@ -71,6 +25,54 @@ class IrcClient(asynchat.async_chat):
         self.recvd_syncers = {}
         self.all_lines = []
         self.log("[Client " + self.nick + " on " + host + ":" + str(port) + "]")
+
+    def bgcolor(self, name):
+        if name[2:3] == 'a':
+            c = '80'
+        else:
+            c = '120'
+        if name[:2] == 'c1':
+            # red
+            return '\033[48;2;'+c+';0;0m'
+        if name[:2] == 'c2':
+            # yellow
+            return '\033[48;2;'+c+';'+c+';0m'
+        if name[:2] == 'c3':
+            # green
+            return '\033[48;2;00;'+c+';0m'
+        return '\033[48;2;210;105;180m' # error
+
+    def fgcolor(self, name):
+        if name[2:3] == 'a':
+            c = '192'
+            suffix = ''
+        else:
+            c = '255'
+            suffix = '\033[51m'
+        if name[:2] == 'c1':
+            # red
+            return '\033[38;2;'+c+';00;00m' + suffix
+        if name[:2] == 'c2':
+            # yellow
+            return '\033[38;2;'+c+';'+c+';00m' + suffix
+        if name[:2] == 'c3':
+            # green
+            return '\033[38;2;00;'+c+';00m' + suffix
+        return '\033[38;2;210;105;180m' # error
+
+    def log(self, message):
+        standard = self.bgcolor(self.name) + "\033[38;2;210;210;210m"
+        m = standard + message + "\033[0m"
+        m = re.sub("(c1a_[a-z]{8})", self.fgcolor('c1a')+r'\1' + standard, m)
+        m = re.sub("(c2a_[a-z]{8})", self.fgcolor('c2a')+r'\1' + standard, m)
+        m = re.sub("(c3a_[a-z]{8})", self.fgcolor('c3a')+r'\1' + standard, m)
+        m = re.sub("(c1b_[a-z]{8})", self.fgcolor('c1b')+r'\1' + standard, m)
+        m = re.sub("(c2b_[a-z]{8})", self.fgcolor('c2b')+r'\1' + standard, m)
+        m = re.sub("(c3b_[a-z]{8})", self.fgcolor('c3b')+r'\1' + standard, m)
+        print m
+#        print "\033[" + str(self.color) + "m" + message + "\033[0m"
+#        for name,obj in self.clients.iteritems():
+#            str = str.replace("$" + name, obj.nick)
 
     def handle_connect(self):
         # Generalize this later...
