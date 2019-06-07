@@ -91,6 +91,42 @@ class IrcTest(asynchat.async_chat):
         while(not self.synced()):
             asyncore.loop(count=1, timeout=0.1)
 
+    def verify_mtags_consistency(self):
+        # Based on heuristics, could be wrong, especially with .clearlog()
+
+        # First build a list with all messages from everyone, so we can see which ones are identical
+        all_msgs = {}
+        for name,obj in self.clients.iteritems():
+            for full_line in obj.all_lines:
+                # Should we filter purely on channel events? Let's see how long
+                # we can get away with it by not doing it for now ;D
+                if 0:
+                    if full_line[0] == '@':
+                        (mtags, line) = full_line.split(" ", 1)
+                    else:
+                        line = full_line
+                    print 'L: ' + line
+                    if not line in all_msgs:
+                        all_msgs[line] = {}
+                    all_msgs[line][name] = full_line
+        # Now count all lines that are >1
+        for commonline, o in all_msgs.iteritems():
+            if len(o) > 1:
+                first = None
+                for name,full_line in o.iteritems():
+                    if not first:
+                        first = full_line
+                    else:
+                        if first != full_line:
+                            print
+                            print '\033[1mInconsistent message-tag use accross server links:\033[0m'
+                            print 'Line (bare): ' + commonline
+                            for name,full_line in o.iteritems():
+                                #print 'Client ' + name + ': '  + full_line
+                                self.clients[name].log('Client ' + name + ': '  + full_line)
+
+                            raise Exception('mtags: possible mismatch (by verify_mtags_consistency)')
+
     def multisync(self):
         if self.sync == 0:
             return
@@ -103,6 +139,7 @@ class IrcTest(asynchat.async_chat):
                 print 'Multisync failed after 10 seconds'
                 print 'This can happen if not all servers are linked'
                 raise Exception('multisync failed - servers not linked?')
+        self.verify_mtags_consistency()
 
     def send(self, client, message):
         message = self.replacestr(message)
