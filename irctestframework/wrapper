@@ -23,7 +23,7 @@ export PYTHONIOENCODING=utf-8
 timeout --kill-after=5 --signal=INT $TIMEOUT $* 1>$LOGFILE 2>&1
 wait
 EXCODE="$?"
-cat $LOGFILE|grep -qF 'Traceback (most recent call last)'
+cat $LOGFILE|egrep -q 'Traceback.*most recent call|python exception'
 GREPCODE="$?"
 
 if [ "$EXCODE" -eq 0 -a "$GREPCODE" != 0 ]; then
