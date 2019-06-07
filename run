@@ -28,14 +28,17 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	cd -
 	
 	timeout --kill-after=5 --signal=INT 10 tests/_pre_test || (echo "Linking failed"; exit 1)
+	echo
 fi
 
 if [ "$1" = "" ]; then
 	# Run all tests:
+	echo "Running all tests in parallel..."
 	find tests -type f|grep -vF '~'|grep -vF _pre_test|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
 	wait
 else
 	# Run specific tests:
+	echo "Running specific tests by user request..."
 	for f in $*
 	do
 		irctestframework/wrapper $f
