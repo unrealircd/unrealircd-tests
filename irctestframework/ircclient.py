@@ -74,6 +74,9 @@ class IrcClient(asynchat.async_chat):
 
     def handle_connect(self):
         # Generalize this later...
+        self.out("CAP LS")
+        self.out("CAP REQ :message-tags account-tag")
+        self.out("CAP END")
         self.out("USER username x x :Test framework")
         self.out("NICK " + self.nick)
 
@@ -101,10 +104,15 @@ class IrcClient(asynchat.async_chat):
         input_data = self.data_in
         source = ''
         prefix = ''
+        mtags = ''
 
         # Lazy
         if input_data == '':
             input_data = ' '
+
+        # Message with message-tags? Save it
+        if input_data[0] == '@':
+            (mtags, input_data) = input_data.split(" ", 1)
 
         # Message with a source? Save it.
         if input_data[0] == ':':
