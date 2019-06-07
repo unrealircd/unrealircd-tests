@@ -100,7 +100,7 @@ class IrcTest(asynchat.async_chat):
             for full_line in obj.all_lines:
                 # Should we filter purely on channel events? Let's see how long
                 # we can get away with it by not doing it for now ;D
-                if 0:
+                if 1:
                     if full_line[0] == '@':
                         (mtags, line) = full_line.split(" ", 1)
                     else:
