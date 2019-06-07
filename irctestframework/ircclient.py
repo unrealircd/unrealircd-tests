@@ -74,6 +74,27 @@ class IrcClient(asynchat.async_chat):
 #        for name,obj in self.clients.iteritems():
 #            str = str.replace("$" + name, obj.nick)
 
+    # Verify if the required message tags are present
+    def check_mtags_present(self, line, mtags, source, e):
+        if (e[0] in ("JOIN", "KICK", "MODE", "PRIVMSG", "NOTICE", "PART") and e[1][0] == '#') or \
+           (e[0] in ("NICK", "QUIT")) or \
+           (e[0] in ("PRIVMSG", "NOTICE")):
+            # Single channel event OR
+            # Common channel event OR
+            # Non-channel PRIVMSG/NOTICE
+
+            # Filter out server notices (to non-channels) for now.
+            # It is not important that these contain a msgid since
+            # these are never replayed anyway.
+            if "." in source and e[1][0] != '#':
+                return
+
+            if not "msgid=" in mtags:
+                print "\033[1mMissing mandatory message-tag 'msgid' in channel event\033[0m"
+                print "Line :" + line
+                raise Exception("Missing 'msgid' in channel event")
+        return
+
     def handle_connect(self):
         # Generalize this later...
         self.out("CAP LS")
@@ -132,6 +153,8 @@ class IrcClient(asynchat.async_chat):
 
         if source[:1] == ':':
             source = source[1:]
+
+        self.check_mtags_present(line, mtags, source, e)
 
         #command = handlers.handler.Command(source, prefix, cmd, e)
         #handler = handlers.handler.HandlerFactory.handler_for_command(command)
