@@ -1,0 +1,26 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.joinall(chan, creator = c1a, skip = c3a)
+m.expect(c1a, "first user in channel", ":c1a.*JOIN")
+m.expect(c2a, "second user in channel", ":c2a.*JOIN")
+print
+
+m.send(c1a, "MODE " + chan + " +R")
+m.expect(c2a, "MODE +R", ":c1a.*MODE.*\+R")
+print
+
+m.send(c3a, "JOIN " + chan)
+m.expect(c3a, "unable to join with +R (numeric 477)", "477.*need.*registered")
+m.not_expect(c1a, "should not see JOIN for user if +R", ":c3a.*JOIN")
+print
+m.clearlog()
+
+print 'TODO: test JOIN with registered user (should pass)'
