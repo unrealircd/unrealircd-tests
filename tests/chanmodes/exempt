@@ -1,0 +1,29 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.joinall(chan, skip = c3a, creator=c1a)
+m.expect(c1a, "users in channel", "JOIN")
+print
+
+m.send(c1a, "MODE " + chan + " +b c3a*!*@*")
+m.send(c3a, "JOIN " + chan)
+m.expect(c3a, "unable to join if banned (474 error)", "474.*Cannot join")
+m.not_expect(c1a, "unable to join if banned (no JOIN)", ":c3a.*JOIN")
+m.clearlog()
+print
+
+m.send(c1a, "MODE " + chan + " +e c3a*!*@*")
+m.expect(c2a, "MODE +e", ":c1a.*MODE")
+print
+
+m.send(c3a, "JOIN " + chan)
+m.not_expect(c3a, "can join if exempt (should be no 474 error)", "474.*Cannot join")
+m.expect(c1a, "can join if exempt (JOIN)", ":c3a.*JOIN")
+print
