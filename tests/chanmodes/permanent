@@ -1,0 +1,38 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.send(c1a, "JOIN " + chan)
+m.expect(c1a, "user in channel", ":c1a.*JOIN")
+print
+
+m.send(c1a, "MODE " + chan + " +P")
+m.expect(c1a, "cannot set +P if not IRCOp", "481.*IRC operator")
+m.not_expect(c2a, "no MODE +P if not IRCOp", ":c1a.*MODE.*\+P")
+m.clearlog()
+print
+
+m.send(c1a, "OPER netadmin test")
+m.send(c1a, "MODE " + chan + " +TP")
+m.send(c1a, "MODE " + chan + " +beI ban!*@* exempt!*@* invex!*@*")
+m.expect(c1a, "MODE +TP", "MODE.*\+TP")
+m.expect(c1a, "MODE +beI", "MODE.*\+beI")
+m.clearlog()
+print
+
+m.send(c1a, "PART " + chan)
+m.joinall(chan, creator=c2a)
+m.sendall("MODE " + chan)
+m.sendall("MODE " + chan + " b")
+m.sendall("MODE " + chan + " e")
+m.sendall("MODE " + chan + " I")
+m.expect_all("MODE +TP should be set after rejoin", "324.*\+TP")
+m.expect_all("ban should be set after rejoin", "367.*ban!")
+m.expect_all("exempts should be set after rejoin", "348.*exempt!")
+m.expect_all("invexes should be set after rejoin", "346.*invex!")
