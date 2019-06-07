@@ -1,0 +1,28 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.joinall(chan, creator = c2a)
+m.expect(c1a, "users in channel", "JOIN")
+print
+
+m.send(c1a, "NOTICE " + chan + " :this is a notice")
+m.not_expect(c1a, "should allow NOTICE (no 404 numeric) with -T", " 404 .*NOTICEs are not permitted")
+m.expect(c3a, "should allow NOTICE with -T", ":c1a.*NOTICE.*:this is a notice")
+print
+m.clearlog()
+
+m.send(c2a, "MODE " + chan + " +T")
+m.expect(c1a, "MODE +T", ":c2a.*MODE.*\+T")
+print
+
+m.send(c1a, "NOTICE " + chan + " :this is a notice")
+m.expect(c1a, "should block NOTICE (404 numeric) with +T", " 404 .*NOTICEs are not permitted")
+m.not_expect(c3a, "should block NOTICE with +T", ":c1a.*NOTICE.*:this is a notice")
+print

@@ -1,0 +1,39 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.joinall(chan, creator = c2a)
+m.expect(c1a, "users in channel", "JOIN")
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :\0034this is red\003")
+m.not_expect(c1a, "should not block color in messages (no 404 numeric) with -c", " 404 .*Color is not permitted")
+m.expect(c3a, "should not block color in messages with -c", ":c1a.*PRIVMSG.*\0034this is red")
+m.clearlog()
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :\0026this is reverse\003")
+m.not_expect(c1a, "should not block reverse in messages (no 404 numeric) with -c", " 404 .*Color is not permitted")
+m.expect(c3a, "should not block reverse in messages with -c", ":c1a.*PRIVMSG.*\0026this is reverse")
+m.clearlog()
+print
+
+m.send(c2a, "MODE " + chan + " +c")
+m.expect(c1a, "MODE +c", ":c2a.*MODE.*\+c")
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :\0034this is red\003")
+m.expect(c1a, "should block color in messages (404 numeric) with +c", " 404 .*Color is not permitted")
+m.not_expect(c3a, "should block color in messages with +c", ":c1a.*PRIVMSG.*this is red")
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :\026this is reverse\026")
+m.expect(c1a, "should block reverse in messages (404 numeric) with +c", " 404 .*Color is not permitted")
+m.not_expect(c3a, "should block reverse in messages with +c", ":c1a.*PRIVMSG.*:this is reverse")
+print

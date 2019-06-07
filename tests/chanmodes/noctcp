@@ -1,0 +1,28 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.joinall(chan, creator = c2a)
+m.expect(c1a, "users in channel", "JOIN")
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :\001VERSION\001")
+m.not_expect(c1a, "should not block CTCP (no 404 numeric) with -C", " 404 .*CTCPs are not permitted")
+m.expect(c3a, "should not block CTCP with -C", ":c1a.*PRIVMSG.*VERSION")
+m.clearlog()
+print
+
+m.send(c2a, "MODE " + chan + " +C")
+m.expect(c1a, "MODE +c", ":c2a.*MODE.*\+C")
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :\001VERSION\001")
+m.expect(c1a, "should block CTCP (expect 404 numeric) with +C", " 404 .*CTCPs are not permitted")
+m.not_expect(c3a, "should block CTCP with +C", ":c1a.*PRIVMSG.*VERSION")
+print
