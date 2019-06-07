@@ -1,0 +1,22 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.joinall(chan, creator = c2a)
+m.expect(c1a, "users in channel", "JOIN")
+print
+
+m.send(c2a, "MODE " + chan + " +Q")
+m.expect(c1a, "MODE +Q", ":c2a.*MODE.*\+Q")
+print
+
+m.send(c2a, "KICK " + chan + " $c3a")
+m.expect(c2a, "Expect 972 error numeric on /KICK", " 972.*channel is")
+m.not_expect(c1a, "Should be no KICK event", ":c2a.*KICK")
+print

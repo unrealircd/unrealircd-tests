@@ -14,6 +14,7 @@ class IrcTest(asynchat.async_chat):
         self.clients = {}
         self.syncchan = "#__SYNC__" + ''.join(random.choice(string.ascii_lowercase) for _ in range(8))
 #        self.syncchan = "#sync_" + ''.join(random.choice(string.ascii_lowercase) for _ in range(8))
+        self.sync = 1
     
     def new(self, name):
         # TODO: move to config ;)
@@ -83,12 +84,16 @@ class IrcTest(asynchat.async_chat):
         self.multisync()
 
     def sync(self):
+        if self.sync == 0:
+            return
         self.start_sync()
         # Then run this:
         while(not self.synced()):
             asyncore.loop(count=1, timeout=0.1)
 
     def multisync(self):
+        if self.sync == 0:
+            return
         self.start_sync()
         cnt=0
         while(not self.multisynced()):

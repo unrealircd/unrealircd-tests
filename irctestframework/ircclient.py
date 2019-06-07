@@ -164,6 +164,12 @@ class IrcClient(asynchat.async_chat):
                         nick = nick[1:]
                     self.recvd_syncers[nick] = 1
 
+        if cmd == 'NICK':
+            sourcenick = source.split("!")[0]
+            if sourcenick == self.nick:
+                # Nick change (self)
+                self.nick = e[1]
+
         # Clear
         self.data_in = ''
 
