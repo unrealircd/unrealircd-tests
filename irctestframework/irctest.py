@@ -105,7 +105,6 @@ class IrcTest(asynchat.async_chat):
                         (mtags, line) = full_line.split(" ", 1)
                     else:
                         line = full_line
-                    print 'L: ' + line
                     if not line in all_msgs:
                         all_msgs[line] = {}
                     all_msgs[line][name] = full_line
