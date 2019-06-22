@@ -13,6 +13,11 @@ mkdir logs
 mkdir logs/success
 mkdir logs/failure
 
+if [ "$1" = "-single" ]; then
+	MAXPARALLEL=1
+	shift
+fi
+
 if [ "$1" = "-boot" -o "$1" = "" ]; then
 	shift
 
