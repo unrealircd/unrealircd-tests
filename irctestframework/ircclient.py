@@ -92,6 +92,7 @@ class IrcClient(asynchat.async_chat):
             if not "msgid=" in mtags:
                 print "\033[1mMissing mandatory message-tag 'msgid' in channel event\033[0m"
                 print "Line :" + line
+                print
                 raise Exception("Missing 'msgid' in channel event")
         return
 

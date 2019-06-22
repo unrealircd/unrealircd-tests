@@ -23,6 +23,5 @@ m.expect(c1a, "MODE +T", ":c2a.*MODE.*\+T")
 print
 
 m.send(c1a, "NOTICE " + chan + " :this is a notice")
-m.expect(c1a, "should block NOTICE (404 numeric) with +T", " 404 .*NOTICEs are not permitted")
 m.not_expect(c3a, "should block NOTICE with +T", ":c1a.*NOTICE.*:this is a notice")
 print
