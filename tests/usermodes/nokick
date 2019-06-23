@@ -1,0 +1,23 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, creator = c3a)
+m.expect(c1a, "users in channel", "JOIN")
+print
+
+m.send(c1a, "OPER netadmin test")
+m.send(c1a, "MODE $c1a +q")
+m.expect(c1a, "MODE set", "MODE $c1a :\+q")
+print
+
+m.send(c3a, "KICK " + chan + " $c1a")
+m.expect(c3a, "Expect 972 error numeric on /KICK", "972.*user is unkickable")
+m.not_expect_all("Should be no KICK event", ":c2a.*KICK")
+print
