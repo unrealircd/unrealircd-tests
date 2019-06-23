@@ -1,0 +1,18 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send(c1a, "OPER netadmin test")
+m.send(c1a, "MODE $c1a +W")
+m.expect(c1a, "MODE set", "MODE $c1a :\+W")
+print
+
+m.send_all("WHOIS $c1a", skip = c1a)
+m.expect(c1a, "Should see a NOTICE on /WHOIS (1 of 2)", "c2a.*did a \/whois on you")
+m.expect(c1a, "Should see a NOTICE on /WHOIS (2 of 2)", "c3a.*did a \/whois on you")
+print
