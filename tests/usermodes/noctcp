@@ -1,0 +1,31 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send(c1a, "MODE $c1a +T")
+m.expect(c1a, "MODE set", "MODE $c1a :\+T")
+print
+
+m.send_all("PRIVMSG $c1a :\001CTCPTEST\001", skip = c1a)
+m.expect_all("Error indicating CTCP was blocked (numeric 492)", "492.*$c1a does not accept CTCP", skip = c1a)
+print
+
+m.send_all("PRIVMSG $c1a :aa sunshine bb", skip = c1a)
+m.expect(c1a, "should not block regular text with +T (1 of 2)", ":c2a.*PRIVMSG.*aa sunshine bb")
+m.expect(c1a, "should not block regular text with +T (2 of 2)", ":c3a.*PRIVMSG.*aa sunshine bb")
+print
+
+m.send(c1a, "MODE $c1a -T")
+m.expect(c1a, "MODE unset", "MODE $c1a :-T")
+print
+m.clearlog()
+
+m.send_all("PRIVMSG $c1a :\001CTCPTEST\001", skip = c1a)
+m.expect(c1a, "should not block CTCPs with -T (1 of 2)", ":c2a.*PRIVMSG.*\001CTCPTEST\001")
+m.expect(c1a, "should not block CTCPs with -T (2 of 2)", ":c3a.*PRIVMSG.*\001CTCPTEST\001")
+print
