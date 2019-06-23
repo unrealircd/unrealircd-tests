@@ -8,7 +8,7 @@ c3a = m.new('c3a')
 m.connect()
 
 chan = m.randchan()
-m.joinall(chan)
+m.join_all(chan)
 m.expect(c1a, "users in channel", "JOIN")
 print
 

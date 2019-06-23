@@ -10,7 +10,7 @@ m.connect()
 m.send(c3a, "MODE $c3a +x")
 
 chan = m.randchan()
-m.joinall(chan)
+m.join_all(chan)
 m.expect(c1a, "users in channel", "JOIN")
 print
 

@@ -17,7 +17,7 @@ print
 # Now join the rest
 # Actually c1a is the actual creator (see above),
 # we just use creator=c2a here to force c2a to be second user :)
-m.joinall(chan, creator = c2a)
+m.join_all(chan, creator = c2a)
 m.send(c2a, "JOIN " + chan)
 m.send(c3a, "JOIN " + chan)
 m.send(c3b, "JOIN " + chan)

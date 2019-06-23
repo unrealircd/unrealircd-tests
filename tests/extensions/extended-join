@@ -9,7 +9,7 @@ m.connect()
 
 chan = m.randchan()
 m.send(c1a, "CAP REQ extended-join")
-m.joinall(chan, skip = c1a, creator=c1a)
+m.join_all(chan, skip = c1a, creator=c1a)
 m.expect(c1a, "users in channel", "JOIN")
 m.expect(c1a, "CAP extended-join should result in extended join (1-hop)", ":c2a.*JOIN.*:Test framework")
 m.expect(c1a, "CAP extended-join should result in extended join (2-hops)", ":c3a.*JOIN.*:Test framework")

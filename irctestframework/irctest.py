@@ -145,14 +145,14 @@ class IrcTest(asynchat.async_chat):
         client.out(message)
         self.multisync()
 
-    def sendall(self, message, skip = None):
+    def send_all(self, message, skip = None):
         message = self.replacestr(message)
         for name,obj in self.clients.iteritems():
             if obj != skip:
                 obj.out(message)
         self.multisync()
 
-    def joinall(self, chan, skip = None, creator = None):
+    def join_all(self, chan, skip = None, creator = None):
         if creator != None:
             # Ensure this user joins first and has ops
             creator.out("JOIN " + chan)
