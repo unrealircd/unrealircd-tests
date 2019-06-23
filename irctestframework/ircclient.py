@@ -113,14 +113,24 @@ class IrcClient(asynchat.async_chat):
     def collect_incoming_data(self, data):
         self.data_in += data
 
+    def hide_sync_data_check(self, str):
+        if not self.hide_sync:
+            return False
+        if not "__SYNC__" in str:
+            return False
+        # So, there's __SYNC__ in it, but only filter certain stuff:
+        if any(x in str for x in ('JOIN', 'QUIT', 'PRIVMSG', 'MODE')):
+            return True
+        return False
+
     def found_terminator(self):
         # Log
-        if not self.hide_sync or not "__SYNC__" in self.data_in:
+        if not self.hide_sync_data_check(self.data_in):
             if not self.hide_handshake or self.ready == 1:
                 self.log("<<" + self.name + " " + self.data_in)
 
         # ..
-        if not "__SYNC__" in self.data_in and self.ready == 1:
+        if self.ready == 1 and not self.hide_sync_data_check(self.data_in):
             self.all_lines.append(self.data_in)
 
         # Parser
