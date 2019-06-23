@@ -1,0 +1,35 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send(c1a, "MODE $c1a +G")
+m.expect(c1a, "MODE set", "MODE $c1a :\+G")
+print
+
+m.send(c2a, "PRIVMSG $c1a :aa fucked bb")
+m.send(c3a, "PRIVMSG $c1a :aa fucked bb")
+m.expect(c1a, "should censor badwords with +G", ":c2a.*PRIVMSG.*aa <censored> bb")
+m.expect(c1a, "should censor badwords with +G", ":c3a.*PRIVMSG.*aa <censored> bb")
+print
+
+m.send(c2a, "PRIVMSG $c1a :aa sunshine bb")
+m.send(c3a, "PRIVMSG $c1a :aa sunshine bb")
+m.expect(c1a, "should not censor non-badwords with +G", ":c2a.*PRIVMSG.*aa sunshine bb")
+m.expect(c1a, "should not censor non-badwords with +G", ":c3a.*PRIVMSG.*aa sunshine bb")
+print
+
+m.send(c1a, "MODE $c1a -G")
+m.expect(c1a, "MODE unset", "MODE $c1a :-G")
+print
+m.clearlog()
+
+m.send(c2a, "PRIVMSG $c1a :aa fucked bb")
+m.send(c3a, "PRIVMSG $c1a :aa fucked bb")
+m.expect(c1a, "should not censor badwords with -G", ":c2a.*PRIVMSG.*aa fucked bb")
+m.expect(c1a, "should not censor badwords with -G", ":c3a.*PRIVMSG.*aa fucked bb")
+print
