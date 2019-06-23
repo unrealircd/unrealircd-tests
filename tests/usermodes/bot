@@ -1,0 +1,16 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+
+m.send(c1a, "MODE $c1a +B")
+m.send_all("WHOIS $c1a")
+m.expect(c1a, "MODE set", "MODE $c1a :\+B")
+m.expect(c1a, "Receive BOTMOTD", "BOTMOTD")
+m.expect_all("Show bot status in /WHOIS", "is a.*Bot.*on")
+print
