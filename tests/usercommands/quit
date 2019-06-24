@@ -1,0 +1,26 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a)
+m.expect(c1a, "user in channel", "JOIN")
+print
+
+# Need to disable the auto-syncer here due to 1 client disappearing.
+m.sync = 0
+
+m.send(c3a, "QUIT :goodbye")
+m.expect(c3a, "Quiting user should see a closing link message", "ERROR :Closing Link.*Quit", timeout = 10);
+m.expect_all("Other clients should see user leaving", ":c3a.* QUIT :", timeout = 10, skip = c3a);
+m.clearlog()
+print
+
+m.send_all("NAMES " + chan, skip = c1a)
+m.not_expect_all("Parted user should no longer be in channel", "353.*" + chan + " :.*$c3a", skip = c1a);
+print
