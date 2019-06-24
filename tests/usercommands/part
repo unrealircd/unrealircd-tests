@@ -1,0 +1,22 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a)
+m.expect(c1a, "user in channel", "JOIN")
+print
+
+m.send(c3a, "PART " + chan)
+m.expect_all("Everyone should see user leaving", ":c3a.*PART.*");
+m.clearlog()
+print
+
+m.send_all("NAMES " + chan)
+m.not_expect_all("Parted user should no longer be in channel", "353.*" + chan + " :.*$c3a");
+print

@@ -1,0 +1,21 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a)
+m.expect(c1a, "see others joining (1 of 2)", ":c2a.*JOIN")
+m.expect(c1a, "see others joining (2 of 2)", ":c3a.*JOIN")
+m.clearlog()
+print
+
+m.send_all("NAMES " + chan)
+m.expect_all("Creator should have ops", "353.*@$c1a");
+m.expect_all("2nd user should not have ops", "353.*[^@]$c2a");
+m.expect_all("3rd user should not have ops", "353.*[^@]$c3a");
+print
