@@ -1,0 +1,46 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+# Yeah there's some overlap between this and the chanmode +i test.
+# This one actually tests the INVITE command, in different ways too.
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a, skip = c3a)
+m.expect(c1a, "first user in channel", ":c1a.*JOIN")
+m.expect(c2a, "second user in channel", ":c2a.*JOIN")
+print
+
+m.send(c2a, "INVITE $c3a " + chan)
+m.expect(c2a, "Should receive 341 numeric about succesful invite (non-op-invite)", " 341 $c2a $c3a " + chan)
+m.expect(c3a, "Recipient should see the INVITE (non-op-invite)", ":$c2a.* INVITE $c3a :" + chan)
+m.clearlog()
+print
+
+m.send(c1a, "MODE " + chan + " +i")
+m.expect(c2a, "MODE +i", ":c1a.*MODE.*\+i")
+print
+
+m.send(c3a, "JOIN " + chan)
+m.expect(c3a, "unable to join with +i (numeric 473)", "473.*Cannot join channel.*\+i")
+m.not_expect(c1a, "should not see JOIN for user if +i", ":c3a.*JOIN")
+print
+m.clearlog()
+
+m.send(c1a, "INVITE $c3a " + chan)
+m.expect(c1a, "Should receive 341 numeric about succesful invite", " 341 $c1a $c3a " + chan)
+m.expect(c3a, "Recipient should see the INVITE", ":$c1a.* INVITE $c3a :" + chan)
+m.clearlog()
+print
+
+m.send(c3a, "JOIN " + chan)
+m.not_expect(c3a, "no numeric 473", "473.*Cannot join channel.*\+i")
+m.expect_all("should see JOIN for /INVITE'd user", ":c3a.*JOIN")
+print
+m.clearlog()
+

@@ -1,0 +1,114 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+# Contrary to the channel mode specific mode tests, this tests the MODE
+# command itself, if it eats the correct parameter, broadcasts it corectly, etc.
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a)
+m.expect(c1a, "user in channel", "JOIN")
+print
+
+m.send(c1a, "MODE " + chan + " +slk 11 22")
+m.expect_all("Everyone should see MODE change #1", ":$c1a.* MODE " + chan + " \+slk 11 22")
+m.clearlog()
+print
+
+m.send_all("MODE " + chan)
+m.expect_all("Verify modes set, via MODE #chan, after #1", " 324 .* " + chan + " \+slk 11 22")
+m.clearlog()
+print
+
+m.send(c1a, "MODE " + chan + " -l")
+m.expect_all("Everyone should see MODE change #2", ":$c1a.* MODE " + chan + " \-l")
+m.clearlog()
+print
+
+m.send_all("MODE " + chan)
+m.expect_all("Verify modes set, via MODE #chan, after #2", " 324 .* " + chan + " \+sk 22")
+m.clearlog()
+print
+
+m.send(c1a, "MODE " + chan + " -k+f dummy [5t]:10")
+m.expect_all("Everyone should see MODE change #3", ":$c1a.* MODE " + chan + " \-k\+f 22 \[5t\]:10")
+m.clearlog()
+print
+
+m.send_all("MODE " + chan)
+m.expect_all("Verify modes set, via MODE #chan, after #3", " 324 .* " + chan + " \+sf \[5t\]:10")
+m.clearlog()
+print
+
+# Collapsed will only process the first parameter (set in this case) and ignore the other changes
+m.send(c1a, "MODE " + chan + " +k-k+k one two three")
+m.expect_all("Everyone should see collapsed MODE change #4", ":$c1a.* MODE " + chan + " \+k one")
+m.clearlog()
+print
+
+m.send_all("MODE " + chan)
+m.expect_all("Verify modes set, via MODE #chan, after #4", " 324 .* " + chan + " \+skf one \[5t\]:10")
+m.clearlog()
+print
+
+# Collapased will only process the first parameter (unset in this case) and ignore the other changes
+m.send(c1a, "MODE " + chan + " -f+f-f+f [1t]:10 [2t]:10 [3t]:10 [4t]:10")
+m.expect_all("Everyone should see collapsed MODE change #5", ":$c1a.* MODE " + chan + " -f \[5t\]:10")
+m.clearlog()
+print
+
+m.send_all("MODE " + chan)
+m.expect_all("Verify modes set, via MODE #chan, after #5", " 324 .* " + chan + " \+sk one")
+m.clearlog()
+print
+
+m.send(c1a, "MODE #nonexistant")
+m.expect(c1a, "MODE query request for non-existant channel should return 401 numeric", "401.*No such nick\/channel")
+m.clearlog()
+print
+
+m.send(c1a, "MODE #nonexistant +k key")
+m.expect(c1a, "MODE set request for non-existant channel should return 401 numeric", "401.*No such nick\/channel")
+m.clearlog()
+print
+
+m.send(c1a, "MODE $c1a +r")
+m.not_expect(c1a, "Shouldn't be able to set +r on yourself", "MODE.*\+r")
+m.clearlog()
+print
+
+m.send(c1a, "MODE $c1a +z")
+m.not_expect(c1a, "Shouldn't be able to set +z on yourself", "MODE.*\+z")
+m.clearlog()
+print
+
+m.send(c1a, "MODE $c1a +t")
+m.not_expect(c1a, "Shouldn't be able to set +t on yourself", "MODE.*\+t")
+m.clearlog()
+print
+
+m.send(c1a, "MODE $c1a +o")
+m.not_expect(c1a, "Shouldn't be able to set +o on yourself", "MODE.*\+o")
+m.clearlog()
+print
+
+m.send(c1a, "MODE $c1a +S")
+m.not_expect(c1a, "Shouldn't be able to set +S on yourself", "MODE.*\+S")
+m.clearlog()
+print
+
+m.send(c1a, "MODE $c1a +p")
+m.expect(c1a, "Should be able to set +p on yourself", "MODE.*\+p")
+m.clearlog()
+print
+
+m.send(c1a, "MODE $c1a +GT")
+m.expect(c1a, "Should be able to set multiple modes on yourself (+GT)", "MODE.*\+GT")
+m.clearlog()
+print
+
