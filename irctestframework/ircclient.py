@@ -10,8 +10,6 @@ class IrcClient(asynchat.async_chat):
     def __init__(self, (host, port), name, color, syncchan):
         asynchat.async_chat.__init__(self)
         self.set_terminator('\r\n')
-        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connect((host, port))
         self.data_in = ''
         self.name = name
         self.nick = name + '_' + ''.join(random.choice(string.ascii_lowercase) for _ in range(8))
@@ -25,6 +23,8 @@ class IrcClient(asynchat.async_chat):
         self.recvd_syncers = {}
         self.all_lines = []
         self.log("[Client " + self.nick + " on " + host + ":" + str(port) + "]")
+        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.connect((host, port))
 
     def bgcolor(self, name):
         if name[2:3] == 'a':
