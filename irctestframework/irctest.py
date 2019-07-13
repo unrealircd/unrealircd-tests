@@ -3,6 +3,7 @@ import asyncore
 import socket
 import string
 import random
+import re
 import time
 
 import ircclient
@@ -116,7 +117,7 @@ class IrcTest(asynchat.async_chat):
                     if not first:
                         first = full_line
                     else:
-                        if first != full_line:
+                        if self.inconsistent_lines(first, full_line):
                             print
                             print '\033[1mInconsistent message-tag use accross server links:\033[0m'
                             print 'Line (bare): ' + commonline
@@ -125,6 +126,18 @@ class IrcTest(asynchat.async_chat):
                                 self.clients[name].log('Client ' + name + ': '  + full_line)
 
                             raise Exception('mtags: possible mismatch (by verify_mtags_consistency)')
+
+    def inconsistent_lines(self, firstline, secondline):
+        # It is no longer this easy...
+        # if firstline != secondline:
+        #     return 1
+        # ..as, for example on msg playback, a batch may be started.
+        # So we filter out batch=xyz; here:
+        firstline = re.sub("batch=[^; ]+;*", "", firstline)
+        secondline = re.sub("batch=[^; ]+;*", "", secondline)
+        if firstline != secondline:
+            return 1
+        return 0
 
     def multisync(self):
         if self.sync == 0:
