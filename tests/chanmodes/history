@@ -11,6 +11,7 @@ c3b = m.new('c3b')
 m.connect()
 
 m.send_all("CAP REQ server-time")
+m.send(c3a, "CAP REQ batch")
 print
 
 chan = m.randchan()
@@ -35,27 +36,40 @@ m.send(c2a, "PRIVMSG " + chan + " :seven")
 m.send(c2a, "PRIVMSG " + chan + " :eight")
 m.send(c2a, "PRIVMSG " + chan + " :nine fuck") # will be stripped
 m.send(c2a, "PRIVMSG " + chan + " :ten")
-m.expect(c2a, "Message with stripped color", "PRIVMSG .*:red two");
-m.not_expect(c1a, "Message with censored message", "PRIVMSG.*nine fuck");
+m.expect(c2a, "Message with stripped color", "PRIVMSG .*:red two")
+m.not_expect(c1a, "Message with censored message", "PRIVMSG.*nine fuck")
 print
 
 m.send(c1b, "JOIN " + chan)
 m.expect(c1b, "new user joining channel (same server)", "JOIN")
 m.expect(c1b, "history playback: 1st message", ":c1a.* PRIVMSG .* :one")
 m.expect(c1b, "history playback: 2nd message should have colors stripped", ":c1a.* PRIVMSG .* :red two")
-m.expect(c1b, "history playback: 9th message is altered", ":c2a.* PRIVMSG.*nine <censored>");
-m.expect(c1b, "history playback: 10th message", ":c2a.* PRIVMSG .* :ten");
-m.not_expect(c1b, "history playback: should not see wrapped message (message zero)", "PRIVMSG.*should be wrapped");
+m.expect(c1b, "history playback: 9th message is altered", ":c2a.* PRIVMSG.*nine <censored>")
+m.expect(c1b, "history playback: 10th message", ":c2a.* PRIVMSG .* :ten")
+m.not_expect(c1b, "history playback: should not see wrapped message (message zero)", "PRIVMSG.*should be wrapped")
+m.not_expect(c1b, "playback should not see a BATCH if not supported", ".*BATCH.*")
 # do not clear here, so we can see any potential inconsistency with the other playback..
 print
 
 m.send(c3a, "JOIN " + chan)
 m.expect(c3a, "new user joining channel (far server)", "JOIN")
+m.expect(c3a, "should start a BATCH", " BATCH \+[^ ]+ chathistory " + chan)
 m.expect(c3a, "history playback: 1st message", ":c1a.* PRIVMSG .* :one")
 m.expect(c3a, "history playback: 2nd message should have colors stripped", ":c1a.* PRIVMSG .* :red two")
-m.expect(c3a, "history playback: 9th message is altered", ":c2a.* PRIVMSG.*nine <censored>");
-m.expect(c3a, "history playback: 10th message", ":c2a.* PRIVMSG .* :ten");
-m.not_expect(c3a, "history playback: should not see wrapped message (message zero)", "PRIVMSG.*should be wrapped");
+m.expect(c3a, "history playback: 9th message is altered", ":c2a.* PRIVMSG.*nine <censored>")
+m.expect(c3a, "history playback: 10th message", ":c2a.* PRIVMSG .* :ten")
+m.expect(c3a, "all playback should be wrapped in a batch (1 of 10)", ".*batch=.+ PRIVMSG .* :one")
+m.expect(c3a, "all playback should be wrapped in a batch (2 of 10)", ".*batch=.+ PRIVMSG .* :red two")
+m.expect(c3a, "all playback should be wrapped in a batch (3 of 10)", ".*batch=.+ PRIVMSG .* :three")
+m.expect(c3a, "all playback should be wrapped in a batch (4 of 10)", ".*batch=.+ PRIVMSG .* :four")
+m.expect(c3a, "all playback should be wrapped in a batch (5 of 10)", ".*batch=.+ PRIVMSG .* :five")
+m.expect(c3a, "all playback should be wrapped in a batch (6 of 10)", ".*batch=.+ PRIVMSG .* :six")
+m.expect(c3a, "all playback should be wrapped in a batch (7 of 10)", ".*batch=.+ PRIVMSG .* :seven")
+m.expect(c3a, "all playback should be wrapped in a batch (8 of 10)", ".*batch=.+ PRIVMSG .* :eight")
+m.expect(c3a, "all playback should be wrapped in a batch (9 of 10)", ".*batch=.+ PRIVMSG .* :nine <censored>")
+m.expect(c3a, "all playback should be wrapped in a batch (10 of 10)", ".*batch=.+ PRIVMSG .* :ten")
+m.not_expect(c3a, "history playback: should not see wrapped message (message zero)", "PRIVMSG.*should be wrapped")
+m.expect(c3a, "should end the BATCH", " BATCH -[^ ]+")
 print
 
 time.sleep(6)
