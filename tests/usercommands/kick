@@ -13,10 +13,10 @@ m.expect(c1a, "user in channel", "JOIN")
 print
 
 m.send(c1a, "KICK " + chan + " $c3a :go away plz")
-m.expect_all("Everyone should see user leaving", ":$c1a.*KICK.*" + chan + ".*$c3a :go away plz");
+m.expect_all("Everyone should see user leaving", ":$c1a.*KICK.*" + chan + ".*$c3a :go away plz")
 m.clearlog()
 print
 
 m.send_all("NAMES " + chan)
-m.not_expect_all("Kicked user should no longer be in channel", "353.*" + chan + " :.*$c3a");
+m.not_expect_all("Kicked user should no longer be in channel", "353.*" + chan + " :.*$c3a")
 print

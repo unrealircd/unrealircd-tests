@@ -15,7 +15,7 @@ m.clearlog()
 print
 
 m.send_all("NAMES " + chan)
-m.expect_all("Creator should have ops", "353.*@$c1a");
-m.expect_all("2nd user should not have ops", "353.*[^@]$c2a");
-m.expect_all("3rd user should not have ops", "353.*[^@]$c3a");
+m.expect_all("Creator should have ops", "353.*@$c1a")
+m.expect_all("2nd user should not have ops", "353.*[^@]$c2a")
+m.expect_all("3rd user should not have ops", "353.*[^@]$c3a")
 print

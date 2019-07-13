@@ -16,11 +16,11 @@ print
 m.sync = 0
 
 m.send(c3a, "QUIT :goodbye")
-m.expect(c3a, "Quiting user should see a closing link message", "ERROR :Closing Link.*Quit", timeout = 10);
-m.expect_all("Other clients should see user leaving", ":c3a.* QUIT :", timeout = 10, skip = c3a);
+m.expect(c3a, "Quiting user should see a closing link message", "ERROR :Closing Link.*Quit", timeout = 10)
+m.expect_all("Other clients should see user leaving", ":c3a.* QUIT :", timeout = 10, skip = c3a)
 m.clearlog()
 print
 
 m.send_all("NAMES " + chan, skip = c1a)
-m.not_expect_all("Parted user should no longer be in channel", "353.*" + chan + " :.*$c3a", skip = c1a);
+m.not_expect_all("Parted user should no longer be in channel", "353.*" + chan + " :.*$c3a", skip = c1a)
 print
