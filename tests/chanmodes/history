@@ -72,7 +72,7 @@ m.not_expect(c3a, "history playback: should not see wrapped message (message zer
 m.expect(c3a, "should end the BATCH", " BATCH -[^ ]+")
 print
 
-time.sleep(6)
+time.sleep(8)
 m.send(c3b, "JOIN " + chan)
 m.expect(c3b, "new user joining channel (far server, after history expire)", "JOIN")
 m.not_expect(c3b, "should not see any history (expired)", ".*PRIVMSG.*")
