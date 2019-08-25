@@ -1,0 +1,112 @@
+#!/bin/bash
+if [ "$MAXPARALLEL" = "" ]; then
+	MAXPARALLEL="25"
+fi
+TIMEOUT="40"
+
+UNREALIRCDDIR="/c/Program Files/UnrealIRCd 5"
+
+# Stupid? Yes!
+find tests/ -type f -exec sed -i -e 's/\#\!\/usr\/bin\/python/\#\!\/c\/Python27\/python/g' {} \;
+
+export PYTHONPATH="`pwd`"
+export PYTHONIOENCODING=utf-8
+export TIMEOUT
+
+rm -rf logs
+mkdir logs
+mkdir logs/success
+mkdir logs/failure
+
+if [ "$1" = "-single" ]; then
+	MAXPARALLEL=1
+	shift
+fi
+
+if [ "$1" = "-boot" -o "$1" = "" ]; then
+	shift
+
+	# Boot the ircd
+	echo "Booting IRC server..."
+	taskkill -im unrealircd.exe -f
+	sleep 1
+	cp -av ircdconfig/* "$UNREALIRCDDIR/conf/" || exit 1
+	cd "$UNREALIRCDDIR/bin" || exit 1
+	echo "Now in:"
+	pwd
+	./unrealircd -f irc2.conf&
+	./unrealircd -f irc1.conf&
+	./unrealircd -f irc3.conf&
+	sleep 10
+	cd -
+	
+	timeout --kill-after=5 --signal=INT 10 tests/_pre_test || (echo "Linking failed"; exit 1)
+	echo
+fi
+
+if [ "$1" = "" ]; then
+	# Run all tests:
+	echo "Running all tests in parallel..."
+	find tests -type f|grep -vF '~'|grep -vF _pre_test|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+	#wait
+	#this is annoying: 'wait' will also wait for unrealircd.exe to stop,
+	#which hopefully will never happen, so we sleep instead:
+	sleep 45
+	taskkill -im unrealircd.exe -f
+else
+	# Run specific tests:
+	echo "Running specific tests by user request..."
+	for f in $*
+	do
+		irctestframework/wrapper $f
+	done
+fi
+
+cd logs/success
+echo
+echo "==================================================================================================="
+echo ">>> SUCCESFUL TESTS"
+for f in *.log
+do
+	name="`echo $f|sed 's/__/\//g'|sed 's/\.log//g'`"
+	if [ "$f" == "*.log" ]; then
+		continue
+	fi
+	echo -e "\u2714 $name"
+done
+cd - 1>/dev/null 2>&1
+echo "==================================================================================================="
+
+failed=0
+cd logs/failure
+for f in *.log
+do
+	name="`echo $f|sed 's/__/\//g'|sed 's/\.log//g'`"
+	if [ "$f" == "*.log" ]; then
+		continue
+	fi
+	echo
+	echo "==================================================================================================="
+	echo ">>> FAILED TEST: $name"
+	cat $f
+	echo "==================================================================================================="
+	echo
+	failed=1
+done
+
+if [ "$failed" = 1 ]; then
+	echo
+	echo "======[ SUMMARY ]======"
+	for f in *.log
+	do
+		name="`echo $f|sed 's/__/\//g'|sed 's/\.log//g'`"
+		if [ "$f" == "*.log" ]; then
+			continue
+		fi
+		echo "TEST FAILED: $name"
+	done
+fi
+
+cd - 1>/dev/null 2>&1
+
+exit $failed
