@@ -27,6 +27,7 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	sleep 1
 	cp -av ircdconfig/* ~/unrealircd/conf/ || exit 1
 	cd ~/unrealircd/ || exit 1
+	mv data/channeldb.db data/channel.db.$$ 1>/dev/null 2>&1
 	bin/unrealircd -f irc2.conf
 	bin/unrealircd -f irc1.conf
 	bin/unrealircd -f irc3.conf
