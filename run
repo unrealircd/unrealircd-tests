@@ -7,6 +7,7 @@ TIMEOUT="40"
 export PYTHONPATH="`pwd`:$PYTHONPATH"
 export PYTHONIOENCODING=utf-8
 export TIMEOUT
+export ASAN_OPTIONS=abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
 
 rm -rf logs
 mkdir logs
