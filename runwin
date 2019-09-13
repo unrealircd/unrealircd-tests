@@ -110,6 +110,6 @@ fi
 cd - 1>/dev/null 2>&1
 
 taskkill -im unrealircd.exe -f
-taskkill -im python.exe -f
+rem taskkill -im python.exe -f
 
 exit $failed
