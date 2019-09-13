@@ -49,8 +49,8 @@ if [ "$1" = "" ]; then
 	echo "Running all tests in parallel..."
 	find tests -type f|grep -vF '~'|grep -vF _pre_test|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
 	#wait
-	#this is annoying: 'wait' will also wait for unrealircd.exe to stop,
-	#which hopefully will never happen, so we sleep instead:
+	#^ this is annoying: 'wait' will also wait for unrealircd.exe to stop,
+	#  which hopefully will never happen, so we sleep instead:
 	sleep 45
 	taskkill -im unrealircd.exe -f
 else
@@ -108,5 +108,8 @@ if [ "$failed" = 1 ]; then
 fi
 
 cd - 1>/dev/null 2>&1
+
+taskkill -im unrealircd.exe -f
+taskkill -im python.exe -f
 
 exit $failed
