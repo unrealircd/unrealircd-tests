@@ -16,6 +16,7 @@ class IrcTest(asynchat.async_chat):
         self.syncchan = "#__SYNC__" + ''.join(random.choice(string.ascii_lowercase) for _ in range(8))
 #        self.syncchan = "#sync_" + ''.join(random.choice(string.ascii_lowercase) for _ in range(8))
         self.sync = 1
+        self.disable_logging = 0
     
     def new(self, name):
         # TODO: move to config ;)
@@ -34,6 +35,7 @@ class IrcTest(asynchat.async_chat):
         else:
             raise Exception("IrcTest.new() expects argument with c1/c2/c3 to indicate server, got: " + name)
         obj = ircclient.IrcClient((host, port), name, color, self.syncchan)
+        obj.disable_logging = self.disable_logging
         self.clients[name] = obj
         return obj
 
@@ -45,9 +47,16 @@ class IrcTest(asynchat.async_chat):
         return 1
 
     def is_ready(self):
+        ready_count = 0
+        notready_count = 0
         for name,obj in self.clients.iteritems():
-            if not obj.is_ready():
-                return 0
+            if obj.is_ready():
+                ready_count += 1
+            else:
+                notready_count += 1
+        #print 'DEBUG: Client status: ' + str(ready_count) + ' OK, ' + str(notready_count) + ' NOT ready'
+        if notready_count > 0:
+            return 0
         return 1
 
     def multisynced(self):
@@ -71,18 +80,25 @@ class IrcTest(asynchat.async_chat):
         for name,obj in self.clients.iteritems():
             obj.start_sync()
 
+    def socketloop(self, t):
+        on_start = time.time()
+        delta = 0
+        while time.time() - on_start < t:
+            asyncore.loop(count=1, timeout=0.1)
+
     def connect(self):
         while(not self.is_ready()):
             asyncore.loop(count=1, timeout=0.1)
         cnt=0
-        while(not self.is_multi_ready()):
-            asyncore.loop(count=1, timeout=0.1)
-            cnt=cnt+1
-            if cnt == 100:
-                print 'Multisync@connect failed after 10 seconds'
-                print 'This only happens if not all servers are linked'
-                raise Exception('sync failed - servers not linked?')
-        self.multisync()
+        if self.sync == 1:
+            while(not self.is_multi_ready()):
+                asyncore.loop(count=1, timeout=0.1)
+                cnt=cnt+1
+                if cnt == 100:
+                    print 'Multisync@connect failed after 10 seconds'
+                    print 'This only happens if not all servers are linked'
+                    raise Exception('sync failed - servers not linked?')
+            self.multisync()
 
     def sync(self):
         if self.sync == 0:

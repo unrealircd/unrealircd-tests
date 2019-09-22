@@ -19,6 +19,7 @@ class IrcClient(asynchat.async_chat):
         self.color = color
         self.hide_sync = 1
         self.hide_handshake = 1
+        self.disable_logging = 0
         self.syncchan = syncchan
         self.recvd_syncers = {}
         self.all_lines = []
@@ -61,6 +62,8 @@ class IrcClient(asynchat.async_chat):
         return '\033[38;2;210;105;180m' # error
 
     def log(self, message):
+        if self.disable_logging:
+            return
         standard = self.bgcolor(self.name) + "\033[38;2;210;210;210m"
         m = standard + message + "\033[0m"
         m = re.sub("(c1a_[a-z]{8})", self.fgcolor('c1a')+r'\1' + standard, m)
