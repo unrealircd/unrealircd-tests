@@ -3,6 +3,7 @@ function fail {
 	echo "FATAL ERROR: $1"
 	echo "Cleaning up..."
 	taskkill -im unrealircd.exe -f
+	taskkill -im timeout.exe -f
 	echo "Tests failed. See errors above."
 	exit 1
 }
@@ -125,5 +126,6 @@ fi
 cd - 1>/dev/null 2>&1
 
 taskkill -im unrealircd.exe -f
+taskkill -im timeout.exe -f
 
 exit $failed
