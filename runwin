@@ -47,6 +47,11 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	./unrealircd -f irc3.conf&
 	sleep 10
 	cd -
+
+	COUNTPROCS="`tasklist.exe|grep -i unrealircd|wc -l`"
+	if [ "$COUNTPROCS" -lt 3 ]; then
+		fatal "UnrealIRCd failed to boot"
+	fi
 	
 	timeout --kill-after=5 --signal=INT 10 tests/_pre_test || fail "UnrealIRCd servers did not link"
 	echo
