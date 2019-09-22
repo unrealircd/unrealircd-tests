@@ -1,4 +1,9 @@
 #!/bin/bash
+function fail {
+	echo "$1"
+	exit 1
+}
+
 if [ "$MAXPARALLEL" = "" ]; then
 	MAXPARALLEL="25"
 fi
@@ -26,16 +31,16 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	echo "Booting IRC server..."
 	killall -9 valgrind valgrind.bin memcheck memcheck-amd64-linux memcheck-x86-linux ircd unrealircd val 1>/dev/null 2>&1
 	sleep 1
-	cp -av ircdconfig/* ~/unrealircd/conf/ || exit 1
+	cp -av ircdconfig/* ~/unrealircd/conf/ || fail "Failed to copy ircdconfig"
 	cd ~/unrealircd/ || exit 1
 	mv data/tkl.db data/tkl.db.$$ 1>/dev/null 2>&1
 	mv data/channeldb.db data/channel.db.$$ 1>/dev/null 2>&1
-	bin/unrealircd -f irc2.conf || exit 1
-	bin/unrealircd -f irc1.conf || exit 1
-	bin/unrealircd -f irc3.conf || exit 1
+	bin/unrealircd -f irc2.conf || fail "UnrealIRCd failed to start (irc2)"
+	bin/unrealircd -f irc1.conf || fail "UnrealIRCd failed to start (irc1)"
+	bin/unrealircd -f irc3.conf || fail "UnrealIRCd failed to start (irc3)"
 	cd -
 	
-	timeout --kill-after=5 --signal=INT 10 tests/_pre_test || (echo "Linking failed"; exit 1)
+	timeout --kill-after=5 --signal=INT 10 tests/_pre_test || fail "Linking servers failed"
 	echo
 fi
 

@@ -1,4 +1,12 @@
 #!/bin/bash
+function fail {
+	echo "FATAL ERROR: $1"
+	echo "Cleaning up..."
+	taskkill -im unrealircd.exe -f
+	echo "Tests failed. See errors above."
+	exit 1
+}
+
 if [ "$MAXPARALLEL" = "" ]; then
 	MAXPARALLEL="25"
 fi
@@ -30,8 +38,8 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	echo "Booting IRC server..."
 	taskkill -im unrealircd.exe -f
 	sleep 1
-	cp -av ircdconfig/* "$UNREALIRCDDIR/conf/" || exit 1
-	cd "$UNREALIRCDDIR/bin" || exit 1
+	cp -av ircdconfig/* "$UNREALIRCDDIR/conf/" || fail "Could not copy configuration files"
+	cd "$UNREALIRCDDIR/bin" || fail "Could not change to UnrealIRCd directory"
 	echo "Now in:"
 	pwd
 	./unrealircd -f irc2.conf&
@@ -40,7 +48,7 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	sleep 10
 	cd -
 	
-	timeout --kill-after=5 --signal=INT 10 tests/_pre_test || (echo "Linking failed"; exit 1)
+	timeout --kill-after=5 --signal=INT 10 tests/_pre_test || fail "UnrealIRCd servers did not link"
 	echo
 fi
 
@@ -110,6 +118,5 @@ fi
 cd - 1>/dev/null 2>&1
 
 taskkill -im unrealircd.exe -f
-rem taskkill -im python.exe -f
 
 exit $failed
