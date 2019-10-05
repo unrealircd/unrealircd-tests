@@ -15,7 +15,7 @@ m.expect(c1a, "MODE set", "MODE $c1a :\+R", timeout = 10)
 print
 
 m.send_all("PRIVMSG $c1a :test 123", skip = c1a)
-m.expect_all("should error on unregistered msg to +R user", "486.*You must identify", skip = c1a, timeout = 10)
+m.expect_all("should error on unregistered msg to +R user", "531.*You must identify", skip = c1a, timeout = 10)
 m.not_expect(c1a, "No message from unregistered users", "test 123")
 print
 
@@ -29,6 +29,6 @@ m.clearlog()
 m.send_all("PRIVMSG $c1a :test 456", skip = c1a)
 m.expect(c1a, "Message from unregistered users with -R", ":c2a.*test 456")
 m.expect(c1a, "Message from unregistered users with -R", ":c3a.*test 456")
-m.not_expect_all("should NOT error on unregistered msg to +R user", "486.*You must identify", skip = c1a)
+m.not_expect_all("should NOT error on unregistered msg to +R user", "531.*You must identify", skip = c1a)
 print
 

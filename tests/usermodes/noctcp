@@ -12,7 +12,7 @@ m.expect(c1a, "MODE set", "MODE $c1a :\+T")
 print
 
 m.send_all("PRIVMSG $c1a :\001CTCPTEST\001", skip = c1a)
-m.expect_all("Error indicating CTCP was blocked (numeric 492)", "492.*$c1a does not accept CTCP", skip = c1a)
+m.expect_all("Error indicating CTCP was blocked (numeric 531)", "531.*does not accept CTCP", skip = c1a)
 print
 
 m.send_all("PRIVMSG $c1a :aa sunshine bb", skip = c1a)
