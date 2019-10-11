@@ -12,8 +12,8 @@ m.join_all(chan, skip = c1a)
 m.expect(c2a, "users in channel", "JOIN")
 print
 
-m.send(c1a, "CAP REQ :draft/labeled-response batch server-time")
-m.expect(c1a, "CAP ACK for labeled-response and other capabilities", ":.* CAP c1a.* ACK :draft/labeled-response batch server-time");
+m.send(c1a, "CAP REQ :draft/labeled-response-0.2 batch server-time")
+m.expect(c1a, "CAP ACK for labeled-response and other capabilities", ":.* CAP c1a.* ACK :draft/labeled-response-0.2 batch server-time");
 m.clearlog()
 print
 
