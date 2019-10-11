@@ -55,7 +55,7 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	if [ "$COUNTPROCS" -lt 3 ]; then
 		fatal "UnrealIRCd failed to boot"
 	fi
-	
+
 	(timeout --kill-after=5 --signal=INT 10 tests/_pre_test) || fail "UnrealIRCd servers did not link"
 	echo
 fi
