@@ -31,20 +31,22 @@ m.clearlog()
 print
 
 ### NOW A REMOTE WHOIS ###
+# This requires special handling of expect_all with timeout.
+# Normally we don't need this, these type of commands are very rare
+# and take 2*latency rather than 1*latency.
 m.send_all("WHOIS $c1a $c1a")
 # 311 for all:
-m.expect_all("numeric 311", ":.* 311 $me $c1a username Clk.* \* :Test framework")
+m.expect_all("numeric 311", ":.* 311 $me $c1a username Clk.* \* :Test framework", timeout=10)
 # 379 only for self:
 m.expect(c1a, "numeric 379 (local)", ":.* 379 $me $c1a :is using modes \+iwx")
 # 378 only for self:
 m.expect(c1a, "numeric 378 (local)", ":.* 378 $me $c1a :is connecting from \*@localhost 127\.0\.0\.1")
 # 319 for all:
-m.expect_all("numeric 319", ":.* 319 $me $c1a :.*" + chan + ".*")
-m.expect_all("numeric 312", ":.* 312 $me $c1a irc1\.test\.net :Primary test server")
+m.expect_all("numeric 319", ":.* 319 $me $c1a :.*" + chan + ".*", timeout=10)
+m.expect_all("numeric 312", ":.* 312 $me $c1a irc1\.test\.net :Primary test server", timeout=10)
 # 317 for all:
-m.expect_all("numeric 317", ":.* 317 $me $c1a [0-9]+ [0-9]+ :seconds idle, signon time")
+m.expect_all("numeric 317", ":.* 317 $me $c1a [0-9]+ [0-9]+ :seconds idle, signon time", timeout=10)
 # 318 for all:
-m.expect_all("numeric 318", ":.* 318 $me $c1a :End of /WHOIS list")
+m.expect_all("numeric 318", ":.* 318 $me $c1a :End of /WHOIS list", timeout=10)
 m.clearlog()
 print
-
