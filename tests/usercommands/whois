@@ -1,0 +1,50 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan)
+m.expect(c1a, "users in channel", "JOIN")
+print
+
+### FIRST A NORMAL WHOIS ###
+m.send_all("WHOIS $c1a")
+# 311 for all:
+m.expect_all("numeric 311", ":.* 311 $me $c1a username Clk.* \* :Test framework")
+# 379 only for self:
+m.expect(c1a, "numeric 379 (local)", ":.* 379 $me $c1a :is using modes \+iwx")
+# 378 only for self:
+m.expect(c1a, "numeric 378 (local)", ":.* 378 $me $c1a :is connecting from \*@localhost 127\.0\.0\.1")
+# 319 for all:
+m.expect_all("numeric 319", ":.* 319 $me $c1a :.*" + chan + ".*")
+m.expect_all("numeric 312", ":.* 312 $me $c1a irc1\.test\.net :Primary test server")
+# 317 only for local:
+m.expect(c1a, "numeric 317 (local)", ":.* 317 $me $c1a [0-9]+ [0-9]+ :seconds idle, signon time")
+# 318 for all:
+m.expect_all("numeric 318", ":.* 318 $me $c1a :End of /WHOIS list")
+m.clearlog()
+print
+
+### NOW A REMOTE WHOIS ###
+m.send_all("WHOIS $c1a $c1a")
+# 311 for all:
+m.expect_all("numeric 311", ":.* 311 $me $c1a username Clk.* \* :Test framework")
+# 379 only for self:
+m.expect(c1a, "numeric 379 (local)", ":.* 379 $me $c1a :is using modes \+iwx")
+# 378 only for self:
+m.expect(c1a, "numeric 378 (local)", ":.* 378 $me $c1a :is connecting from \*@localhost 127\.0\.0\.1")
+# 319 for all:
+m.expect_all("numeric 319", ":.* 319 $me $c1a :.*" + chan + ".*")
+m.expect_all("numeric 312", ":.* 312 $me $c1a irc1\.test\.net :Primary test server")
+# 317 for all:
+m.expect_all("numeric 317", ":.* 317 $me $c1a [0-9]+ [0-9]+ :seconds idle, signon time")
+# 318 for all:
+m.expect_all("numeric 318", ":.* 318 $me $c1a :End of /WHOIS list")
+m.clearlog()
+print
+

@@ -170,14 +170,14 @@ class IrcTest(asynchat.async_chat):
         self.verify_mtags_consistency()
 
     def send(self, client, message):
-        message = self.replacestr(message)
+        message = self.replacestr(client, message)
         client.out(message)
         self.multisync()
 
     def send_all(self, message, skip = None):
-        message = self.replacestr(message)
         for name,obj in self.clients.iteritems():
             if obj != skip:
+                message = self.replacestr(obj, message)
                 obj.out(message)
         self.multisync()
 
@@ -201,7 +201,7 @@ class IrcTest(asynchat.async_chat):
             return prefix + "_" + self.random(16)
 
     def expect(self, client, failmsg, regex, timeout = 0):
-        regex = self.replacestr(regex)
+        regex = self.replacestr(client, regex)
         if timeout > 0:
             t = timeout * 1000
             current_time = getmsec()
@@ -226,7 +226,7 @@ class IrcTest(asynchat.async_chat):
             self.expect(obj, failmsg, regex, timeout)
 
     def not_expect(self, client, failmsg, regex):
-        regex = self.replacestr(regex)
+        regex = self.replacestr(client, regex)
         return client.not_expect(failmsg, regex)
 
     def not_expect_all(self, failmsg_orig, regex, skip = None):
@@ -241,9 +241,10 @@ class IrcTest(asynchat.async_chat):
             failmsg = failmsg_orig + ' ('+str(cnt)+' of '+str(total)+')'
             self.not_expect(obj, failmsg, regex)
 
-    def replacestr(self, str):
+    def replacestr(self, client, str):
         for name,obj in self.clients.iteritems():
             str = str.replace("$" + name, obj.nick)
+        str = str.replace("$me", client.nick)
         return str
 
     def wait(self, t):
