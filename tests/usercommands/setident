@@ -1,0 +1,16 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send(c1a, 'SETIDENT :newident')
+m.clearlog()
+
+m.send_all('WHOIS $c1a')
+m.expect_all("New ident in WHOIS", ":.* 311 $me $c1a newident .*")
+m.clearlog()
+print

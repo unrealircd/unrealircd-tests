@@ -1,0 +1,26 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send(c3a, "CHGHOST $c1a this.is.my.new.hostname")
+m.expect(c3a, "Should get permission denied if not IRCOp", ":.* 481 $me :Permission Denied.*")
+m.clearlog()
+
+m.send_all("WHOIS $c1a")
+m.not_expect_all("Should not see new hostname in WHOIS", ":.* 311 $me $c1a .* this\.is\.my\.new\.hostname")
+m.clearlog()
+print
+
+m.send(c3a, "OPER netadmin test")
+m.send(c3a, "CHGHOST $c1a this.is.my.new.hostname")
+m.clearlog()
+
+m.send_all("WHOIS $c1a")
+m.expect_all("Should see new hostname in WHOIS", ":.* 311 $me $c1a .* this\.is\.my\.new\.hostname")
+m.clearlog()
+print
