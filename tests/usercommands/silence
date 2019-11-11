@@ -1,0 +1,31 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send(c1a, "SILENCE +$c2a")
+m.expect(c1a, "Added message", ":$c1a.* SILENCE \+$c2a\!\*@\*")
+m.clearlog()
+print
+
+m.send(c1a, "SILENCE")
+m.expect(c1a, "Silence list shows added item", ":.+ 271 $me $c2a\!\*@\*")
+m.expect(c1a, "Silence list end", ":.+ 272 $me :End of Silence List")
+m.clearlog()
+print
+
+# blocked via SILENCE:
+m.send(c2a, "PRIVMSG $c1a :test message")
+m.not_expect(c1a, "should not receive test message (silenced)", "test message")
+m.clearlog()
+print
+
+# NOT silenced:
+m.send(c3a, "PRIVMSG $c1a :test message")
+m.expect(c1a, "should receive test message (not silenced)", "test message")
+m.clearlog()
+print
