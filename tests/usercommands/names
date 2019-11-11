@@ -18,3 +18,16 @@ m.send_all("NAMES " + chan)
 m.expect_all("NAMES should list client 1", ":.* 353 $me = " + chan + " :.*@$c1a")
 m.expect_all("NAMES should list client 2", ":.* 353 $me = " + chan + " :.*\+$c2a")
 m.expect_all("NAMES should list client 3", ":.* 353 $me = " + chan + " :.*$c3a")
+m.clearlog()
+print
+
+m.send(c3a, "PART " + chan)
+m.clearlog()
+print
+
+m.send(c3a, "NAMES " + chan)
+m.expect(c3a, "NAMES should list nobody if not in channel and no permissions", ":.* 353 $me = " + chan + " :$")
+m.not_expect(c3a, "Should not see client 1", ".*353.*$c1a")
+m.not_expect(c3a, "Should not see client 2", ".*353.*$c2a")
+m.clearlog()
+print
