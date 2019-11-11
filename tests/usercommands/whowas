@@ -1,0 +1,32 @@
+#!/usr/bin/python
+import irctestframework.irctest
+import time
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+# Should return no results if user is online
+m.send(c1a, "WHOWAS $c3a")
+m.expect(c1a, "Nickname not found (expected)", ":.+ 406 $me $c3a :There was no such nickname")
+m.expect(c1a, "End of WHOWAS", ":.+ 369 $me $c3a :End of WHOWAS")
+
+# Need to disable the auto-syncer since one client will go off-line
+m.sync = 0
+
+# Test quit
+m.send(c3a, "QUIT :poof!")
+time.sleep(5) # <- we must be sure the user is offline...
+m.clearlog()
+print
+
+# And now we should have a WHOWAS entry
+m.send(c1a, "WHOWAS $c3a")
+m.expect(c1a, "WHOWAS reply (314, nuhr)", ":.+ 314 $me $c3a username Clk-.* \* :Test framework", timeout = 10)
+m.expect(c1a, "WHOWAS reply (312, server and time)", ":.+ 312 $me $c3a irc3\.test\.net :.*", timeout = 10)
+m.expect(c1a, "End of WHOWAS", ":.+ 369 $me $c3a :End of WHOWAS", timeout = 10)
+m.not_expect(c1a, "No nickname not found", ":.+ 406 $me $c3a")
+m.clearlog()
+print
