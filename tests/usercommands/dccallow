@@ -1,0 +1,42 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send(c1a, "DCCALLOW +$c2a")
+m.clearlog()
+print
+
+m.send(c1a, "DCCALLOW LIST")
+m.expect(c1a, "DCCALLOW LIST shows added item", ":.+ 620 $me :The following users are on your")
+m.expect(c1a, "DCCALLOW LIST item", ":.+ 618 $me :$c2a \(.*@Clk-.*")
+m.expect(c1a, "DCCALLOW LIST end", ":.+ 619 $me :End of DCCALLOW LIST")
+m.clearlog()
+print
+
+# not in DCCALLOW - should be blocked:
+m.send(c3a, "PRIVMSG $c1a :\001DCC SEND some.exe 12345 1024 65535\001")
+m.not_expect(c1a, "DCC SEND should be blocked from this user", ".*PRIVMSG.*DCC SEND")
+m.clearlog()
+print
+
+# on DCCALLOW - should be allowed:
+m.send(c2a, "PRIVMSG $c1a :\001DCC SEND some.exe 12345 1024 65535\001")
+m.expect(c1a, "DCC SEND should be accepted from this user", ":$c2a.*PRIVMSG.*DCC SEND")
+m.clearlog()
+print
+
+m.send(c1a, "DCCALLOW -$c2a")
+m.clearlog()
+print
+
+# previously but no longer on DCCALLOW - should now be blocked:
+m.send(c2a, "PRIVMSG $c1a :\001DCC SEND some.exe 12345 1024 65535\001")
+m.not_expect(c1a, "DCC SEND should no longer be accepted from this user", ".*PRIVMSG.*DCC SEND")
+m.clearlog()
+print
+
