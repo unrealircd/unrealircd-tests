@@ -1,0 +1,30 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send(c1a, "VHOST wrong wrong")
+m.expect(c1a, "NOTICE about failed VHOST attempt (username)", "Login for wrong failed")
+m.clearlog()
+print
+
+m.send(c1a, "VHOST test wrong")
+m.expect(c1a, "NOTICE about failed VHOST attempt (password)", "Login for test failed")
+m.send(c1a, "WHOIS $c1a")
+m.not_expect(c1a, "VHOST NOT shown in WHOIS on failed attempt", "this\.is\.a\.test")
+m.clearlog()
+print
+
+m.send(c1a, "VHOST test test")
+m.expect(c1a, "New displayed host (396)", ":.+ 396 $me this\.is\.a\.test :is now your displayed host")
+m.clearlog()
+print
+
+m.send_all("WHOIS $c1a")
+m.expect_all("VHOST shown in WHOIS", ":.+ 311 $me $c1a username this\.is\.a\.test .*")
+m.clearlog()
+print
