@@ -29,3 +29,14 @@ m.send(c3a, "PRIVMSG $c1a :test message")
 m.expect(c1a, "should receive test message (not silenced)", "test message")
 m.clearlog()
 print
+
+m.send(c1a, "SILENCE -$c2a")
+m.expect(c1a, "Remove message", ":$c1a.* SILENCE -$c2a\!\*@\*")
+m.clearlog()
+print
+
+# No longer blocked via SILENCE:
+m.send(c2a, "PRIVMSG $c1a :test message")
+m.expect(c1a, "should receive test message (no longer silenced)", "test message")
+m.clearlog()
+print
