@@ -1,0 +1,15 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send_all("USERIP :$c1a thisnickdoesnotexist $c2a irc1.test.net $c3a")
+m.expect(c1a, "USERIP response on client 1", ":.+ 340 $me :$c1a=.*username@127\.0\.0\.1 $c2a=.*username@231FD6C8\.9CC7FEA8\.DA4798D7\.IP $c3a=.*username@231FD6C8\.9CC7FEA8\.DA4798D7\.IP")
+m.expect(c2a, "USERIP response on client 2", ":.+ 340 $me :$c1a=.*username@231FD6C8\.9CC7FEA8\.DA4798D7\.IP $c2a=.*username@127\.0\.0\.1 $c3a=.*username@231FD6C8\.9CC7FEA8\.DA4798D7\.IP")
+m.expect(c3a, "USERIP response on client 3", ":.+ 340 $me :$c1a=.*username@231FD6C8\.9CC7FEA8\.DA4798D7\.IP $c2a=.*username@231FD6C8\.9CC7FEA8\.DA4798D7\.IP $c3a=.*username@127\.0\.0\.1")
+m.clearlog()
+print
