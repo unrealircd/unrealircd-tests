@@ -1,0 +1,26 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a)
+m.expect_all("all in channel", "NAMES")
+m.clearlog()
+print
+
+m.send(c1a, "NOTICE " + chan + " :this is a channel notice")
+m.expect_all("Recieve channel NOTICE", ":$c1a.* NOTICE " + chan + " :this is a channel notice", skip = c1a)
+m.clearlog()
+print
+
+m.send_all("NOTICE $c1a :this is a private notice")
+m.expect(c1a, "Private notice from client 1 (myself)", ":$c1a.* NOTICE $c1a :this is a private notice")
+m.expect(c1a, "Private notice from client 2", ":$c2a.* NOTICE $c1a :this is a private notice")
+m.expect(c1a, "Private notice from client 3", ":$c3a.* NOTICE $c1a :this is a private notice")
+m.clearlog()
+print

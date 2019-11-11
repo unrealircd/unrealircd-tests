@@ -1,0 +1,26 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a)
+m.expect_all("all in channel", "NAMES")
+m.clearlog()
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :this is a channel message")
+m.expect_all("Recieve channel PRIVMSG", ":$c1a.* PRIVMSG " + chan + " :this is a channel message", skip = c1a)
+m.clearlog()
+print
+
+m.send_all("PRIVMSG $c1a :this is a private message")
+m.expect(c1a, "Private message from client 1 (myself)", ":$c1a.* PRIVMSG $c1a :this is a private message")
+m.expect(c1a, "Private message from client 2", ":$c2a.* PRIVMSG $c1a :this is a private message")
+m.expect(c1a, "Private message from client 3", ":$c3a.* PRIVMSG $c1a :this is a private message")
+m.clearlog()
+print
