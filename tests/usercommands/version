@@ -1,0 +1,14 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+m.send(c1a, "VERSION")
+m.expect(c1a, "VERSION response (351)", ":.+ 351 $me UnrealIRCd-.* irc1\.test\.net :0 ")
+m.expect(c1a, "VERSION response (005, part 1)", ":.+ 005 $me .*CASEMAPPING")
+m.expect(c1a, "VERSION response (005, part 2)", ":.+ 005 $me .*MAXCHANNELS")
+m.expect(c1a, "VERSION response (005, part 3)", ":.+ 005 $me .*WHOX")
+m.clearlog()
+print
