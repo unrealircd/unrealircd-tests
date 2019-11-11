@@ -23,6 +23,7 @@ m.expect(c1a, "605 numeric for user that is offline", ":.+ 605 $me somenick \* \
 m.clearlog()
 print
 
+# Need to disable the auto-syncer here due to the nick change
 m.sync = 0
 
 # Test nick change
