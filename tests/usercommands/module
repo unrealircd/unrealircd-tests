@@ -1,0 +1,19 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+m.send(c1a, "MODULE")
+m.expect(c1a, "Regular MODULE output", ":.+ 304 $me :Showing loaded 3rd party modules.*")
+m.expect(c1a, "End of MODULE output", ":.+ 304 $me :End of module list")
+m.not_expect(c1a, "There should be no listed (3rd party) modules", ":.+ 304 $me :\*\*\*")
+m.clearlog()
+print
+
+m.send(c1a, "MODULE -all")
+m.expect(c1a, "Full MODULE output", ":.+ 304 $me :Showing ALL loaded modules")
+m.expect(c1a, "End of MODULE output", ":.+ 304 $me :End of module list")
+m.clearlog()
+print
