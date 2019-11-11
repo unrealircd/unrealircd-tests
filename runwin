@@ -44,11 +44,11 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	echo "Now in:"
 	pwd
 	./unrealircd -f irc2.conf&
-	sleep 1
+	sleep 10
 	./unrealircd -f irc1.conf&
-	sleep 1
+	sleep 10
 	./unrealircd -f irc3.conf&
-	sleep 8
+	sleep 10
 	cd -
 
 	COUNTPROCS="`tasklist.exe|grep -i unrealircd|wc -l`"
