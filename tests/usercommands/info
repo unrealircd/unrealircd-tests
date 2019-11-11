@@ -1,0 +1,11 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+m.send(c1a, "INFO")
+m.expect(c1a, "INFO output", ":.+ 371 $me :.*This release was brought to you by.*")
+m.clearlog()
+print

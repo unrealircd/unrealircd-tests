@@ -1,0 +1,11 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+m.send(c1a, "ADMIN")
+m.expect(c1a, "ADMIN output", ":.+ 256 $me :Administrative info about.*")
+m.clearlog()
+print
