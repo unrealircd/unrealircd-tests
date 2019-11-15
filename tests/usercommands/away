@@ -1,0 +1,40 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send(c1a, "AWAY :I am away")
+m.expect(c1a, "receive AWAY numeric 306", ":.+ 306 $me :You have been marked as being away")
+m.clearlog()
+print
+
+m.send(c1a, "AWAY :I am away. Yes, really.")
+m.expect(c1a, "receive AWAY numeric 306 (again)", ":.+ 306 $me :You have been marked as being away")
+m.clearlog()
+print
+
+m.send_all("WHOIS $c1a $c1a")
+m.expect_all("End of WHOIS", ":.+ 318", timeout = 5)
+m.expect_all("show AWAY in WHOIS", ":.+ 301 $me $c1a :I am away")
+m.clearlog()
+print
+
+m.send_all("PRIVMSG $c1a :test")
+m.expect_all("see AWAY message on PRIVMSG", ":.+ 301 $me $c1a :I am away")
+m.clearlog()
+print
+
+m.send(c1a, "AWAY")
+m.expect(c1a, "receive no longer AWAY (numeric 305)", ":.+ 305 $me :You are no longer marked as being away")
+m.clearlog()
+print
+
+m.send_all("WHOIS $c1a $c1a")
+m.expect_all("End of WHOIS", ":.+ 318", timeout = 5)
+m.not_expect_all("Don't show AWAY in WHOIS", ":.+ 301 $me $c1a :I am away")
+m.clearlog()
+print
