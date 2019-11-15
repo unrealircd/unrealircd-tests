@@ -1,0 +1,31 @@
+#!/bin/bash
+if [ ! -f ~/unrealircd/data/cmds.txt ]; then
+	echo "File ~/unrealircd/data/cmds.txt not found"
+	echo "This means the 'third/dumpcmds' module was not loaded"
+	echo "or the ircd is not running."
+	exit 1
+fi
+
+cat ~/unrealircd/data/cmds.txt|\
+grep 'USER'|\
+grep -v 'ALIAS'|\
+awk '{ print $1 }'|\
+tr '[A-Z]' '[a-z]'|\
+while read cmd
+do
+	if [ ! -f "tests/usercommands/$cmd" -a ! -f "tests/opercommands/$cmd" ]; then
+		echo "MISSING: tests/usercommands/$cmd"
+	fi
+done
+
+cat ~/unrealircd/data/cmds.txt|\
+grep 'OPER'|\
+grep -v 'ALIAS'|\
+awk '{ print $1 }'|\
+tr '[A-Z]' '[a-z]'|\
+while read cmd
+do
+	if [ ! -f "tests/opercommands/$cmd" ]; then
+		echo "MISSING: tests/opercommands/$cmd"
+	fi
+done
