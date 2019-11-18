@@ -4,6 +4,22 @@ function fail {
 	exit 1
 }
 
+function start_services {
+	echo "Booting services ($SERVICES)..."
+	if [ "$SERVICES" = "atheme" ]; then
+		cp -av serverconfig/atheme/atheme.conf ~/atheme/etc/ || fail "Failed to copy atheme.conf"
+		cp -av serverconfig/atheme/services.db ~/atheme/etc/ || fail "Failed to copy services.db"
+		cd ~/atheme || exit 1
+		bin/atheme-services || fail "atheme failed to start"
+		cd -
+	fi
+	if [ "$SERVICES" = "anope" ]; then
+		cd ~/services || exit 1
+		bin/services || fail "anope failed to start"
+		cd -
+	fi
+}
+
 if [ "$MAXPARALLEL" = "" ]; then
 	MAXPARALLEL="25"
 fi
@@ -19,6 +35,23 @@ mkdir logs
 mkdir logs/success
 mkdir logs/failure
 
+if [ "$1" != "-services" ]; then
+	echo "ERROR: You need to specify with which services we should test, this needs to be the first parameter passed to ./run:"
+	echo "./run -services [anope|atheme] [...other options for us...]"
+	exit 1
+else
+	shift
+	if [ "$1" = "anope" ]; then
+		SERVICES="anope"
+	elif [ "$1" = "atheme" ]; then
+		SERVICES="atheme"
+	else
+		echo "Unrecognized services ($1). We only support anope and atheme in our automated tests."
+		exit 1
+	fi
+	shift
+fi
+
 if [ "$1" = "-single" ]; then
 	MAXPARALLEL=1
 	shift
@@ -29,9 +62,11 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 
 	# Boot the ircd
 	echo "Booting IRC server..."
-	killall -9 valgrind valgrind.bin memcheck memcheck-amd64-linux memcheck-x86-linux ircd unrealircd val 1>/dev/null 2>&1
+	killall -15 valgrind valgrind.bin memcheck memcheck-amd64-linux memcheck-x86-linux ircd unrealircd val atheme-services services anope 1>/dev/null 2>&1
+	sleep 2
+	killall -9 valgrind valgrind.bin memcheck memcheck-amd64-linux memcheck-x86-linux ircd unrealircd val atheme-services services anope 1>/dev/null 2>&1
 	sleep 1
-	cp -av ircdconfig/* ~/unrealircd/conf/ || fail "Failed to copy ircdconfig"
+	cp -av serverconfig/unrealircd/* ~/unrealircd/conf/ || fail "Failed to copy serverconfig/unrealircd"
 	cd ~/unrealircd/ || exit 1
 	mv data/tkl.db data/tkl.db.$$ 1>/dev/null 2>&1
 	mv data/channeldb.db data/channel.db.$$ 1>/dev/null 2>&1
@@ -39,6 +74,9 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	bin/unrealircd -f irc1.conf || fail "UnrealIRCd failed to start (irc1)"
 	bin/unrealircd -f irc3.conf || fail "UnrealIRCd failed to start (irc3)"
 	cd -
+	start_services
+	# Give services a chance to link in
+	sleep 2
 	
 	timeout --kill-after=5 --signal=INT 10 tests/_pre_test || fail "Linking servers failed"
 	echo

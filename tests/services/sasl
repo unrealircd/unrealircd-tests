@@ -1,0 +1,35 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send(c1a, "CAP REQ :sasl")
+m.expect(c1a, "SASL CAP available and enabled", ":.+ CAP $c1a ACK :sasl")
+m.clearlog()
+print
+
+m.send(c1a, "AUTHENTICATE PLAIN")
+m.expect(c1a, "AUTHENTICATE plain go ahead", "AUTHENTICATE \+", timeout = 10)
+m.clearlog()
+print
+
+# client1 \000 client1 \000 test
+m.send(c1a, "AUTHENTICATE Y2xpZW50MQBjbGllbnQxAHRlc3Q=")
+m.expect(c1a, "SASL authentication successful", ":.+ 903 $c1a :SASL authentication successful", timeout = 10)
+m.clearlog()
+print
+
+# Lazy way to make sure the SASL propagated completely
+m.send(c1a, "VERSION services.test.net")
+m.expect(c1a, "Services version response", ":services\.test\.net 351 $c1a .*", timeout = 10)
+m.clearlog()
+print
+
+m.send_all("WHOIS $c1a")
+m.expect(c1a, "Show account in WHOIS", ":.+ 330 $me $c1a client1 :is logged in as")
+m.clearlog()
+print

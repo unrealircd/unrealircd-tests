@@ -5,16 +5,23 @@ Currently only a subset of features are tested. In particular user modes and
 channel modes. The ultimate goal is to have a test for each and every feature.
 In particular, the testing of commands needs a lot more work.
 
-# How to run
-You run all the test with the `./run` command.
-This script assumes that UnrealIRCd is installed in ~/unrealircd/.
-It will kill any UnrealIRCd instances on the account, boot up 3 IRC servers
-(irc1, irc2 and irc3), link them together and run the tests.
+# A word of caution before you start
+When you run the test framework, it will do things like killing all
+IRC Servers under the account, overwrite configuration files of both
+UnrealIRCd and Anope and Atheme. This is all done without prompting!
 
-You can run a specific test via `./run tests/sometest`.
+# How to run
+You run all the test with the `./run -services [anope|atheme]` command.
+This script assumes that UnrealIRCd is installed in ~/unrealircd/,
+atheme in ~/atheme and anope in ~/anope.
+It will kill all UnrealIRCd and services instances on the account,
+boot up 3 IRC servers (irc1, irc2 and irc3), link them together
+and run the tests.
+
+You can run a specific test via `./run -services xx tests/sometest`.
 If you use this syntax then UnrealIRCd is assumed to be already up and
 running and linked. If this isn't the case then use
-`./run -boot tests/sometest`.
+`./run -services xx -boot tests/sometest`.
 
 # Main features
 ## Tests
@@ -148,7 +155,7 @@ the following actions are available in m:
 * There are more..
 
 # Directory layout:
-* `ircdconfig/` - UnrealIRCd configuration files used by the server
+* `serverconfig/` - Configuration files used by the servers (unrealircd and services)
 * `irctestframework/` - The actual test framework. You don't need to touch this if you are just writing tests.
 * `logs/` - Log files produced by the tests
 * `tests/chanmodes/` - Channel modes
@@ -157,3 +164,4 @@ the following actions are available in m:
 * `tests/extensions` - IRCv3 extensions like CAP stuff etc.
 * `tests/usercommands/` - User commands, such as JOIN PART TOPIC etc.
 * `tests/opercommands/` - IRCOp-only commands, such as SAJOIN SAPART KILL etc.
+* `tests/services/` - Services tests

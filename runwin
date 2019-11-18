@@ -39,7 +39,7 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	echo "Booting IRC server..."
 	taskkill -im unrealircd.exe -f
 	sleep 1
-	cp -av ircdconfig/* "$UNREALIRCDDIR/conf/" || fail "Could not copy configuration files"
+	cp -av serverconfig/unrealircd/* "$UNREALIRCDDIR/conf/" || fail "Could not copy configuration files"
 	cd "$UNREALIRCDDIR/bin" || fail "Could not change to UnrealIRCd directory"
 	echo "Now in:"
 	pwd
@@ -63,7 +63,8 @@ fi
 if [ "$1" = "" ]; then
 	# Run all tests:
 	echo "Running all tests in parallel..."
-	find tests -type f|grep -vF '~'|grep -vF _pre_test|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+	# NOTE: we skip services tests on Windows! Too much hassle ;)
+	find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -v services/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
 	#wait
 	#^ this is annoying: 'wait' will also wait for unrealircd.exe to stop,
 	#  which hopefully will never happen, so we sleep instead:
