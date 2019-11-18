@@ -1,14 +1,15 @@
 # About
 This is the automated test system for UnrealIRCd 5, written in Python.
 
-Currently only a subset of features are tested. In particular user modes and
-channel modes. The ultimate goal is to have a test for each and every feature.
-In particular, the testing of commands needs a lot more work.
+The ultimate goal is to have a test for each and every feature.
+Currently it tests about 80+ different commands, usermodes, channel modes,
+etc.
 
 # A word of caution before you start
-When you run the test framework, it will do things like killing all
-IRC Servers under the account, overwrite configuration files of both
-UnrealIRCd and Anope and Atheme. This is all done without prompting!
+You should run the test framework on an isolated account, as it will
+do things like: killing all IRC Servers under the account,
+overwrite configuration files of UnrealIRCd, Anope and Atheme, and
+overwrite the services databases. This is all done without prompting!
 
 # How to run
 You run all the test with the `./run -services [anope|atheme]` command.
