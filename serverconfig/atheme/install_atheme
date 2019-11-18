@@ -1,0 +1,15 @@
+#!/bin/bash
+VERSION="7.2.10-r2"
+DIRECTORY="atheme-v${VERSION}"
+
+set -e
+set -x
+
+mkdir -p ~/tmp
+cd ~/tmp
+wget "https://github.com/atheme/atheme/releases/download/v${VERSION}/$DIRECTORY.tar.xz" -O "$DIRECTORY.tar.xz"
+tar xJvf $DIRECTORY.tar.xz
+cd $DIRECTORY
+./configure --disable-nls
+make
+make install
