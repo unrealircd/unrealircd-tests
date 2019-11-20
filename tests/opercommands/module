@@ -1,0 +1,12 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+m.send(c1a, "OPER netadmin test")
+m.send(c1a, "MODULE -all")
+m.expect(c1a, "MODULE reply with version information", ":irc.+ 304 $me :\*\*\* oper 5[^ ]+ - command \/oper - by UnrealIRCd Team")
+m.clearlog()
+print
