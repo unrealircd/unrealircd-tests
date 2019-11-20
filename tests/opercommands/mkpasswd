@@ -1,0 +1,22 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+m.send(c1a, "MKPASSWD argon2 test")
+m.expect(c1a, "Command not permitted as non-ircop", ":.+ 481 $me :Permission Denied")
+m.clearlog()
+print
+
+m.send(c1a, "OPER netadmin test")
+m.send(c1a, "MKPASSWD argon2 test")
+m.expect(c1a, "MKPASSWD reply", ":irc.+ NOTICE $me :\*\*\* Authentication phrase \(method=argon2, para=test\) is: \$argon2id\$v=")
+m.clearlog()
+print
+
+m.send(c1a, "MKPASSWD bcrypt test")
+m.expect(c1a, "MKPASSWD reply", ":irc.+ NOTICE $me :\*\*\* Authentication phrase \(method=bcrypt, para=test\) is: \$2y\$")
+m.clearlog()
+print
