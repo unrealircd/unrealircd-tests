@@ -1,0 +1,43 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+# The following is spread over the 3 clients: first c1a, then c2a, then c3a
+# this to speed up the tests since fake lag is applied heavily on failed attempts.
+
+m.send(c1a, "OPER")
+m.expect(c1a, "OPER without parameters should give error", ":.+ 461 $me OPER :Not enough parameters")
+m.clearlog()
+print
+
+m.send(c1a, "OPER wrongusername")
+m.expect(c1a, "OPER with invalid username should give error", ":.+ 491 $me :No O-lines for your host")
+m.clearlog()
+print
+
+m.send(c2a, "OPER wrongusername xyz")
+m.expect(c2a, "OPER with invalid username/password should give error", ":.+ 491 $me :No O-lines for your host")
+m.clearlog()
+print
+
+m.send(c2a, "OPER netadmin")
+m.expect(c2a, "OPER with only username should give error if password is required", ":.+ 464 $me :Password Incorrect")
+m.clearlog()
+print
+
+m.send(c3a, "OPER netadmin wrong")
+m.expect(c3a, "OPER with invalid password should give error", ":.+ 464 $me :Password Incorrect")
+m.clearlog()
+print
+
+m.send(c3a, "OPER netadmin test")
+m.expect(c3a, "OPER should give you +o user mode", ":$c3a MODE $c3a :\+o")
+m.expect(c3a, "OPER should give you snomasks", ":.+ 008 $me \+.* :Server notice mask")
+m.expect(c3a, "OPER up notification", ":.+ 381 $me :You are now an IRC Operator")
+m.clearlog()
+print
