@@ -1,0 +1,19 @@
+#!/bin/bash
+VERSION="2.0.7"
+DIRECTORY="anope-${VERSION}-source"
+SCRIPTDIR="$( cd "$(dirname "$0")" ; pwd -P )"
+
+set -e
+set -x
+
+mkdir -p ~/tmp
+cd ~/tmp
+wget "https://github.com/anope/anope/releases/download/${VERSION}/${DIRECTORY}.tar.gz" -O "$DIRECTORY.tar.gz"
+rm -rf "$DIRECTORY"
+tar xzvf $DIRECTORY.tar.gz
+cd $DIRECTORY
+cp -av "$SCRIPTDIR/config.cache" .
+./Config -quick
+cd build
+make
+make install

@@ -14,7 +14,9 @@ function start_services {
 		cd -
 	fi
 	if [ "$SERVICES" = "anope" ]; then
-		cd ~/services || exit 1
+		cp -av serverconfig/anope/services.conf ~/anope/conf/ || fail "Failed to copy services.conf"
+		cp -av serverconfig/anope/anope.db ~/anope/data/ || fail "Failed to copy anope.db"
+		cd ~/anope || exit 1
 		bin/services || fail "anope failed to start"
 		cd -
 	fi

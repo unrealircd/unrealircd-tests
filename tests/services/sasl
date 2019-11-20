@@ -30,6 +30,6 @@ m.clearlog()
 print
 
 m.send_all("WHOIS $c1a")
-m.expect(c1a, "Show account in WHOIS", ":.+ 330 $me $c1a client1 :is logged in as")
+m.expect_all("Show account in WHOIS", ":.+ 330 $me $c1a client1 :is logged in as")
 m.clearlog()
 print

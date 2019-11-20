@@ -8,12 +8,18 @@ c3a = m.new('c3a')
 m.connect()
 
 m.send(c1a, "IDENTIFY client1 test")
-m.expect(c1a, "Identified message", "You are now identified", timeout = 10)
+m.expect(c1a, "Identified message", "(You are now identified|you are now recognized)", timeout = 10)
+m.clearlog()
+print
+
+# Lazy way to make sure the SASL propagated completely
+m.send(c1a, "VERSION services.test.net")
+m.expect(c1a, "Services version response", ":services\.test\.net 351 $c1a .*", timeout = 10)
 m.clearlog()
 print
 
 m.send_all("WHOIS $c1a")
-m.expect(c1a, "Show account in WHOIS", ":.+ 330 $me $c1a client1 :is logged in as")
+m.expect_all("Show account in WHOIS", ":.+ 330 $me $c1a client1 :is logged in as")
 m.clearlog()
 print
 

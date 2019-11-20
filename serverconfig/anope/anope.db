@@ -1,0 +1,2224 @@
+OBJECT BotInfo
+DATA nick BotServ
+DATA user services
+DATA host services.test.net
+DATA realname Bot Service
+DATA created 1574238415
+DATA oper_only 0
+END
+OBJECT BotInfo
+DATA nick ChanServ
+DATA user services
+DATA host services.test.net
+DATA realname Channel Registration Service
+DATA created 1574238415
+DATA oper_only 0
+END
+OBJECT BotInfo
+DATA nick Global
+DATA user services
+DATA host services.test.net
+DATA realname Global Noticer
+DATA created 1574238415
+DATA oper_only 0
+END
+OBJECT BotInfo
+DATA nick HostServ
+DATA user services
+DATA host services.test.net
+DATA realname vHost Service
+DATA created 1574238415
+DATA oper_only 0
+END
+OBJECT BotInfo
+DATA nick MemoServ
+DATA user services
+DATA host services.test.net
+DATA realname Memo Service
+DATA created 1574238415
+DATA oper_only 0
+END
+OBJECT BotInfo
+DATA nick NickServ
+DATA user services
+DATA host services.test.net
+DATA realname Nickname Registration Service
+DATA created 1574238415
+DATA oper_only 0
+END
+OBJECT BotInfo
+DATA nick OperServ
+DATA user services
+DATA host services.test.net
+DATA realname Operator Service
+DATA created 1574238415
+DATA oper_only 0
+END
+OBJECT Stats
+DATA maxusercnt 12
+DATA maxusertime 1574238900
+END
+OBJECT NickCore
+DATA display netadmin
+DATA pass sha256:1f31318c88620e28c4e2cf1517b21233ef63bd05e775c41f12abda7e873e59d9:4a10be741f42fb683a63460900b1c0591cfb9f5304f75a3731008bae6a6cd278
+DATA email noreply@unrealircd.org
+DATA language 
+DATA access x@Clk-6C400E48 
+DATA memomax 20
+DATA MEMO_SIGNON 1
+DATA MEMO_RECEIVE 1
+DATA HIDE_EMAIL 1
+DATA HIDE_MASK 1
+DATA NS_PRIVATE 1
+DATA AUTOOP 1
+DATA NS_SECURE 1
+END
+OBJECT NickCore
+DATA display client1
+DATA pass sha256:b9281843a5d927938f2fbe57a23ea04a9ac427df4efa9c57dbb463db1ffb10e8:5952510e7434de6911cf6c66268624b46224c4213d58d8ef629c74d600dd176f
+DATA email noreply@unrealircd.org
+DATA language 
+DATA access x@Clk-6C400E48 
+DATA memomax 20
+DATA MEMO_SIGNON 1
+DATA MEMO_RECEIVE 1
+DATA HIDE_EMAIL 1
+DATA HIDE_MASK 1
+DATA NS_PRIVATE 1
+DATA AUTOOP 1
+DATA NS_SECURE 1
+END
+OBJECT NickCore
+DATA display client2
+DATA pass sha256:f52596c9a7de5fa205cee6228a4cb799e5704282adda69b625b5383caa6c44a6:5f9861245e11bfb8148c9a5c3d6dbcdd1e070a8c2f7f74ce2aae66836a89557d
+DATA email noreply@unrealircd.org
+DATA language 
+DATA access x@Clk-6C400E48 
+DATA memomax 20
+DATA MEMO_SIGNON 1
+DATA MEMO_RECEIVE 1
+DATA HIDE_EMAIL 1
+DATA HIDE_MASK 1
+DATA NS_PRIVATE 1
+DATA AUTOOP 1
+DATA NS_SECURE 1
+END
+OBJECT NickCore
+DATA display client3
+DATA pass sha256:7d5d5e469c0dcc2ef171ceb1f7ff071e33caa81494f81cb5410b63fe96300212:43d494c13133525365849b3d0b7f576a5c746f47635597b75d7fc3ed26852dbb
+DATA email noreply@unrealircd.org
+DATA language 
+DATA access x@Clk-6C400E48 
+DATA memomax 20
+DATA MEMO_SIGNON 1
+DATA MEMO_RECEIVE 1
+DATA HIDE_EMAIL 1
+DATA HIDE_MASK 1
+DATA NS_PRIVATE 1
+DATA AUTOOP 1
+DATA NS_SECURE 1
+END
+OBJECT NickAlias
+DATA nick netadmin
+DATA last_quit Read error
+DATA last_realname x
+DATA last_usermask x@netadmin.test.net
+DATA last_realhost x@localhost
+DATA time_registered 1574238442
+DATA last_seen 1574239156
+DATA nc netadmin
+DATA NS_NO_EXPIRE 1
+END
+OBJECT NickAlias
+DATA nick client1
+DATA last_quit Read error
+DATA last_realname x
+DATA last_usermask x@Clk-6C400E48
+DATA last_realhost x@localhost
+DATA time_registered 1574238490
+DATA last_seen 1574238495
+DATA nc client1
+DATA NS_NO_EXPIRE 1
+END
+OBJECT NickAlias
+DATA nick client2
+DATA last_quit Read error
+DATA last_realname x
+DATA last_usermask x@Clk-6C400E48
+DATA last_realhost x@localhost
+DATA time_registered 1574238503
+DATA last_seen 1574238505
+DATA nc client2
+DATA NS_NO_EXPIRE 1
+END
+OBJECT NickAlias
+DATA nick client3
+DATA last_quit Read error
+DATA last_realname x
+DATA last_usermask x@Clk-6C400E48
+DATA last_realhost x@localhost
+DATA time_registered 1574238518
+DATA last_seen 1574238521
+DATA nc client3
+DATA NS_NO_EXPIRE 1
+END
+OBJECT XLine
+DATA mask *@127.0.0.1
+DATA by OperServ
+DATA created 1574238900
+DATA expires 1574240700
+DATA reason Session limit exceeded
+DATA uid 6ZU5LOU0A3
+DATA manager xlinemanager/sgline
+END
+OBJECT SeenInfo
+DATA nick s5661
+DATA vhost x@netadmin.test.net
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message Read error
+DATA last 1574239196
+END
+OBJECT SeenInfo
+DATA nick netadmin
+DATA vhost x@netadmin.test.net
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message Read error
+DATA last 1574239156
+END
+OBJECT SeenInfo
+DATA nick client1
+DATA vhost x@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message Read error
+DATA last 1574238495
+END
+OBJECT SeenInfo
+DATA nick client2
+DATA vhost x@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message Read error
+DATA last 1574238505
+END
+OBJECT SeenInfo
+DATA nick client3
+DATA vhost x@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message Read error
+DATA last 1574238521
+END
+OBJECT SeenInfo
+DATA nick c1a_htehrtjs
+DATA vhost username@netadmin.test.net
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message Read error
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_wgrcqayw
+DATA vhost username@netadmin.test.net
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message Read error
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_iwcxxqmh
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message Read error
+DATA last 1574238910
+END
+OBJECT SeenInfo
+DATA nick c2a_nqkilefc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message Read error
+DATA last 1574238910
+END
+OBJECT SeenInfo
+DATA nick c3a_pmjvsuky
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message Read error
+DATA last 1574238910
+END
+OBJECT SeenInfo
+DATA nick c1a_giwecqth
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_acbhojbd
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_kdmayggq
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_wfetvmke
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_vszmljsg
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_eileonit
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_mqiweyjc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick ChanServ
+DATA vhost services@services.test.net
+DATA type 4
+DATA nick2 
+DATA channel #__SYNC__jrecnqen
+DATA message 
+DATA last 1574238956
+END
+OBJECT SeenInfo
+DATA nick c2a_gtgfpqrb
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_ywcbwhlt
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_tpdheyos
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_ynkhyujl
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_hbhsvqsz
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_jxzpempp
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_znijjrre
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_tukrhbxd
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message Read error
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_hvkesgbz
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_rlrhbejd
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_pxvzahic
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_msemrcsy
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_uzzsgqsq
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_hruisxoc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_hustgmow
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_jszhysyz
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_fawpycqg
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_hnqfftnm
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_ygwdeqgs
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_bgjruyno
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_gevdvgbk
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_sgzxraav
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_tczsgujh
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_naqyyyrz
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_fuottckv
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_hfhtoyxn
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_wymcearu
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_eablpdfi
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_ydmgzule
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_xzdlfdpi
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_spwnsvar
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_hygxbwno
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_cmnqioul
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_kavovkqo
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_sgwjozcl
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_lhmebsyc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_aeniqfdm
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_sotsjbnt
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_busxedzq
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_owffvjdt
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_jiolxdkn
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_geayjfke
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_eojfdymj
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_dzzxnhav
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_hdairrfb
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_cprndhsa
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_ouzgdaev
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1b_phjtajuc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_fgccognc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_firchrkr
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_weoglfga
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_gbyqqudl
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_jycvlxkh
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_oqeljibf
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_kijdxkgw
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_lobfjokv
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_uxfbedqd
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_tuktfzmo
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_lbgvoggd
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_khrfifzt
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_nblmsmkm
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_rzzzkqbi
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3b_vmqkzprj
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_kebdlvqi
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_tqfgzdhr
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_dbxjefig
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_vzobbyuc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_afmpdffc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_ygrtbdux
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_llgcyrgn
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_bvgysled
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c1a_abytjfvo
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c3a_lhmihkvl
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238900
+END
+OBJECT SeenInfo
+DATA nick c2a_pfhmvuoc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238901
+END
+OBJECT SeenInfo
+DATA nick c1a_xoxpmsye
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238901
+END
+OBJECT SeenInfo
+DATA nick c3a_ubsejvgb
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238901
+END
+OBJECT SeenInfo
+DATA nick c3a_tyfqbgpt
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238901
+END
+OBJECT SeenInfo
+DATA nick c1a_gknhaytr
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238901
+END
+OBJECT SeenInfo
+DATA nick c2a_oyxgpuuy
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238901
+END
+OBJECT SeenInfo
+DATA nick c2a_sexzierf
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238901
+END
+OBJECT SeenInfo
+DATA nick c1a_exusypfq
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238901
+END
+OBJECT SeenInfo
+DATA nick c3a_mzpyziuy
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238901
+END
+OBJECT SeenInfo
+DATA nick c2a_urijgmhx
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238901
+END
+OBJECT SeenInfo
+DATA nick c3a_pqfwmwfe
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238901
+END
+OBJECT SeenInfo
+DATA nick c1a_zzarklwm
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238901
+END
+OBJECT SeenInfo
+DATA nick c2a_iatdasbx
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message Read error
+DATA last 1574238950
+END
+OBJECT SeenInfo
+DATA nick c1a_zdubphsb
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238910
+END
+OBJECT SeenInfo
+DATA nick c3a_nmefgdyv
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238910
+END
+OBJECT SeenInfo
+DATA nick c3b_yudntxwd
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238910
+END
+OBJECT SeenInfo
+DATA nick c2a_kbaifbor
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message Read error
+DATA last 1574238950
+END
+OBJECT SeenInfo
+DATA nick c1a_rpnsaxim
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238910
+END
+OBJECT SeenInfo
+DATA nick c3a_mwrdvjzn
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238910
+END
+OBJECT SeenInfo
+DATA nick c2a_wyyrynfr
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message Read error
+DATA last 1574238950
+END
+OBJECT SeenInfo
+DATA nick c1a_ttxauvfh
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_ydpbyfae
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_lvwllwsv
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_oecszefk
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_wiqppscc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_bzdqentv
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_lbgnlrus
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_yidvclus
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_dlsjhmqu
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_arfrghks
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_ygetjqah
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_jmhqsver
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_wxvxmxdf
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_etwtivtj
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_hypmwlmb
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_kyexwiht
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_beovmtjg
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_vwyymmrc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_aazbvhxv
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_favcsykx
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_ofmxqlov
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_jryebzln
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_yibquuzq
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_eftrzzau
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_nhpggpnx
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_rbsfdafh
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_besucuem
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_tbbjodim
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_kspvpmsx
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_klasaldu
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_gwxakuxu
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_xhellted
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_wfxysiue
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_kouvsqcd
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_tybsjmeu
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_dzoqvayq
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_ddyuhbxc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_otsrmqfi
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_mwkpspld
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_jftptbib
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_ddrcyvpm
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_jrkifugj
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_zlokunef
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_ajxbfvyh
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_cckvllzp
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_merqzbya
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_aoryesew
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_crezwght
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_auurxwrm
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_fjhuurim
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_mpicywtb
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_ddgywayn
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_vpbxmszz
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c2a_hbbhyiuc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c3a_dvadqcyc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_onlybehc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238940
+END
+OBJECT SeenInfo
+DATA nick c1a_jnnyuoif
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_pjcjgcup
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_vrrptall
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_kqcemsmj
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_tntagkjx
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_poqzicok
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_udqfmept
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_oxdgqcwb
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_wskkeucz
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_bzbjbkgu
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_cfpbzcwa
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_wtwlfjvz
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_sfkpslqg
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_zjowkhks
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_cdrlkwei
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_cubyiclw
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_ihqohvol
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_nqckvlfl
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_vhlwwgmw
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_elmumnnm
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_kxwrsagz
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_dynzzfkp
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_uvfznccg
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_fngrlgvn
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_myhrfbln
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_mnsmofqr
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_ollxsyou
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_jkfoxagz
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_chsfbdpz
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_kfiswfpp
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_cuicartw
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_ntijfcgw
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_yefznwya
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_fdwjgprl
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_kfrlschs
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_kigvvcpz
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_zgxzmppr
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_wdhfnlfi
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_cwlqmbik
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_ygxthwor
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_spxwygxp
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_oaxjlahw
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_fmsuwtpu
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_wqpbvate
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_vpfccnlh
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_ksigjljw
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_zittbjmp
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_mkisdqoo
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_llnhughr
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_jwdjerzf
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_ojjqpxph
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_ukqnnczc
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_xfbnjwsu
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_ihpdobra
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_izpwdyan
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_dboatkrp
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_hdhifntq
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c2a_fmdhktcv
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c3a_bvyoyulw
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT SeenInfo
+DATA nick c1a_odxtoxpx
+DATA vhost username@Clk-6C400E48
+DATA type 5
+DATA nick2 
+DATA channel 
+DATA message OperServ (Session limit exceeded)
+DATA last 1574238941
+END
+OBJECT Exception
+DATA mask 127.0.0.1
+DATA limit 1000
+DATA who s5661
+DATA reason No restrictions for localhost
+DATA time 1574239192
+DATA expires 0
+END
