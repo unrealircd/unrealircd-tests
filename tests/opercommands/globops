@@ -1,0 +1,20 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send(c1a, "GLOBOPS this is a globops test")
+m.expect(c1a, "Command not permitted as non-ircop", ":.+ 481 $me :Permission Denied")
+m.clearlog()
+print
+
+m.send(c1a, "OPER netadmin test")
+m.send(c2a, "OPER netadmin test")
+m.send(c1a, "GLOBOPS this is a globops test")
+m.expect_all("Opers should see globops", ":irc.+ NOTICE $me :from $c1a: this is a globops test", skip = c3a)
+m.not_expect(c3a, "Non-opers should not see globops", "this is a globops test")
+print
