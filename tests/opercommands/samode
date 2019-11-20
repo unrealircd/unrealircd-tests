@@ -1,0 +1,80 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+# Contrary to the channel mode specific mode tests, this tests the MODE
+# command itself, if it eats the correct parameter, broadcasts it corectly, etc.
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a)
+m.expect(c1a, "user in channel", "JOIN")
+print
+
+m.send(c1a, "SAMODE " + chan + " +slk 11 22")
+m.expect(c1a, "Command not permitted as non-ircop", ":.+ 481 $me :Permission Denied")
+m.clearlog()
+print
+
+m.send(c1a, "OPER netadmin test")
+m.send(c1a, "SAMODE " + chan + " +slk 11 22")
+m.expect_all("Everyone should see MODE change #1", ":irc1.test.net MODE " + chan + " \+slk 11 22")
+m.expect(c1a, "SAMODE notice", ":.+ NOTICE $me :$c1a used SAMODE " + chan + " \(\+slk 11 22\)")
+m.clearlog()
+print
+
+m.send_all("MODE " + chan)
+m.expect_all("Verify modes set, via MODE #chan, after #1", " 324 .* " + chan + " \+slk 11 22")
+m.clearlog()
+print
+
+m.send(c1a, "SAMODE " + chan + " -l")
+m.expect_all("Everyone should see MODE change #2", ":irc1.test.net MODE " + chan + " \-l")
+m.clearlog()
+print
+
+m.send_all("MODE " + chan)
+m.expect_all("Verify modes set, via MODE #chan, after #2", " 324 .* " + chan + " \+sk 22")
+m.clearlog()
+print
+
+m.send(c1a, "SAMODE " + chan + " -k+f dummy [5t]:10")
+m.expect_all("Everyone should see MODE change #3", ":irc1.test.net MODE " + chan + " \-k\+f 22 \[5t\]:10")
+m.clearlog()
+print
+
+m.send_all("MODE " + chan)
+m.expect_all("Verify modes set, via MODE #chan, after #3", " 324 .* " + chan + " \+sf \[5t\]:10")
+m.clearlog()
+print
+
+# Collapsed will only process the first parameter (set in this case) and ignore the other changes
+m.send(c1a, "SAMODE " + chan + " +k-k+k one two three")
+m.expect_all("Everyone should see collapsed MODE change #4", ":irc1.test.net MODE " + chan + " \+k one")
+m.clearlog()
+print
+
+m.send_all("MODE " + chan)
+m.expect_all("Verify modes set, via MODE #chan, after #4", " 324 .* " + chan + " \+skf one \[5t\]:10")
+m.clearlog()
+print
+
+# Collapased will only process the first parameter (unset in this case) and ignore the other changes
+m.send(c1a, "SAMODE " + chan + " -f+f-f+f [1t]:10 [2t]:10 [3t]:10 [4t]:10")
+m.expect_all("Everyone should see collapsed MODE change #5", ":irc1.test.net MODE " + chan + " -f \[5t\]:10")
+m.clearlog()
+print
+
+m.send_all("MODE " + chan)
+m.expect_all("Verify modes set, via MODE #chan, after #5", " 324 .* " + chan + " \+sk one")
+m.clearlog()
+print
+
+m.send(c1a, "SAMODE #nonexistant +k key")
+m.expect(c1a, "MODE set request for non-existant channel should return 403 numeric", "403.*No such channel")
+m.clearlog()
+print
