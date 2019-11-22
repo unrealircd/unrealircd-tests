@@ -1,0 +1,37 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, skip = c3a, creator=c1a)
+m.expect(c1a, "users in channel", "JOIN")
+m.clearlog()
+print
+
+m.send(c1a, "MODE " + chan + " +b ~n:$c3a!*@*")
+m.expect(c1a, "expect ban to be set", ":.+ MODE " + chan + " \+b")
+m.clearlog()
+print
+
+m.send(c3a, "JOIN " + chan)
+m.expect_all("Client should be able to join with +b ~n", ":c3a.* JOIN ")
+m.clearlog()
+print
+
+m.send(c3a, "PRIVMSG " + chan + " :this should not be blocked")
+m.not_expect(c3a, "Message should NOT be blocked with +b ~n", ":irc.+ 404 $c3a " + chan + " :You are banned")
+m.expect_all("Message should go through", "this should not be blocked", skip = c3a)
+m.clearlog()
+print
+
+# Disable syncer due to nick change
+m.sync = 0
+m.send(c3a, "NICK hfdhsfdfsdh")
+m.expect(c3a, "Nick change should be blocked", ":irc.+ 437 $me " + chan + " :Cannot change nick", timeout = 5)
+m.clearlog()
+print

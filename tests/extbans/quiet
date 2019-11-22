@@ -1,0 +1,30 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, skip = c3a, creator=c1a)
+m.expect(c1a, "users in channel", "JOIN")
+m.clearlog()
+print
+
+m.send(c1a, "MODE " + chan + " +b ~q:$c3a!*@*")
+m.expect(c1a, "expect ban to be set", ":.+ MODE " + chan + " \+b")
+m.clearlog()
+print
+
+m.send(c3a, "JOIN " + chan)
+m.expect_all("Client should be able to join with +b ~q", ":c3a.* JOIN ")
+m.clearlog()
+print
+
+m.send(c3a, "PRIVMSG " + chan + " :this should be blocked")
+m.expect(c3a, "Message should be blocked with +b ~q", ":irc.+ 404 $c3a " + chan + " :You are banned")
+m.not_expect_all("Message should not go through", "this should be blocked")
+m.clearlog()
+print
