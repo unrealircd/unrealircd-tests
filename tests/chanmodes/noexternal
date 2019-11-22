@@ -1,0 +1,20 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, creator = c2a, skip = c1a)
+m.expect(c2a, "users in channel", "JOIN")
+m.send(c2a, "MODE " + chan + " +n")
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :external message")
+m.not_expect_all("Message should not be delivered if +n", "external message")
+m.expect(c1a, "Error message on external message attempt", ":irc.+ 404 $me " + chan + " :No external channel messages")
+m.clearlog()
+print
