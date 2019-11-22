@@ -1,0 +1,96 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, creator=c1a, skip = c3a)
+m.send(c1a, "MODE " + chan + " +n")
+m.expect(c1a, "users in channel", "JOIN")
+m.clearlog()
+print
+
+# external message
+m.send(c3a, "PRIVMSG " + chan + " :external message")
+m.expect(c3a, "Can normally not send if +n", ":irc.+ 404 $me " + chan)
+m.not_expect_all("Message should not be delivered", "external message")
+m.clearlog()
+print
+
+m.send(c1a, "MODE " + chan + " +e ~m:external:$c3a!*@*")
+m.send(c3a, "PRIVMSG " + chan + " :external message")
+m.not_expect(c3a, "No error message now even if +n", ":irc.+ 404 $me " + chan)
+m.expect_all("Message should be delivered", "external message", skip = c3a)
+m.clearlog()
+print
+
+m.send(c1a, "MODE " + chan + " -e ~m:external:$c3a!*@*")
+m.send(c3a, "JOIN " + chan)
+m.expect(c1a, "Client 3 joins channel", ":$c3a.* JOIN ")
+m.clearlog()
+print
+
+# moderated message
+m.send(c1a, "MODE " + chan + " +m")
+m.send(c3a, "PRIVMSG " + chan + " :moderated message")
+m.expect(c3a, "Can normally not send if +m", ":irc.+ 404 $me " + chan)
+m.not_expect_all("Message should not be delivered", "moderated message")
+m.clearlog()
+print
+
+m.send(c1a, "MODE " + chan + " +e ~m:moderated:$c3a!*@*")
+m.send(c3a, "PRIVMSG " + chan + " :moderated message")
+m.not_expect(c3a, "No error message now even if +m", ":irc.+ 404 $me " + chan)
+m.expect_all("Message should be delivered", "moderated message", skip = c3a)
+m.clearlog()
+print
+
+# censor
+m.send(c1a, "MODE " + chan + " -e ~m:moderated:$c3a!*@*")
+m.send(c1a, "MODE " + chan + " -m+G")
+m.send(c3a, "PRIVMSG " + chan + " :fuck")
+m.expect_all("Message should be censored", "<censored>", skip = c3a)
+m.not_expect_all("Message should not be delivered", "fuck")
+m.clearlog()
+print
+
+m.send(c1a, "MODE " + chan + " +e ~m:censor:$c3a!*@*")
+m.send(c3a, "PRIVMSG " + chan + " :fuck")
+m.expect_all("Message should be delivered", "fuck", skip = c3a)
+m.clearlog()
+print
+
+# color
+m.send(c1a, "MODE " + chan + " -e ~m:censor:$c3a!*@*")
+m.send(c1a, "MODE " + chan + " -G+c")
+m.send(c3a, "PRIVMSG " + chan + " :\00312color")
+m.expect(c3a, "Can normally not send if +c", ":irc.+ 404 $me " + chan)
+m.not_expect_all("Message should not be delivered", "12color")
+m.clearlog()
+print
+
+m.send(c1a, "MODE " + chan + " +e ~m:color:$c3a!*@*")
+m.send(c3a, "PRIVMSG " + chan + " :\00312color")
+m.not_expect(c3a, "No error message now even if +c", ":irc.+ 404 $me " + chan)
+m.expect_all("Message should be delivered", "\00312color", skip = c3a)
+m.clearlog()
+print
+
+# notice
+m.send(c1a, "MODE " + chan + " -e ~m:color:$c3a!*@*")
+m.send(c1a, "MODE " + chan + " -c+T")
+m.send(c3a, "NOTICE " + chan + " :this is a notice")
+# no 404 numeric error beause NOTICEs should not generate errors (RFC)
+m.not_expect_all("Message should not be delivered", "this is a notice")
+m.clearlog()
+print
+
+m.send(c1a, "MODE " + chan + " +e ~m:notice:$c3a!*@*")
+m.send(c3a, "NOTICE " + chan + " :this is a notice")
+m.expect_all("Message should be delivered", "this is a notice", skip = c3a)
+m.clearlog()
+print
