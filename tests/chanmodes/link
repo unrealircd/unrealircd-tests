@@ -15,19 +15,51 @@ m.send(c1a, "JOIN " + chan1)
 m.expect(c1a, "first user in channel", ":c1a.*JOIN")
 print
 
+# Test with +l (limit)
 m.send(c1a, "MODE " + chan1 + " +l 2")
 m.expect(c1a, "MODE +l 2", ":c1a.*MODE.*\+l 2")
 m.send(c1a, "MODE " + chan1 + " +L " + chan2)
 m.expect(c1a, "MODE +L ...", ":c1a.*MODE.*\+L " + chan2)
 print
-
 m.send(c2a, "JOIN " + chan1)
 m.expect(c2a, "can join channel if +l is not reached", ":c2a.*JOIN.*" + chan1)
 print
-
 m.send(c3a, "JOIN " + chan1)
 m.expect(c3a, "Server informing about redirect", ":irc.* 470 $me " + chan1 + " " + chan2 + " :\[Link\] Cannot join channel " + chan1 + " \(channel has become full\) -- transferring you to " + chan2)
 m.expect(c3a, "JOIN to 2nd channel", ":c3a.*JOIN.*" + chan2)
-m.not_expect(c1a, "should not see any JOIN in primary channel if limit reached", ":c3a.*JOIN")
+m.not_expect(c1a, "should not see any JOIN in primary channel", ":c3a.*JOIN")
+print
+m.clearlog()
+
+# Test with +i (invite only)
+m.send(c3a, "PART " + chan2)
+m.send(c1a, "MODE " + chan1 + " -l+i")
+m.expect(c1a, "MODE", "MODE.*\+i")
+m.send(c3a, "JOIN " + chan1)
+m.expect(c3a, "Server informing about redirect", ":irc.* 470 $me " + chan1 + " " + chan2 + " :\[Link\] Cannot join channel " + chan1 + " \(channel is invite only\) -- transferring you to " + chan2)
+m.expect(c3a, "JOIN to 2nd channel", ":c3a.*JOIN.*" + chan2)
+m.not_expect(c1a, "should not see any JOIN in primary channel", ":c3a.*JOIN")
+print
+m.clearlog()
+
+# Test with +b (affected by some other ban)
+m.send(c3a, "PART " + chan2)
+m.send(c1a, "MODE " + chan1 + " -i+b c3a*!*@*")
+m.expect(c1a, "MODE", "MODE.*\+b")
+m.send(c3a, "JOIN " + chan1)
+m.expect(c3a, "Server informing about redirect", ":irc.* 470 $me " + chan1 + " " + chan2 + " :\[Link\] Cannot join channel " + chan1 + " \(you are banned\) -- transferring you to " + chan2)
+m.expect(c3a, "JOIN to 2nd channel", ":c3a.*JOIN.*" + chan2)
+m.not_expect(c1a, "should not see any JOIN in primary channel", ":c3a.*JOIN")
+print
+m.clearlog()
+
+# Test with +k (channel key)
+m.send(c3a, "PART " + chan2)
+m.send(c1a, "MODE " + chan1 + " -b+k c3a*!*@* secret")
+m.expect(c1a, "MODE", "MODE.*\+k")
+m.send(c3a, "JOIN " + chan1)
+m.expect(c3a, "Server informing about redirect", ":irc.* 470 $me " + chan1 + " " + chan2 + " :\[Link\] Cannot join channel " + chan1 + " \(invalid channel key\) -- transferring you to " + chan2)
+m.expect(c3a, "JOIN to 2nd channel", ":c3a.*JOIN.*" + chan2)
+m.not_expect(c1a, "should not see any JOIN in primary channel", ":c3a.*JOIN")
 print
 m.clearlog()
