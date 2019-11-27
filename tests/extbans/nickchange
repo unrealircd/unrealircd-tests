@@ -32,6 +32,6 @@ print
 # Disable syncer due to nick change
 m.sync = 0
 m.send(c3a, "NICK hfdhsfdfsdh")
-m.expect(c3a, "Nick change should be blocked", ":irc.+ 437 $me " + chan + " :Cannot change nick", timeout = 5)
+m.expect(c3a, "Nick change should be blocked", ":irc.+ 437 .* " + chan + " :Cannot change nick", timeout = 5)
 m.clearlog()
 print

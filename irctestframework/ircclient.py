@@ -111,6 +111,21 @@ class IrcClient(asynchat.async_chat):
         if not self.hide_sync or not "__SYNC__" in data:
             if not self.hide_handshake or self.ready == 1:
                 self.log("" + self.name + ">> " + data)
+        if data.startswith("NICK "):
+            # Sending a NICK command to change nick?
+            # This is problematic as it interfers with the
+            # automatic syncer. We update the nick name in
+            # response to the :ournick NICK newnick from
+            # the server, but by then it is too late,
+            # as we have already sent a PRIVMSG ...,ournick ..
+            # So we need to update it here, even though
+            # it could fail, of course, in which case
+            # we're screwed. Well, at least it fixes the
+            # more common case when it succeeds, which
+            # helps a lot since then we don't need to disable
+            # the syncer in tests.
+            (zzcmd, newnick) = data.split(" ", 1)
+            self.nick = newnick
         self.push(data + '\r\n')
 
     def collect_incoming_data(self, data):

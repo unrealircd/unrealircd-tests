@@ -27,8 +27,9 @@ print
 m.sync = 0
 
 # Test nick change
+c3a_original_nick = c3a.nick
 m.send(c3a, "NICK somenick")
-m.expect(c1a, "601 numeric for user that went offline (nick change)", ":.+ 601 $me $c3a username Clk-.* [0-9]+ :logged offline", timeout = 10)
+m.expect(c1a, "601 numeric for user that went offline (nick change)", ":.+ 601 $me " + c3a_original_nick + " username Clk-.* [0-9]+ :logged offline", timeout = 10)
 m.expect(c1a, "600 numeric for user that got online (nick change)", ":.+ 600 $me somenick username Clk-.* [0-9]+ :logged online", timeout = 10)
 m.clearlog()
 print
