@@ -1,0 +1,24 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.send(c1a, "JOIN " + chan)
+m.send(c1a, "MODE " + chan + " +b ~f:#redirect:c3a*!*@*")
+m.expect(c1a, "user in channel", "JOIN")
+m.clearlog()
+print
+
+m.send(c2a, "JOIN " + chan)
+m.send(c3a, "JOIN " + chan)
+m.expect(c1a, "Unbanned client should be able to JOIN", ":c2a.* JOIN")
+m.not_expect(c1a, "Banned client should be unable to JOIN", ":c3a.* JOIN")
+m.expect(c3a, "Server informing about redirect", ":irc.* 470 $me " + chan + " #redirect :\[Link\] Cannot join channel " + chan + " \(you are banned\) -- transferring you to \#redirect")
+m.expect(c3a, "Join the redirected channel", ":$me.* JOIN :\#redirect")
+m.clearlog()
+print
