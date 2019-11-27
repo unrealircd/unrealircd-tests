@@ -1,0 +1,140 @@
+#!/usr/bin/python
+import irctestframework.irctest
+import time
+
+# TODO: more +f sub-tests
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.send(c1a, "JOIN " + chan)
+m.expect(c1a, "users in channel", "JOIN")
+m.clearlog()
+print
+
+# knock-flood: +f [1k]:15
+m.send(c1a, "MODE " + chan + " +fi [1k]:15")
+m.expect(c1a, "MODE set", ":c1a.*MODE.*f.*\[1k\]:15")
+m.clearlog()
+print
+m.send(c2a, "KNOCK " + chan)
+m.send(c3a, "KNOCK " + chan)
+m.expect(c1a, "should send warning on flood", ":irc.* NOTICE %" + chan + " :\*\*\* Channel knockflood detected \(limit is 1 per 15 seconds\), setting mode \+K")
+m.expect(c1a, "should set MODE on flood", ":irc.* MODE " + chan + " \+K")
+m.clearlog()
+print
+
+# join-flood: +f [1j]:15
+m.send(c1a, "MODE " + chan + " -iK+f [1j]:15")
+m.expect(c1a, "MODE set", ":c1a.*MODE.*f.*\[1j\]:15")
+m.clearlog()
+print
+m.send(c2a, "JOIN " + chan)
+m.send(c3a, "JOIN " + chan)
+m.expect(c1a, "should send warning on flood", ":irc.* NOTICE %" + chan + " :\*\*\* Channel joinflood detected \(limit is 1 per 15 seconds\), setting mode \+i", timeout = 5)
+m.expect(c1a, "should set MODE on flood", ":irc.* MODE " + chan + " \+i", timeout = 5)
+m.clearlog()
+print
+
+# message-flood: +f [2m]:15
+m.send(c1a, "MODE " + chan + " -i+f [2m]:15")
+m.expect_all("MODE set", ":c1a.*MODE.*f.*\[2m\]:15")
+m.clearlog()
+print
+m.send(c2a, "PRIVMSG " + chan + " :message one")
+m.send(c3a, "PRIVMSG " + chan + " :message two")
+m.not_expect_all("no warning if limit not reached yet", "flood detected");
+m.send(c2a, "PRIVMSG " + chan + " :message three")
+m.expect(c1a, "should send warning on flood", ":irc.* NOTICE %" + chan + " :\*\*\* Channel msg/noticeflood detected \(limit is 2 per 15 seconds\), setting mode \+m", timeout = 5)
+m.expect(c1a, "should set MODE on flood", ":irc.* MODE " + chan + " \+m", timeout = 5)
+m.clearlog()
+print
+
+# ctcp-flood: +f [2c]:15
+m.send(c1a, "MODE " + chan + " -m+f [2c]:15")
+m.expect_all("MODE set", ":c1a.*MODE.*f.*\[2c\]:15")
+m.clearlog()
+print
+m.send(c2a, "PRIVMSG " + chan + " :message one")
+m.send(c3a, "PRIVMSG " + chan + " :message two")
+m.send(c2a, "PRIVMSG " + chan + " :message three")
+m.not_expect_all("no warning on non-CTCP", "flood detected");
+m.clearlog()
+print
+m.send(c2a, "PRIVMSG " + chan + " :\001PING\001")
+m.send(c3a, "PRIVMSG " + chan + " :\001PING\001")
+m.not_expect_all("no warning if limit not reached yet", "flood detected");
+m.send(c2a, "PRIVMSG " + chan + " :\001PING\001")
+m.expect(c1a, "should send warning on flood", ":irc.* NOTICE %" + chan + " :\*\*\* Channel CTCPflood detected \(limit is 2 per 15 seconds\), setting mode \+C", timeout = 5)
+m.expect(c1a, "should set MODE on flood", ":irc.* MODE " + chan + " \+C", timeout = 5)
+m.clearlog()
+print
+
+# nick-flood: +f [1n]:15
+m.send(c1a, "MODE " + chan + " -C+f [1n]:15")
+m.expect_all("MODE set", ":c1a.*MODE.*f.*\[1n\]:15")
+m.clearlog()
+print
+m.send(c2a, "NICK c2achmodef")
+m.send(c3a, "NICK c3achmodef")
+m.expect(c1a, "should send warning on flood", ":irc.* NOTICE %" + chan + " :\*\*\* Channel nickflood detected \(limit is 1 per 15 seconds\), setting mode \+N", timeout = 5)
+m.expect(c1a, "should set MODE on flood", ":irc.* MODE " + chan + " \+N", timeout = 5)
+m.clearlog()
+print
+
+# nick-flood: +f [1t]:15
+m.send(c1a, "MODE " + chan + " -C+f [1t]:15")
+m.expect_all("MODE set", ":c1a.*MODE.*f.*\[1t\]:15")
+m.clearlog()
+print
+m.send(c2a, "PRIVMSG " + chan + " :message one")
+m.send(c3a, "PRIVMSG " + chan + " :message one for me too")
+m.send(c2a, "PRIVMSG " + chan + " :message two I should be kicked")
+m.expect_all("should KICK user on flood", ":irc.* KICK " + chan + " $c2a :Flooding \(Limit is 1 lines per 15 seconds\)", timeout = 5)
+m.clearlog()
+print
+
+# rejoin
+m.send(c2a, "JOIN " + chan)
+m.clearlog()
+print
+
+# repeat-flood: +f [1r]:15
+m.send(c1a, "MODE " + chan + " +f [1r#d]:15")
+m.expect_all("MODE set", ":c1a.*MODE.*f.*\[1r\#d\]:15")
+m.clearlog()
+print
+m.send(c2a, "PRIVMSG " + chan + " :message one")
+m.expect_all("Expect first message to be delivered", ":$c2a.* PRIVMSG.*message one", skip = c2a)
+m.clearlog()
+print
+# now test a direct repeat:
+m.send(c2a, "PRIVMSG " + chan + " :message one")
+m.expect(c2a, "Repeated message should error", ":ir.* 404 $me " + chan + " :Flooding \(Your last message is too similar to previous ones\)")
+m.not_expect_all("Don't deliver repeated message", ":$c2a.* PRIVMSG.*message one", skip = c2a)
+m.clearlog()
+print
+
+# repeat-flood: +f [1r2]:15
+m.send(c1a, "MODE " + chan + " +f [1r#d2]:15")
+m.expect_all("MODE set", ":c1a.*MODE.*f.*\[1r\#d2\]:15")
+m.clearlog()
+print
+m.send(c2a, "PRIVMSG " + chan + " :alpha")
+m.expect_all("Expect first message to be delivered", ":$c2a.* PRIVMSG.*alpha", skip = c2a)
+m.clearlog()
+print
+m.send(c2a, "PRIVMSG " + chan + " :beta")
+m.expect_all("Expect second message to be delivered", ":$c2a.* PRIVMSG.*beta", skip = c2a)
+m.clearlog()
+print
+# now test a repeat of the before-last-message:
+m.send(c2a, "PRIVMSG " + chan + " :alpha")
+m.expect(c2a, "Repeated message should error", ":ir.* 404 $me " + chan + " :Flooding \(Your last message is too similar to previous ones\)")
+m.not_expect_all("Don't deliver repeated message", ":$c2a.* PRIVMSG.*alpha", skip = c2a)
+m.clearlog()
+print
