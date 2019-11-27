@@ -22,3 +22,21 @@ m.expect(c3a, "Server informing about redirect", ":irc.* 470 $me " + chan + " #r
 m.expect(c3a, "Join the redirected channel", ":$me.* JOIN :\#redirect")
 m.clearlog()
 print
+
+m.send(c2a, "PART " + chan)
+m.send(c3a, "PART #redirect")
+m.send(c1a, "MODE " + chan + " -b ~f:#redirect:c3a*!*@*")
+m.send(c1a, "MODE " + chan + " +b ~t:100:~f:#redirect:c3a*!*@*")
+m.expect(c1a, "Unban", "MODE.*-b ~f:#redirect:c3a*!*@*")
+m.expect(c1a, "Ban", "MODE.*\+b ~t:100:~f:#redirect:c3a*!*@*")
+m.clearlog()
+print
+
+m.send(c2a, "JOIN " + chan)
+m.send(c3a, "JOIN " + chan)
+m.expect(c1a, "Unbanned client should be able to JOIN", ":c2a.* JOIN")
+m.not_expect(c1a, "Banned client should be unable to JOIN", ":c3a.* JOIN")
+m.expect(c3a, "Server informing about redirect", ":irc.* 470 $me " + chan + " #redirect :\[Link\] Cannot join channel " + chan + " \(you are banned\) -- transferring you to \#redirect")
+m.expect(c3a, "Join the redirected channel", ":$me.* JOIN :\#redirect")
+m.clearlog()
+print
