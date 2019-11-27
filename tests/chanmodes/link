@@ -10,7 +10,6 @@ m.connect()
 chan1 = m.randchan()
 chan2 = m.randchan()
 
-m.send(c1a, "OPER netadmin test")
 m.send(c1a, "JOIN " + chan1)
 m.expect(c1a, "first user in channel", ":c1a.*JOIN")
 print
