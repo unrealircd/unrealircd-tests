@@ -26,7 +26,7 @@ m.expect(c2a, "can join channel if +l is not reached", ":c2a.*JOIN.*" + chan1)
 print
 
 m.send(c3a, "JOIN " + chan1)
-m.expect(c3a, "nummeric 470 to indicate redirect", "470.*has become full")
+m.expect(c3a, "Server informing about redirect", ":irc.* 470 $me " + chan1 + " " + chan2 + " :\[Link\] Cannot join channel " + chan1 + " \(channel has become full\) -- transferring you to " + chan2)
 m.expect(c3a, "JOIN to 2nd channel", ":c3a.*JOIN.*" + chan2)
 m.not_expect(c1a, "should not see any JOIN in primary channel if limit reached", ":c3a.*JOIN")
 print
