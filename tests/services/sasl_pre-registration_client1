@@ -1,0 +1,43 @@
+#!/usr/bin/python
+import irctestframework.irctest
+import base64
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1a.disable_registration = 1
+m.sync = 0
+m.connect()
+
+m.send(c1a, "CAP LS 302")
+m.send(c1a, "USER username x x :Test framework")
+m.send(c1a, "NICK client1")
+m.send(c1a, "CAP REQ :message-tags account-tag")
+m.send(c1a, "CAP REQ :sasl")
+m.expect(c1a, "SASL CAP available and enabled", ":.+ CAP .* ACK :sasl", timeout = 10)
+m.clearlog()
+print
+
+m.send(c1a, "AUTHENTICATE PLAIN")
+m.expect(c1a, "AUTHENTICATE plain go ahead", "AUTHENTICATE \+", timeout = 10)
+m.clearlog()
+print
+
+# Now, authenticate
+auth_string = base64.b64encode(b'client1\000client1\000test')
+m.send(c1a, "AUTHENTICATE " + auth_string)
+m.expect(c1a, "SASL authentication successful", ":.+ 903 .* :SASL authentication successful", timeout = 10)
+m.clearlog()
+print
+
+m.send(c1a, "CAP END")
+m.expect(c1a, "Numeric 001 RPL_WELCOME", ":irc.* 001 client1 .*", timeout=10)
+m.expect(c1a, "Client should receive modes", ":client1 MODE client1 .*", timeout=10)
+m.expect(c1a, "NickServ sets +r", ":NickServ MODE client1 :\+r", timeout=5)
+m.not_expect(c1a, "", "This nickname is registered")
+m.clearlog()
+
+m.sync = 1
+m.send(c1a, "WHOIS client1")
+m.expect(c1a, "Show account in WHOIS", ":.+ 330 client1 client1 client1 :is logged in as")
+m.clearlog()
+print
