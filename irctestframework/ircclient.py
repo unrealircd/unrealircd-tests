@@ -20,6 +20,7 @@ class IrcClient(asynchat.async_chat):
         self.hide_sync = 1
         self.hide_handshake = 1
         self.disable_logging = 0
+        self.disable_registration = 0
         self.syncchan = syncchan
         self.recvd_syncers = {}
         self.all_lines = []
@@ -100,6 +101,10 @@ class IrcClient(asynchat.async_chat):
         return
 
     def handle_connect(self):
+        # Return if we don't want to register as a user (rare):
+        if self.disable_registration:
+            self.ready = 1
+            return
         # Generalize this later...
         self.out("CAP LS")
         self.out("CAP REQ :message-tags account-tag")
@@ -196,8 +201,9 @@ class IrcClient(asynchat.async_chat):
         if cmd == '001':
             # We got the 001 welcome, now join the syncchannel
             # (we are NOT ready yet)
-            self.ready = -9
-            self.out("JOIN " + self.syncchan)
+            if self.ready < -9:
+                self.ready = -9
+                self.out("JOIN " + self.syncchan)
 
         if '366' in line and self.syncchan in line:
             # We joined the syncchan and are now fully ready.
