@@ -118,21 +118,21 @@ m.clearlog()
 print
 
 ### Spamfilter
-m.send(c1a, "SPAMFILTER add -simple p block 0 this_is_a_test Please block this message")
+m.send(c1a, "SPAMFILTER add -simple p gzline 0 this_is_a_test Please gzline me")
 m.expect_all("Spamfilter added notice to IRCOps",
-             "Spamfilter added: 'Please block this message' \[target: p\] \[action: block\] \[reason: this is a test\] on.*from c1a.*")
+             "Spamfilter added: 'Please gzline me' \[target: p\] \[action: gzline\] \[reason: this is a test\] on.*from c1a.*")
 m.clearlog()
 print
 
 m.send_all("STATS spamfilter")
 m.expect_all("Spamfilter shown in /STATS spamfilter",
-             "229.* F simple p block 0 [0-9]* 0 this_is_a_test c1a[^ ]+ :Please block this message")
+             "229.* F simple p gzline 0 [0-9]* 0 this_is_a_test c1a[^ ]+ :Please gzline me")
 m.clearlog()
 print
 
-m.send(c1a, "SPAMFILTER del -simple p block - - Please block this message")
+m.send(c1a, "SPAMFILTER del -simple p gzline - - Please gzline me")
 m.expect_all("Spamfilter removed notice to IRCOps",
-             "c1a.* removed Spamfilter 'Please block this message'.*set at.*")
+             "c1a.* removed Spamfilter 'Please gzline me'.*set at.*")
 m.clearlog()
 print
 
