@@ -20,6 +20,9 @@ function start_services {
 		bin/services || fail "anope failed to start"
 		cd -
 	fi
+	if [ "$SERVICES" = "none" ]; then
+		echo "Skipping services tests (not recommended)"
+	fi
 }
 
 if [ "$MAXPARALLEL" = "" ]; then
@@ -39,7 +42,7 @@ mkdir logs/failure
 
 if [ "$1" != "-services" ]; then
 	echo "ERROR: You need to specify with which services we should test, this needs to be the first parameter passed to ./run:"
-	echo "./run -services [anope|atheme] [...other options for us...]"
+	echo "./run -services [anope|atheme|none] [...other options for us...]"
 	exit 1
 else
 	shift
@@ -47,8 +50,10 @@ else
 		SERVICES="anope"
 	elif [ "$1" = "atheme" ]; then
 		SERVICES="atheme"
+	elif [ "$1" = "none" ]; then
+		SERVICES="none"
 	else
-		echo "Unrecognized services ($1). We only support anope and atheme in our automated tests."
+		echo "Unrecognized services ($1). Specify one of: anope, atheme, none"
 		exit 1
 	fi
 	shift
@@ -88,7 +93,11 @@ fi
 if [ "$1" = "" ]; then
 	# Run all tests:
 	echo "Running all tests in parallel..."
-	find tests -type f|grep -vF '~'|grep -vF _pre_test|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+	if [ "$SERVICES" = "none" ]; then
+		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF services/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+	else
+		find tests -type f|grep -vF '~'|grep -vF _pre_test|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+	fi
 	wait
 else
 	# Run specific tests:
