@@ -120,7 +120,7 @@ print
 ### Spamfilter
 m.send(c1a, "SPAMFILTER add -simple p gzline 0 this_is_a_test Please gzline me")
 m.expect_all("Spamfilter added notice to IRCOps",
-             "Spamfilter added: 'Please gzline me' \[target: p\] \[action: gzline\] \[reason: this is a test\] on.*from c1a.*")
+             "Spamfilter added: 'Please gzline me' \[type: simple\] \[target: p\] \[action: gzline\] \[reason: this is a test\] on.*from c1a.*")
 m.clearlog()
 print
 
