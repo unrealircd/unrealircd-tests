@@ -15,18 +15,62 @@ m.expect(c1a, "MODE +D", "MODE.*\+D")
 print
 
 # Now join the rest
-# Actually c1a is the actual creator (see above),
-# we just use creator=c2a here to force c2a to be second user :)
-m.join_all(chan, creator = c2a)
 m.send(c2a, "JOIN " + chan)
 m.send(c3a, "JOIN " + chan)
 m.send(c3b, "JOIN " + chan)
 m.expect(c1a, "Chanop should see all joins (1 of 2)", ":c2a.*JOIN")
 m.expect(c1a, "Chanop should see all joins (2 of 2)", ":c3a.*JOIN")
 m.not_expect(c2a, "Non-chanop should not see joins", ":c3a.*JOIN")
+m.not_expect(c3a, "Non-chanop should not see joins", ":c3b.*JOIN")
 print
 m.clearlog()
 
+# Quick part test
+m.send(c3b, "PART " + chan)
+m.send(c3a, "PART " + chan)
+m.send(c2a, "PART " + chan)
+m.expect(c1a, "Chanop should see all parts (1 of 2)", ":c2a.*PART")
+m.expect(c1a, "Chanop should see all parts (2 of 2)", ":c3a.*PART")
+m.not_expect(c3a, "Non-chanop should not see parts", ":c3b.*PART")
+m.not_expect(c2a, "Non-chanop should not see parts", ":c3a.*PART")
+print
+m.clearlog()
+
+# Re-join them again (This identical to 'Now join the rest' from earlier)
+m.send(c2a, "JOIN " + chan)
+m.send(c3a, "JOIN " + chan)
+m.send(c3b, "JOIN " + chan)
+m.expect(c1a, "Chanop should see all joins (1 of 2)", ":c2a.*JOIN")
+m.expect(c1a, "Chanop should see all joins (2 of 2)", ":c3a.*JOIN")
+m.not_expect(c2a, "Non-chanop should not see joins", ":c3a.*JOIN")
+m.not_expect(c3a, "Non-chanop should not see joins", ":c3b.*JOIN")
+print
+m.clearlog()
+
+# Make one user visible...
+# For chanops this should result in a: PRIVMSG
+# For non-chansop this should result in a: JOIN, PRIVMSG
+m.send(c3b, "PRIVMSG " + chan + " :make me visible")
+m.not_expect(c1a, "When user msgs for the first time, chanop should not see duplicate joins", ":c3b.*JOIN")
+m.not_expect(c3b, "When we send a msg for the first time, we should not see a self-join", ":c3b.*JOIN")
+m.expect(c3a, "When user msgs for the first time, we should see the user joining (local)", ":c3b.*JOIN")
+m.expect(c2a, "When user msgs for the first time, we should see the user joining (remote)", ":c3b.*JOIN")
+print
+m.clearlog()
+
+# ... and make the user part. This should result in a PART to be shown to all channel members (ops & non-ops)
+m.send(c3b, "PART " + chan)
+m.expect_all("PART from visible channel member", ":c3b.*PART")
+print
+m.clearlog()
+
+# And make the user join again so we can continue tests...
+m.send(c3b, "JOIN " + chan)
+m.expect(c1a, "Chanop should see join", ":c3b.*JOIN")
+print
+m.clearlog()
+
+# Mode +v should expose the user
 m.send(c1a, "MODE " + chan + " +v $c2a")
 m.not_expect(c1a, "When doing +v on user, chanop should not see duplicate joins", ":c2a.*JOIN")
 m.not_expect(c2a, "When doing +v on user, and we are the affected user, we should not see a self-join", ":c2a.*JOIN")
@@ -34,6 +78,7 @@ m.expect(c3a, "When doing +v on a user, we should see the user joining", ":c2a.*
 print
 m.clearlog()
 
+# Message should expose the user
 m.send(c3b, "PRIVMSG " + chan + " :hello everyone")
 m.not_expect(c1a, "When user msgs for the first time, chanop should not see duplicate joins", ":c3b.*JOIN")
 m.not_expect(c3b, "When we send a msg for the first time, we should not see a self-join", ":c3b.*JOIN")
@@ -42,10 +87,13 @@ m.expect(c2a, "When user msgs for the first time, we should see the user joining
 print
 m.clearlog()
 
+# Another message should not do anything special
 m.send(c3b, "PRIVMSG " + chan + " :second message")
 m.not_expect_all("On second message there should not be any (duplicate) JOIN", ":c3b.*JOIN")
 print
 m.clearlog()
+
+#### Below we test unsetting of the mode ####
 
 m.send(c1a, "MODE " + chan + " -D")
 m.expect(c1a, "MODE -D", "MODE.*\-D")
