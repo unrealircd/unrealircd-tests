@@ -1,0 +1,52 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send(c2a, "NS IDENTIFY client2 test")
+m.expect(c2a, "something", "(you are now recognized|You are now identified)", timeout = 5)
+m.clearlog()
+print
+
+# For PRIVMSG test later..
+m.send(c2a, "CAP REQ echo-message")
+m.clearlog()
+print
+
+chan = m.randchan()
+m.join_all(chan, skip = c2a, creator=c1a)
+m.expect(c1a, "users in channel", "JOIN")
+m.clearlog()
+print
+
+m.send(c2a, "JOIN " + chan)
+m.expect_all("Account tag in JOIN", "account=client2")
+m.clearlog()
+print
+
+m.send(c2a, "PRIVMSG " + chan + " :hello!")
+m.expect_all("Account tag in PRIVMSG", "account=client2")
+m.clearlog()
+print
+
+m.send(c2a, "PART " + chan)
+m.expect_all("Account tag in PART", "account=client2")
+m.clearlog()
+print
+
+m.send(c2a, "JOIN " + chan)
+m.expect_all("Account tag in JOIN (again)", "account=client2")
+m.clearlog()
+print
+
+# Need to disable the auto-syncer here due to 1 client disappearing.
+m.sync = 0
+
+m.send(c2a, "QUIT :goodbye")
+m.expect_all("Account tag in QUIT", "account=client2", timeout = 5, skip = c2a)
+m.clearlog()
+print
