@@ -18,11 +18,13 @@ chan = m.randchan()
 m.send(c2a, "JOIN " + chan) # first user with ops
 m.send(c1a, "JOIN " + chan)
 m.expect(c1a, "users in channel", "JOIN")
+m.clearlog()
 print
 
-# Set history channel mode: save 10 lines for 5 seconds
+# Set history channel mode: save 10 lines for 5 minutes
 m.send(c2a, "MODE " + chan + " +SGH 10:5")
 m.expect(c1a, "MODE +H", ":c2a.*MODE.*\+GSH 10:5")
+m.clearlog()
 print
 
 m.send(c1a, "PRIVMSG " + chan + " :should be wrapped")
@@ -38,6 +40,7 @@ m.send(c2a, "PRIVMSG " + chan + " :nine fuck") # will be stripped
 m.send(c2a, "PRIVMSG " + chan + " :ten")
 m.expect(c2a, "Message with stripped color", "PRIVMSG .*:red two")
 m.not_expect(c1a, "Message with censored message", "PRIVMSG.*nine fuck")
+m.clearlog()
 print
 
 m.send(c1b, "JOIN " + chan)
@@ -70,6 +73,7 @@ m.expect(c3a, "all playback should be wrapped in a batch (9 of 10)", ".*batch=.+
 m.expect(c3a, "all playback should be wrapped in a batch (10 of 10)", ".*batch=.+ PRIVMSG .* :ten")
 m.not_expect(c3a, "history playback: should not see wrapped message (message zero)", "PRIVMSG.*should be wrapped")
 m.expect(c3a, "should end the BATCH", " BATCH -[^ ]+")
+m.clearlog()
 print
 
 ### We can't test this anymore now that the time unit is in minutes,
