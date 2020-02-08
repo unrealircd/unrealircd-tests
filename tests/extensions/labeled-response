@@ -12,27 +12,34 @@ m.join_all(chan, skip = c1a)
 m.expect(c2a, "users in channel", "JOIN")
 print
 
-m.send(c1a, "CAP REQ :draft/labeled-response-0.2 batch server-time")
-m.expect(c1a, "CAP ACK for labeled-response and other capabilities", ":.* CAP c1a.* ACK :draft/labeled-response-0.2 batch server-time");
+m.send(c1a, "CAP REQ :labeled-response batch server-time")
+m.expect(c1a, "CAP ACK for labeled-response and other capabilities", ":.* CAP c1a.* ACK :labeled-response batch server-time");
 m.clearlog()
 print
 
-m.send(c1a, "@draft/label=aaa NOTICE " + chan + " :hello")
-m.expect(c1a, "ACK message for zero response", "@draft/label=aaa.* :.* ACK")
+m.send(c1a, "@label=aaa NOTICE " + chan + " :hello")
+m.expect(c1a, "ACK message for zero response", "@label=aaa.* :.* ACK")
 m.not_expect(c1a, "No BATCH start or end for zero response", " BATCH ")
 m.clearlog()
 print
 
-m.send(c1a, "@draft/label=bbb ISON $c1a")
-m.expect(c1a, "Single line response with label", "@draft/label=bbb.*303.*c1a.* :c1a.*")
+m.send(c1a, "@label=bbb ISON $c1a")
+m.expect(c1a, "Single line response with label", "@label=bbb.*303.*c1a.* :c1a.*")
 m.not_expect(c1a, "No BATCH start or end for single response", " BATCH ")
 m.clearlog()
 print
 
-m.send(c1a, "@draft/label=ccc JOIN " + chan)
-m.expect(c1a, "BATCH start for multiline response", "@draft/label=ccc.*BATCH \+.*labeled-response")
+m.send(c1a, "@label=ccc JOIN " + chan)
+m.expect(c1a, "BATCH start for multiline response", "@label=ccc.*BATCH \+.*labeled-response")
 m.expect(c1a, "Multiple lines within the match", "@batch=")
 m.expect(c1a, "BATCH end", "BATCH -.*")
+m.clearlog()
+print
+
+m.send(c1a, "@label=whoisss WHOIS $c3a $c3a")
+m.expect(c1a, "Far WHOIS should result in batch start for multiline response", "@label=whoisss.*BATCH \+.*labeled-response", timeout = 10)
+m.expect(c1a, "Multiple lines within the match", "@batch=", timeout = 10)
+m.expect(c1a, "BATCH end", "BATCH -.*", timeout = 10)
 m.clearlog()
 print
 
@@ -42,16 +49,16 @@ print
 #
 # We need this additional test in addition to the 1st one because
 # PRIVMSG was slightly special, so best to test with JOIN too..
-m.send(c1a, "@draft/label=ddd JOIN " + chan)
-m.expect(c1a, "ACK message for zero response", "@draft/label=ddd.* :.* ACK")
+m.send(c1a, "@label=ddd JOIN " + chan)
+m.expect(c1a, "ACK message for zero response", "@label=ddd.* :.* ACK")
 m.not_expect(c1a, "No BATCH start or end for zero response", " BATCH ")
 m.clearlog()
 print
 
 # Finally, we should obey not to do labeled-response for the echo-message stuff.
 m.send(c1a, "CAP REQ :echo-message")
-m.send(c1a, "@draft/label=eee NOTICE $c1a :hello")
-m.expect(c1a, "One PRIVMSG with the label", "@draft/label=eee.* :.* NOTICE.* :hello")
+m.send(c1a, "@label=eee NOTICE $c1a :hello")
+m.expect(c1a, "One PRIVMSG with the label", "@label=eee.* :.* NOTICE.* :hello")
 m.expect(c1a, "The other PRIVMSG without the label", ":.* NOTICE.* :hello")
 m.not_expect(c1a, "No BATCH start or end for single response", " BATCH ")
 m.clearlog()
