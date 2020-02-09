@@ -19,6 +19,7 @@ print
 
 m.send(c1a, "NS IDENTIFY client1 test")
 m.expect(c1a, "something", "(you are now recognized|You are now identified)", timeout = 5)
-m.expect(c3a, "ACCOUNT message in channel upon account login", ":c1a.* ACCOUNT client1")
+m.expect(c3a, "ACCOUNT message in channel upon account login", ":c1a.* ACCOUNT client1", timeout = 5)
+m.not_expect(c2a, "no ACCOUNT message if no CAP account-notify", ":c1a.* ACCOUNT client1")
 m.clearlog()
 print
