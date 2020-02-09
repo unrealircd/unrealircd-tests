@@ -1,0 +1,24 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send(c3a, "CAP REQ account-notify")
+m.clearlog()
+print
+
+chan = m.randchan()
+m.join_all(chan, skip = c2a, creator=c1a)
+m.expect(c1a, "users in channel", "JOIN")
+m.clearlog()
+print
+
+m.send(c1a, "NS IDENTIFY client1 test")
+m.expect(c1a, "something", "(you are now recognized|You are now identified)", timeout = 5)
+m.expect(c3a, "ACCOUNT message in channel upon account login", ":c1a.* ACCOUNT client1")
+m.clearlog()
+print
