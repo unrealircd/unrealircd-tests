@@ -78,9 +78,12 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	mv data/tkl.db data/tkl.db.$$ 1>/dev/null 2>&1
 	mv data/channeldb.db data/channel.db.$$ 1>/dev/null 2>&1
 	mv data/reputation.db data/reputation.db.$$ 1>/dev/null 2>&1
-	bin/unrealircd -f irc2.conf || fail "UnrealIRCd failed to start (irc2)"
-	bin/unrealircd -f irc1.conf || fail "UnrealIRCd failed to start (irc1)"
-	bin/unrealircd -f irc3.conf || fail "UnrealIRCd failed to start (irc3)"
+	for name in irc2 irc1 irc3
+	do
+		bin/unrealircd -f $name.conf || fail "UnrealIRCd failed to start ($name)"
+		sleep 1
+		kill -1 `cat data/unrealircd.pid`
+	done
 	cd -
 	start_services
 	# Give services a chance to link in
