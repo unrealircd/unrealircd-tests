@@ -19,3 +19,12 @@ m.expect_all("Creator should have ops", "353.*@$c1a")
 m.expect_all("2nd user should not have ops", "353.*[^@]$c2a")
 m.expect_all("3rd user should not have ops", "353.*[^@]$c3a")
 print
+
+# Need to disable the auto-syncer here due to 1 client parting all channels,
+# including the auto syncer channel.
+m.sync = 0
+
+m.send(c3a, "JOIN 0")
+m.expect_all("See c3a leaving", ":c3a.*PART", timeout = 5)
+m.clearlog()
+print
