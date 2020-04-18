@@ -8,7 +8,7 @@ c3a = m.new('c3a')
 m.connect()
 
 m.send(c2a, "NS IDENTIFY client2 test")
-m.expect(c2a, "something", "(you are now recognized|You are now identified)", timeout = 5)
+m.expect(c2a, "Identified to account", ":irc.* 900 ", timeout = 10)
 m.clearlog()
 print
 

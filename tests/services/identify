@@ -8,7 +8,7 @@ c3a = m.new('c3a')
 m.connect()
 
 m.send(c1a, "IDENTIFY client1 test")
-m.expect(c1a, "Identified message", "(You are now identified|you are now recognized)", timeout = 10)
+m.expect(c1a, "Identified to account", ":irc.* 900 ", timeout = 10)
 m.clearlog()
 print
 

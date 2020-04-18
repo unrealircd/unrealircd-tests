@@ -29,7 +29,7 @@ m.clearlog()
 print
 
 m.send(c3a, "NS IDENTIFY client3 test")
-m.expect(c3a, "something", "(you are now recognized|You are now identified)", timeout = 5)
+m.expect(c3a, "Identified to account", ":irc.* 900 ", timeout = 10)
 m.clearlog()
 print
 
