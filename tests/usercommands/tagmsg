@@ -1,0 +1,59 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+# Need to disable this so we can test this case:
+m.disable_message_tags_check = 1
+c2a.disable_message_tags_check = 1
+m.send(c2a, "CAP REQ :-message-tags")
+m.clearlog()
+print
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a)
+m.expect_all("all in channel", "NAMES")
+m.clearlog()
+print
+
+# A correct TAGMSG to a channel
+m.send(c1a, "@+draft/typing=active TAGMSG " + chan)
+m.not_expect(c2a, "Not receive TAGMSG if no message-tags CAP", ":$c1a.* TAGMSG " + chan)
+m.expect(c3a, "Recieve channel TAGMSG", ":$c1a.* TAGMSG " + chan)
+m.clearlog()
+print
+
+# An incorrect TAGMSG to a channel
+m.send(c1a, "@+draft/typing=invalidmsg TAGMSG " + chan)
+m.not_expect_all("Not receive TAGMSG if not containing valid client tag", ":$c1a.* TAGMSG " + chan, skip = c1a)
+m.clearlog()
+print
+
+# An empty TAGMSG to a channel
+m.send(c1a, "TAGMSG " + chan)
+m.not_expect_all("Not receive TAGMSG if not containing any client tags", ":$c1a.* TAGMSG " + chan, skip = c1a)
+m.clearlog()
+print
+
+# A correct TAGMSG to a user
+m.send(c1a, "@+draft/typing=active TAGMSG $c3a")
+m.expect(c3a, "Recieve user TAGMSG", ":$c1a.* TAGMSG $c3a")
+m.clearlog()
+print
+
+# An incorrect TAGMSG to a channel
+m.send(c1a, "@+draft/typing=invalidmsg TAGMSG $c3a")
+m.not_expect(c3a, "Not receive TAGMSG if not containing valid client tag", ":$c1a.* TAGMSG $c3a")
+m.clearlog()
+print
+
+# An empty TAGMSG to a user
+m.send(c1a, "TAGMSG $c3a")
+m.not_expect(c3a, "Not receive TAGMSG if not containing any client tags", ":$c1a.* TAGMSG " + chan)
+m.clearlog()
+print
+
