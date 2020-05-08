@@ -16,6 +16,7 @@ class IrcTest(asynchat.async_chat):
         self.syncchan = "#__SYNC__" + ''.join(random.choice(string.ascii_lowercase) for _ in range(8))
 #        self.syncchan = "#sync_" + ''.join(random.choice(string.ascii_lowercase) for _ in range(8))
         self.sync = 1
+        self.disable_message_tags_check = 0
         self.disable_logging = 0
     
     def new(self, name):
@@ -110,6 +111,10 @@ class IrcTest(asynchat.async_chat):
 
     def verify_mtags_consistency(self):
         # Based on heuristics, could be wrong, especially with .clearlog()
+
+        # Ignore, if requested:
+        if self.disable_message_tags_check:
+            return
 
         # First build a list with all messages from everyone, so we can see which ones are identical
         all_msgs = {}

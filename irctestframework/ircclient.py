@@ -21,6 +21,7 @@ class IrcClient(asynchat.async_chat):
         self.hide_handshake = 1
         self.disable_logging = 0
         self.disable_registration = 0
+        self.disable_message_tags_check = 0
         self.syncchan = syncchan
         self.recvd_syncers = {}
         self.all_lines = []
@@ -93,7 +94,7 @@ class IrcClient(asynchat.async_chat):
             if "." in source and e[1][0] != '#':
                 return
 
-            if not "msgid=" in mtags:
+            if not "msgid=" in mtags and not self.disable_message_tags_check:
                 print "\033[1mMissing mandatory message-tag 'msgid' in channel event\033[0m"
                 print "Line :" + line
                 print
