@@ -67,7 +67,10 @@ m.clearlog()
 print
 
 m.send(c1b, "JOIN " + chan)
+# this one should not show up in on-join (15 line limit), only in HISTORY #chan request
+m.not_expect(c1b, "history playback: should NOT see on-join-wrapped message (message zero)", "PRIVMSG.*should be wrapped")
 m.clearlog()
+print
 
 m.send(c1b, "HISTORY " + chan)
 m.expect(c1b, "history playback: 1st message", ":c1a.* PRIVMSG .* :one")
