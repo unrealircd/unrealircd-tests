@@ -15,6 +15,8 @@ import time
 m = irctestframework.irctest.IrcTest()
 c1a = m.new('c1a')
 m.connect()
+m.send(c1a, "VERSION")
+m.expect(c1a, "FAKEREPUTATION module is correctly loaded", ":.+ 005 .*FAKEREPUTATION");
 m.send(c1a, "OPER netadmin test")
 m.send(c1a, "CONNECT irc2.test.net")
 m.expect(c1a, "irc1<->irc2 should be linked", "Link irc1.test.net -> irc2.test.net is now synced", timeout=15)
@@ -22,6 +24,13 @@ m.expect(c1a, "irc1<->irc2 should be linked", "Link irc1.test.net -> irc2.test.n
 m = irctestframework.irctest.IrcTest()
 c3a = m.new('c3a')
 m.connect()
+m.send(c3a, "VERSION")
+m.expect(c3a, "FAKEREPUTATION module is correctly loaded", ":.+ 005 .*FAKEREPUTATION");
 m.send(c3a, "OPER netadmin test")
 m.send(c3a, "CONNECT irc2.test.net")
 m.expect(c3a, "irc3<->irc2 should be linked", "Link irc3.test.net -> irc2.test.net is now synced", timeout=15)
+
+c2a = m.new('c2a')
+m.connect()
+m.send(c2a, "VERSION")
+m.expect(c2a, "FAKEREPUTATION module is correctly loaded", ":.+ 005 .*FAKEREPUTATION");

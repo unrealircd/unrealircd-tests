@@ -67,6 +67,12 @@ fi
 if [ "$1" = "-boot" -o "$1" = "" ]; then
 	shift
 
+	# Compile any modules that are needed (fakereputation etc)
+	cp -av serverconfig/unrealircd/modules/*.c ~/unrealircd/source/src/modules/third/ || exit 1
+	cd ~/unrealircd/source || exit 1
+	make install
+	cd -
+
 	# Boot the ircd
 	echo "Booting IRC server..."
 	killall -15 valgrind valgrind.bin memcheck memcheck-amd64-linux memcheck-x86-linux ircd unrealircd val atheme-services services anope 1>/dev/null 2>&1
