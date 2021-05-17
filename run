@@ -137,6 +137,12 @@ else
 		if (echo "$f"|egrep -q '~$'); then
 			continue
 		fi
+		if [ "$f" = "tests/db/writing/history" -o "$f" = "tests/db/reading/history" ]; then
+			if ! (echo "$INCLUDEFILE"|grep -q 'crypt'); then
+				echo "WARNING: Skipping $f -- not using encryption so can't test this"
+				continue
+			fi
+		fi
 		irctestframework/wrapper $f
 	done
 fi
