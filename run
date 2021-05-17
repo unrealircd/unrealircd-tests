@@ -29,6 +29,8 @@ if [ "$MAXPARALLEL" = "" ]; then
 	MAXPARALLEL="25"
 fi
 TIMEOUT="40"
+KEEPDBS="0"
+INCLUDEFILE=""
 
 export PYTHONPATH="`pwd`:$PYTHONPATH"
 export PYTHONIOENCODING=utf-8
@@ -59,8 +61,19 @@ else
 	shift
 fi
 
+if [ "$1" = "-include" ]; then
+	shift
+	INCLUDEFILE="$1"
+	shift
+fi
+
 if [ "$1" = "-single" ]; then
 	MAXPARALLEL=1
+	shift
+fi
+
+if [ "$1" = "-keepdbs" ]; then
+	KEEPDBS=1
 	shift
 fi
 
@@ -76,14 +89,21 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	# Boot the ircd
 	echo "Booting IRC server..."
 	killall -15 valgrind valgrind.bin memcheck memcheck-amd64-linux memcheck-x86-linux ircd unrealircd val atheme-services services anope 1>/dev/null 2>&1
-	sleep 2
+	sleep 5
 	killall -9 valgrind valgrind.bin memcheck memcheck-amd64-linux memcheck-x86-linux ircd unrealircd val atheme-services services anope 1>/dev/null 2>&1
 	sleep 1
 	cp -av serverconfig/unrealircd/* ~/unrealircd/conf/ || fail "Failed to copy serverconfig/unrealircd"
 	cd ~/unrealircd/ || exit 1
-	mv data/tkl.db data/tkl.db.$$ 1>/dev/null 2>&1
-	mv data/channeldb.db data/channel.db.$$ 1>/dev/null 2>&1
-	mv data/reputation.db data/reputation.db.$$ 1>/dev/null 2>&1
+	if [ "$KEEPDBS" -eq 0 ]; then
+		mkdir data/old 2>/dev/null
+		mv data/*.db data/old/ 2>/dev/null
+		rm -rf data/history.old 2>/dev/null
+		mv data/history data/history.old 2>/dev/null
+	fi
+	if [ "$INCLUDEFILE" != "" ]; then
+		# Add include to irc1.conf (only)
+		echo 'include "'$INCLUDEFILE'";' >>conf/irc1.conf
+	fi
 	for name in irc2 irc1 irc3
 	do
 		bin/unrealircd -f $name.conf || fail "UnrealIRCd failed to start ($name)"
@@ -103,9 +123,9 @@ if [ "$1" = "" ]; then
 	# Run all tests:
 	echo "Running all tests in parallel..."
 	if [ "$SERVICES" = "none" ]; then
-		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF services/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF services/|grep -vF /db/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
 	else
-		find tests -type f|grep -vF '~'|grep -vF _pre_test|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF /db/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
 	fi
 	wait
 else
@@ -113,6 +133,10 @@ else
 	echo "Running specific tests by user request..."
 	for f in $*
 	do
+		# Skip backup files and such (blah~)
+		if (echo "$f"|egrep -q '~$'); then
+			continue
+		fi
 		irctestframework/wrapper $f
 	done
 fi
