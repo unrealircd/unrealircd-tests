@@ -1,0 +1,11 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+m.send(c1a, "FAKEREPUTATION 127.0.0.1 500")
+m.expect(c1a, "Confirm setting reputation", "Reputation for.*127.0.0.1.*500");
+m.clearlog()
+print

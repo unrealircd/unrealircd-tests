@@ -25,7 +25,7 @@ ModuleHeader MOD_HEADER
 
 MOD_INIT()
 {
-	CommandAdd(modinfo->handle, "FAKEREPUTATION", cmd_fakereputation, 1, CMD_USER);
+	CommandAdd(modinfo->handle, "FAKEREPUTATION", cmd_fakereputation, MAXPARA, CMD_USER);
 	ISupportAdd(modinfo->handle, "FAKEREPUTATION", NULL);
 	MARK_AS_OFFICIAL_MODULE(modinfo);
 	return MOD_SUCCESS;
@@ -48,8 +48,23 @@ CMD_FUNC(cmd_fakereputation)
 
 	if ((parc < 2) || BadPtr(parv[1]) || (atoi(parv[1]) < 1))
 	{
-		sendnotice(client, "Syntax is: /FAKEREPUTATION <value>");
-		sendnotice(client, "  Example: /FAKEREPUTATION 5");
+		sendnotice(client, "Syntax 1 is: /FAKEREPUTATION <value>");
+		sendnotice(client, "  Example 1: /FAKEREPUTATION 5");
+		sendnotice(client, "Syntax 2 is: /FAKEREPUTATION <ip> <value>");
+		sendnotice(client, "  Example 2: /FAKEREPUTATION 127.0.0.1 5");
+		return;
+	}
+
+	if ((strchr(parv[1], '.') || strchr(parv[1], ':')) && !BadPtr(parv[2]))
+	{
+		/* FAKEREPUTATION <ip> <value> */
+		char *parx[4];
+		parx[0] = NULL;
+		parx[1] = parv[1];
+		parx[2] = parv[2];
+		parx[3] = NULL;
+		sendnotice(client, "Reputation for '%s' set to '%s'", parv[1], parv[2]);
+		do_cmd(&me, NULL, "REPUTATION", 3, parx);
 		return;
 	}
 

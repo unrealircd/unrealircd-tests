@@ -1,0 +1,13 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+m.send(c1a, "OPER netadmin test")
+m.send(c1a, "REPUTATION 127.0.0.1")
+# Allow for some wiggle room, we set 500 before but a score of 500-505 is considered OK.
+m.expect(c1a, "Confirm reputation was set to value from before (500)", "Score: 50[012345]");
+m.clearlog()
+print
