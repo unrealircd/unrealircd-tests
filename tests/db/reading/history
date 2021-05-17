@@ -1,0 +1,54 @@
+#!/usr/bin/python
+import irctestframework.irctest
+import time
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1b = m.new('c1b')
+c1c = m.new('c1c')
+c1d = m.new('c1d')
+m.connect()
+
+m.send_all("CAP REQ server-time")
+m.send(c1d, "CAP REQ batch")
+print
+
+chan = "#history_test"
+m.send(c1c, "JOIN " + chan) # first user with ops
+m.send(c1a, "JOIN " + chan)
+m.expect(c1a, "users in channel", "JOIN")
+m.clearlog()
+print
+
+m.send(c1b, "JOIN " + chan)
+m.expect(c1b, "new user joining channel (same server)", "JOIN")
+m.expect(c1b, "history playback: 1st message", ":c1a.* PRIVMSG .* :one")
+m.expect(c1b, "history playback: 2nd message should have colors stripped", ":c1a.* PRIVMSG .* :red two")
+m.expect(c1b, "history playback: 9th message is altered", ":c2a.* PRIVMSG.*nine <censored>")
+m.expect(c1b, "history playback: 10th message", ":c2a.* PRIVMSG .* :ten")
+m.not_expect(c1b, "history playback: should not see wrapped message (message zero)", "PRIVMSG.*should be wrapped")
+m.not_expect(c1b, "playback should not see a BATCH if not supported", ".*BATCH.*")
+# do not clear here, so we can see any potential inconsistency with the other playback..
+print
+
+m.send(c1d, "JOIN " + chan)
+m.expect(c1d, "new user joining channel (far server)", "JOIN")
+m.expect(c1d, "should start a BATCH", " BATCH \+[^ ]+ chathistory " + chan)
+m.expect(c1d, "history playback: 1st message", ":c1a.* PRIVMSG .* :one")
+m.expect(c1d, "history playback: 2nd message should have colors stripped", ":c1a.* PRIVMSG .* :red two")
+m.expect(c1d, "history playback: 9th message is altered", ":c2a.* PRIVMSG.*nine <censored>")
+m.expect(c1d, "history playback: 10th message", ":c2a.* PRIVMSG .* :ten")
+m.expect(c1d, "all playback should be wrapped in a batch (1 of 10)", ".*batch=.+ PRIVMSG .* :one")
+m.expect(c1d, "all playback should be wrapped in a batch (2 of 10)", ".*batch=.+ PRIVMSG .* :red two")
+m.expect(c1d, "all playback should be wrapped in a batch (3 of 10)", ".*batch=.+ PRIVMSG .* :three")
+m.expect(c1d, "all playback should be wrapped in a batch (4 of 10)", ".*batch=.+ PRIVMSG .* :four")
+m.expect(c1d, "all playback should be wrapped in a batch (5 of 10)", ".*batch=.+ PRIVMSG .* :five")
+m.expect(c1d, "all playback should be wrapped in a batch (6 of 10)", ".*batch=.+ PRIVMSG .* :six")
+m.expect(c1d, "all playback should be wrapped in a batch (7 of 10)", ".*batch=.+ PRIVMSG .* :seven")
+m.expect(c1d, "all playback should be wrapped in a batch (8 of 10)", ".*batch=.+ PRIVMSG .* :eight")
+m.expect(c1d, "all playback should be wrapped in a batch (9 of 10)", ".*batch=.+ PRIVMSG .* :nine <censored>")
+m.expect(c1d, "all playback should be wrapped in a batch (10 of 10)", ".*batch=.+ PRIVMSG .* :ten")
+m.not_expect(c1d, "history playback: should not see wrapped message (message zero)", "PRIVMSG.*should be wrapped")
+m.expect(c1d, "should end the BATCH", " BATCH -[^ ]+")
+m.clearlog()
+print
