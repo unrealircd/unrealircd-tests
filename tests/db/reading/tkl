@@ -1,0 +1,62 @@
+#!/usr/bin/python
+#
+# This tests TKLs such as: KLINE, ZLINE, GLINE, GZLINE, SPAMFILTER
+#
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send_all("OPER netadmin test")
+
+##### LOCAL TKLS ######
+
+### KLINE on host
+m.send_all("STATS kline")
+regex = "223.*K user@some\.host666 3[0-9][0-9][0-9] [0-9]+ c1a.* :This is a kline test"
+m.expect(c1a, "K-Line shown in /STATS kline locally", regex)
+m.not_expect_all("K-Line NOT shown in /STATS kline on remote servers", regex, skip=c1a)
+m.clearlog()
+print
+
+### ZLINE on host
+m.send_all("STATS kline")
+regex = "223.*z \*@192\.0\.2\.2 3[0-9][0-9][0-9] [0-9]+ c1a.* :This is a zline test"
+m.expect(c1a, "Z-Line shown in /STATS zline locally", regex)
+m.not_expect_all("Z-Line NOT shown in /STATS zline on remote servers", regex, skip=c1a)
+m.clearlog()
+print
+
+##### GLOBAL TKLS ######
+
+### GLINE on host
+m.send_all("STATS gline")
+m.expect_all("G-Line shown in /STATS gline",
+             "223.*G user@some\.host777 3[0-9][0-9][0-9] [0-9]+ c1a.* :This is a gline test")
+m.clearlog()
+print
+
+### GLINE on ip
+m.send_all("STATS gline")
+m.expect_all("G-Line shown in /STATS gline",
+             "223.*G user@192\.0\.2\.3 3[0-9][0-9][0-9] [0-9]+ c1a.* :This is a gline test on IP")
+m.clearlog()
+print
+
+### GZLINE on ip
+m.send_all("STATS gline")
+m.expect_all("GZ-Line shown in /STATS gline",
+             "223.*Z \*@192\.0\.2\.4 3[0-9][0-9][0-9] [0-9]+ c1a.* :This is a gzline test on IP")
+m.clearlog()
+print
+
+### Spamfilter
+m.send_all("STATS spamfilter")
+m.expect_all("Spamfilter shown in /STATS spamfilter",
+             "229.* F simple p gzline 0 [0-9]* 0 this_is_a_test c1a[^ ]+ :Please gzline me immediately")
+m.clearlog()
+print
+

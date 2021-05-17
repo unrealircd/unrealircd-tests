@@ -1,0 +1,100 @@
+#!/usr/bin/python
+#
+# This tests TKLs such as: KLINE, ZLINE, GLINE, GZLINE, SPAMFILTER
+#
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send_all("OPER netadmin test")
+
+##### LOCAL TKLS ######
+
+### KLINE on host
+m.send(c1a, "KLINE user@some.host666 3600 This is a kline test")
+regex = "K-Line added for user@some\.host666 on.*from c1a.*to expire at.*This is a kline test"
+m.expect(c1a, "K-Line added notice to local IRCOps", regex)
+m.not_expect_all("K-Line added notice NOT to remote IRCOps", regex, skip=c1a)
+m.clearlog()
+print
+
+m.send_all("STATS kline")
+regex = "223.*K user@some\.host666 3[0-9][0-9][0-9] [0-9] c1a.* :This is a kline test"
+m.expect(c1a, "K-Line shown in /STATS kline locally", regex)
+m.not_expect_all("K-Line NOT shown in /STATS kline on remote servers", regex, skip=c1a)
+m.clearlog()
+print
+
+### ZLINE on host
+m.send(c1a, "ZLINE *@192.0.2.2 3600 This is a zline test")
+regex = "Z-Line added for \*@192\.0\.2\.2 on.*from c1a.*to expire at.*This is a zline test"
+m.expect(c1a, "Z-Line added notice to local IRCOps", regex)
+m.not_expect_all("Z-Line added notice NOT to remote IRCOps", regex, skip=c1a)
+m.clearlog()
+print
+
+m.send_all("STATS kline")
+regex = "223.*z \*@192\.0\.2\.2 3[0-9][0-9][0-9] [0-9] c1a.* :This is a zline test"
+m.expect(c1a, "Z-Line shown in /STATS zline locally", regex)
+m.not_expect_all("Z-Line NOT shown in /STATS zline on remote servers", regex, skip=c1a)
+m.clearlog()
+print
+
+##### GLOBAL TKLS ######
+
+### GLINE on host
+m.send(c1a, "GLINE user@some.host777 3600 This is a gline test")
+m.expect_all("G-Line added notice to IRCOps",
+             "G-Line added for user@some\.host777 on.*from c1a.*to expire at.*This is a gline test")
+m.clearlog()
+print
+
+m.send_all("STATS gline")
+m.expect_all("G-Line shown in /STATS gline",
+             "223.*G user@some\.host777 3[0-9][0-9][0-9] [0-9] c1a.* :This is a gline test")
+m.clearlog()
+print
+
+### GLINE on ip
+m.send(c1a, "GLINE user@192.0.2.3 3600 This is a gline test on IP")
+m.expect_all("G-Line added notice to IRCOps",
+             "G-Line added for user@192\.0\.2\.3 on.*from c1a.*to expire at.*This is a gline test on IP")
+m.clearlog()
+print
+
+m.send_all("STATS gline")
+m.expect_all("G-Line shown in /STATS gline",
+             "223.*G user@192\.0\.2\.3 3[0-9][0-9][0-9] [0-9] c1a.* :This is a gline test on IP")
+m.clearlog()
+print
+
+### GZLINE on ip
+m.send(c1a, "GZLINE *@192.0.2.4 3600 This is a gzline test on IP")
+m.expect_all("GZ-Line added notice to IRCOps",
+             "Global Z-Line added for \*@192\.0\.2\.4 on.*from c1a.*to expire at.*This is a gzline test on IP")
+m.clearlog()
+print
+
+m.send_all("STATS gline")
+m.expect_all("GZ-Line shown in /STATS gline",
+             "223.*Z \*@192\.0\.2\.4 3[0-9][0-9][0-9] [0-9] c1a.* :This is a gzline test on IP")
+m.clearlog()
+print
+
+### Spamfilter
+m.send(c1a, "SPAMFILTER add -simple p gzline 0 this_is_a_test Please gzline me immediately")
+m.expect_all("Spamfilter added notice to IRCOps",
+             "Spamfilter added: 'Please gzline me immediately' \[type: simple\] \[target: p\] \[action: gzline\] \[reason: this is a test\] on.*from c1a.*")
+m.clearlog()
+print
+
+m.send_all("STATS spamfilter")
+m.expect_all("Spamfilter shown in /STATS spamfilter",
+             "229.* F simple p gzline 0 [0-9]* 0 this_is_a_test c1a[^ ]+ :Please gzline me immediately")
+m.clearlog()
+print
+
