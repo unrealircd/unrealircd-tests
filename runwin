@@ -12,6 +12,8 @@ if [ "$MAXPARALLEL" = "" ]; then
 	MAXPARALLEL="25"
 fi
 TIMEOUT="40"
+KEEPDBS="0"
+INCLUDEFILE=""
 
 UNREALIRCDDIR="/c/Program Files/UnrealIRCd 5"
 
@@ -27,8 +29,19 @@ mkdir logs
 mkdir logs/success
 mkdir logs/failure
 
+if [ "$1" = "-include" ]; then
+	shift
+	INCLUDEFILE="$1"
+	shift
+fi
+
 if [ "$1" = "-single" ]; then
 	MAXPARALLEL=1
+	shift
+fi
+
+if [ "$1" = "-keepdbs" ]; then
+	KEEPDBS=1
 	shift
 fi
 
@@ -43,6 +56,20 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	cd "$UNREALIRCDDIR/bin" || fail "Could not change to UnrealIRCd directory"
 	echo "Now in:"
 	pwd
+
+	if [ "$KEEPDBS" -eq 0 ]; then
+		# Delete databases
+		mkdir data/old 2>/dev/null
+		mv data/*.db data/old/ 2>/dev/null
+		rm -rf data/history.old 2>/dev/null
+		mv data/history data/history.old 2>/dev/null
+	fi
+
+	if [ "$INCLUDEFILE" != "" ]; then
+		# Add include to irc1.conf (only)
+		echo 'include "'$INCLUDEFILE'";' >>conf/irc1.conf
+	fi
+
 	./unrealircd -f irc2.conf&
 	sleep 10
 	./unrealircd -f irc1.conf&
@@ -64,7 +91,7 @@ if [ "$1" = "" ]; then
 	# Run all tests:
 	echo "Running all tests in parallel..."
 	# NOTE: we skip services tests on Windows! Too much hassle ;)
-	find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -v services/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+	find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -v services/|grep -vF /db/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
 	#wait
 	#^ this is annoying: 'wait' will also wait for unrealircd.exe to stop,
 	#  which hopefully will never happen, so we sleep instead:
@@ -75,6 +102,16 @@ else
 	echo "Running specific tests by user request..."
 	for f in $*
 	do
+		# Skip backup files and such (blah~)
+		if (echo "$f"|egrep -q '~$'); then
+			continue
+		fi
+		if [ "$f" = "tests/db/writing/history" -o "$f" = "tests/db/reading/history" ]; then
+			if ! (echo "$INCLUDEFILE"|grep -q 'crypt'); then
+				echo "WARNING: Skipping $f -- not using encryption so can't test this"
+				continue
+			fi
+		fi
 		irctestframework/wrapper $f
 	done
 fi
