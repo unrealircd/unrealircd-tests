@@ -1,0 +1,37 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c2b = m.new('c2b')
+c3a = m.new('c3a')
+m.connect()
+
+# c2b will be the bot
+m.send(c2b, "MODE $c2b +B")
+m.expect(c2b, "MODE set", "MODE $c2b :\+B")
+m.clearlog()
+print
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a, skip = c2b)
+m.expect(c1a, "first user in channel", ":c1a.*JOIN")
+m.expect(c2a, "second user in channel", ":c2a.*JOIN")
+m.clearlog()
+print
+
+m.send(c2b, "JOIN " + chan)
+m.expect_all("JOIN with bot message tag", ".*draft\\/bot")
+m.clearlog()
+print
+
+m.send(c2b, "PRIVMSG " + chan + " :hello everyone!")
+m.expect_all("PRIVMSG with bot message tag", ".*draft\\/bot.*hello everyone", skip = c2b)
+print
+
+m.send(c2b, "PART " + chan)
+m.expect_all("PART with bot message tag", ".*draft\\/bot")
+m.clearlog()
+print
+
