@@ -91,10 +91,14 @@ if [ "$1" = "" ]; then
 	# Run all tests:
 	echo "Running all tests in parallel..."
 	# NOTE: we skip services tests on Windows! Too much hassle ;)
-	find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -v services/|grep -vF /db/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+	find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -v services/|grep -vF /db/|grep -vF /serial/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
 	#wait
 	#^ this is annoying: 'wait' will also wait for unrealircd.exe to stop,
 	#  which hopefully will never happen, so we sleep instead:
+	sleep 45
+	echo "Running remaining tests in series..."
+	find tests/serial/ -type f|grep -vF '~'|grep -vF README|xargs -L1 -P1 irctestframework/wrapper
+	# And again, we sleep here too, what a joke... convert to some tasklist|find shit ?
 	sleep 45
 	taskkill -im unrealircd.exe -f
 else

@@ -120,14 +120,17 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 fi
 
 if [ "$1" = "" ]; then
-	# Run all tests:
-	echo "Running all tests in parallel..."
+	# Run (almost) all tests:
+	echo "Running tests in parallel..."
 	if [ "$SERVICES" = "none" ]; then
-		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF services/|grep -vF /db/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF services/|grep -vF /db/|grep -vF /serial/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
 	else
-		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF /db/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF /db/|grep -vF /serial/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
 	fi
 	wait
+	# Now do the tests that can only be run in series...
+	echo "Running remaining tests in series..."
+	find tests/serial/ -type f|grep -vF '~'|grep -v README|xargs -L1 -P1 irctestframework/wrapper
 else
 	# Run specific tests:
 	echo "Running specific tests by user request..."

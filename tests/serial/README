@@ -1,0 +1,5 @@
+All the tests in this directory are run in series,
+so not in parallel.
+
+Please only put tests here that really need it,
+such as netsplit, as it hurts performance.
