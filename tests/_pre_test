@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# NOTE: This test is special, due not use it as a template
+# NOTE: This test is special, do not use it as a template
 # if you are adding new tests. Pick some other test instead.
 #
 # This test is special in the sense that multisync is not
