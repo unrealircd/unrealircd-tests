@@ -70,15 +70,15 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 
 	if [ "$KEEPDBS" -eq 0 ]; then
 		# Delete databases
-		mkdir data/old 2>/dev/null
-		mv data/*.db data/old/ 2>/dev/null
-		rm -rf data/history.old 2>/dev/null
-		mv data/history data/history.old 2>/dev/null
+		mkdir "$UNREALIRCDDIR/data/old" 2>/dev/null
+		mv "$UNREALIRCDDIR/data/*.db" "$UNREALIRCDDIR/data/old/" 2>/dev/null
+		rm -rf "$UNREALIRCDDIR/data/history.old" 2>/dev/null
+		mv "$UNREALIRCDDIR/data/history" "$UNREALIRCDDIR/data/history.old" 2>/dev/null
 	fi
 
 	if [ "$INCLUDEFILE" != "" ]; then
 		# Add include to irc1.conf (only)
-		echo 'include "'$INCLUDEFILE'";' >>conf/irc1.conf
+		echo 'include "'$INCLUDEFILE'";' >>"$UNREALIRCDDIR/conf/irc1.conf"
 	fi
 
 	./unrealircd -f irc2.conf&
