@@ -1,9 +1,21 @@
 #!/bin/bash
+
+function stopunreal {
+	# Ask gracefully first
+	taskkill -im unrealircd.exe -t
+	taskkill -im timeout.exe -t
+	# Wait
+	sleep 5
+	# Terminate with force
+	taskkill -im unrealircd.exe -f -t
+	taskkill -im timeout.exe -f -t
+	sleep 2
+}
+
 function fail {
 	echo "FATAL ERROR: $1"
 	echo "Cleaning up..."
-	taskkill -im unrealircd.exe -f -t
-	taskkill -im timeout.exe -f -t
+	stopunreal
 	echo "Tests failed. See errors above."
 	exit 1
 }
@@ -50,8 +62,7 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 
 	# Boot the ircd
 	echo "Booting IRC server..."
-	taskkill -im unrealircd.exe -f
-	sleep 1
+	stopunreal
 	cp -av serverconfig/unrealircd/* "$UNREALIRCDDIR/conf/" || fail "Could not copy configuration files"
 	cd "$UNREALIRCDDIR/bin" || fail "Could not change to UnrealIRCd directory"
 	echo "Now in:"
@@ -100,7 +111,7 @@ if [ "$1" = "" ]; then
 	find tests/serial/ -type f|grep -vF '~'|grep -vF README|xargs -L1 -P1 irctestframework/wrapper
 	# And again, we sleep here too, what a joke... convert to some tasklist|find shit ?
 	sleep 45
-	taskkill -im unrealircd.exe -f
+	stopunreal
 else
 	# Run specific tests:
 	echo "Running specific tests by user request..."
@@ -167,7 +178,6 @@ fi
 
 cd - 1>/dev/null 2>&1
 
-taskkill -im unrealircd.exe -f -t
-taskkill -im timeout.exe -f -t
+stopunreal
 
 exit $failed
