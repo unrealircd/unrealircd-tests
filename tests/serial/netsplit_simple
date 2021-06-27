@@ -1,0 +1,67 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+clones_per_server = 75
+servers = { 'c1', 'c2', 'c3' }
+clones = {}
+
+m = irctestframework.irctest.IrcTest()
+
+c1o = m.new('c1o')
+c3o = m.new('c3o')
+
+for s in servers:
+    for i in range(1, clones_per_server+1):
+        name = s + '-' + str(i)
+        clones[name] = m.new(name)
+
+m.connect()
+m.send(c1o, "OPER netadmin test")
+m.send(c3o, "OPER netadmin test")
+m.clearlog()
+
+chan = m.randchan()
+m.join_all(chan)
+m.expect_all("see join", ":$me.*JOIN.*")
+m.clearlog()
+print
+
+m.send_all("NAMES " + chan)
+for src in clones:
+    for dst in clones:
+        m.expect(clones[src], "see all other clones in channel", clones[dst].nick)
+m.clearlog()
+print
+
+# SQUIT servers
+m.sync = 0
+m.disable_message_tags_check = True
+for s in [c1o, c3o]:
+    m.send(s, "SQUIT irc2.test.net")
+    m.send(s, "MAP")
+    m.expect(s, "End of /MAP", "007.*End of", timeout = 10)
+    m.not_expect(s, "Server gone, should not show up in MAP", " 006 .*irc2\.test\.net")
+    m.clearlog()
+
+# TODO: verify that all users on other servers disappeared (a proper QUIT was sent)
+
+# CONNECT servers
+for s in [c1o, c3o]:
+    m.send(s, "CONNECT irc2.test.net")
+    m.expect(c1o, "ircX<->irc2 should be linked", "Link irc[0-9].test.net -> irc2.test.net is now synced", timeout=15)
+    m.send(s, "MAP")
+    m.expect(s, "End of /MAP", "007.*End of", timeout = 10)
+    m.expect(s, "Server connected, should show up in MAP", " 006 .*irc2\.test\.net")
+    m.clearlog()
+
+# Restore syncing
+m.sync = 1
+m.disable_message_tags_check = False
+
+m.send_all("NAMES " + chan)
+for src in clones:
+    for dst in clones:
+        m.expect(clones[src], "see all other clones in channel", clones[dst].nick)
+m.clearlog()
+print
+
