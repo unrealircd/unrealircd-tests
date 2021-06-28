@@ -96,7 +96,8 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 		fatal "UnrealIRCd failed to boot"
 	fi
 
-	(timeout --kill-after=5 --signal=INT 15 tests/_pre_test) || fail "UnrealIRCd servers did not link"
+	echo "Linking servers..."
+	(timeout --kill-after=5 --signal=INT 30 tests/_pre_test) || fail "UnrealIRCd servers did not link"
 	echo
 fi
 
