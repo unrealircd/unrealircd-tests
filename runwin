@@ -72,7 +72,7 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 		# Delete databases
 		echo Deleting old databases...
 		mkdir "$UNREALIRCDDIR/data/old"
-		mv "$UNREALIRCDDIR/data/*.db" "$UNREALIRCDDIR/data/old/"
+		mv "$UNREALIRCDDIR"/data/*.db" "$UNREALIRCDDIR/data/old/"
 		rm -rf "$UNREALIRCDDIR/data/history.old"
 		mv "$UNREALIRCDDIR/data/history" "$UNREALIRCDDIR/data/history.old"
 	fi
