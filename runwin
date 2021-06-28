@@ -88,7 +88,7 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	./unrealircd -f irc1.conf&
 	sleep 10
 	./unrealircd -f irc3.conf&
-	sleep 10
+	sleep 15
 	cd -
 
 	COUNTPROCS="`tasklist.exe|grep -i unrealircd|wc -l`"
