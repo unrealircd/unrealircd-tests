@@ -212,9 +212,9 @@ class IrcTest(asynchat.async_chat):
             t = timeout * 1000
             current_time = getmsec()
             while getmsec() - current_time < t:
-                asyncore.loop(count=1, timeout=0.1)
                 if client.expect(failmsg, regex, nofail=1):
                     return 1
+                asyncore.loop(count=1, timeout=0.1)
         # Without a timeout it's simply one client.expect() call.
         # ..and also the fallthrough from above (necessary!)
         return client.expect(failmsg, regex)
