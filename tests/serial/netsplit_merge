@@ -1,0 +1,128 @@
+#!/usr/bin/python
+import irctestframework.irctest
+
+clones_per_server = 75
+bans_per_server = 40
+servers = { 'c1', 'c2', 'c3' }
+clones = {}
+
+m = irctestframework.irctest.IrcTest()
+
+c1o = m.new('c1o')
+c2o = m.new('c2o')
+c3o = m.new('c3o')
+
+for s in servers:
+    for i in range(1, clones_per_server+1):
+        name = s + '-' + str(i)
+        clones[name] = m.new(name)
+
+m.connect()
+m.send(c1o, "OPER netadmin test")
+m.send(c2o, "OPER netadmin test")
+m.send(c3o, "OPER netadmin test")
+m.clearlog()
+
+chan = m.randchan()
+m.join_all(chan)
+m.expect_all("see join", ":$me.*JOIN.*")
+m.clearlog()
+print
+
+m.send_all("NAMES " + chan)
+for src in clones:
+    for dst in clones:
+        m.expect(clones[src], "see all other clones in channel", clones[dst].nick)
+m.clearlog()
+print
+
+# SQUIT servers
+m.sync = 0
+m.disable_message_tags_check = True
+for s in [c1o, c3o]:
+    m.send(s, "SQUIT irc2.test.net")
+    m.send(s, "MAP")
+    m.expect(s, "End of /MAP", "007.*End of", timeout = 10)
+    m.not_expect(s, "Server gone, should not show up in MAP", " 006 .*irc2\.test\.net")
+
+# Verify that all users on other servers disappeared (a proper QUIT was sent)
+for s in servers:
+    for i in range(1, clones_per_server+1):
+        s_name = s + '-' + str(i)
+        for d in servers:
+            if s == d:
+                continue
+            for j in range(1, clones_per_server+1):
+                d_name = d + '-' + str(j)
+                m.expect(clones[s_name], "QUIT", ":" + d_name + ".*QUIT :irc", timeout=15)
+m.clearlog()
+print
+
+for i in range(1, bans_per_server+1):
+    banid = "ban"+str(i)+"!"
+    m.send(c1o, "MODE " + chan + " +b " + banid + "*@c1.test.net")
+    m.send(c2o, "MODE " + chan + " +b " + banid + "*@c2.test.net")
+    m.send(c3o, "MODE " + chan + " +b " + banid + "*@c3.test.net")
+    m.expect(c1o, "MODE", "MODE.*"+banid, timeout=10)
+    m.expect(c2o, "MODE", "MODE.*"+banid, timeout=10)
+    m.expect(c3o, "MODE", "MODE.*"+banid, timeout=10)
+    m.clearlog()
+
+m.clearlog()
+
+# CONNECT servers
+for s in [c1o, c3o]:
+    m.send(s, "CONNECT irc2.test.net")
+    m.expect(s, "ircX<->irc2 should be linked", "Link irc[0-9].test.net -> irc2.test.net is now synced", timeout=15)
+    m.send(s, "MAP")
+    m.expect(s, "End of /MAP", "007.*End of", timeout = 10)
+    m.expect(s, "Server connected, should show up in MAP", " 006 .*irc2\.test\.net")
+
+# Verify that all users on other servers appeared again (a proper JOIN was sent)
+for s in servers:
+    for i in range(1, clones_per_server+1):
+        s_name = s + '-' + str(i)
+        for d in servers:
+            if s == d:
+                continue
+            for j in range(1, clones_per_server+1):
+                d_name = d + '-' + str(j)
+                m.expect(clones[s_name], "JOIN on netsync", ":" + d_name + ".*JOIN", timeout=15)
+
+# Verify all MODEs for bans were seen too
+for s in servers:
+    for i in range(1, clones_per_server+1):
+        s_name = s + '-' + str(i)
+        for d in servers:
+            if s == d:
+                continue
+            for j in range(1, bans_per_server+1):
+                banid = "ban"+str(j)+"!\\*@" + d + ".test.net"
+                # ^ nice.. need to escape the * there to \\* since we are feeding it to regex:
+                m.expect(clones[s_name], "MODE +b on netsync: "+banid, "MODE.*"+banid, timeout=15)
+m.clearlog()
+print
+
+# Restore syncing
+m.sync = 1
+m.disable_message_tags_check = False
+
+# Check if NAMES verifies that everyone is in the channel
+m.send_all("NAMES " + chan)
+for src in clones:
+    for dst in clones:
+        m.expect(clones[src], "see all other clones in channel after synced", clones[dst].nick)
+m.clearlog()
+print
+
+# Check if banlist shows all bans are set as well (with correct "set by" field)
+# - the three opers on the servers can handle this, no need to query all XYZ clones again.
+for name in [c1o, c2o, c3o]:
+    m.send(name, "MODE " + chan + " b")
+    for d in servers:
+        for j in range(1, bans_per_server+1):
+            banid = "ban"+str(j)+"!\\*@" + d + ".test.net"
+            # ^ nice.. need to escape the * there to \\* since we are feeding it to regex:
+            m.expect(name, "Banlist shows ban " +banid, " 367 .*"+banid)
+m.clearlog()
+print
