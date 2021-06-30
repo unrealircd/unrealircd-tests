@@ -20,6 +20,8 @@ class IrcTest(asynchat.async_chat):
         self.disable_logging = 0
     
     def new(self, name):
+        if name in self.clients:
+            raise Exception("IrcTest.new(): client with this nick already exists: " +name)
         # TODO: move to config ;)
         if name[:2] == 'c1':
             color = 31
