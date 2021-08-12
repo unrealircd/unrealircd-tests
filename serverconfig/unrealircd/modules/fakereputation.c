@@ -20,7 +20,11 @@ ModuleHeader MOD_HEADER
 	"5.0",
 	"/FAKEREPUTATION command for testing",
 	"UnrealIRCd Team",
+#if UNREAL_VERSION < 0x05000000
 	"unrealircd-5",
+#else
+	"unrealircd-6",
+#endif
     };
 
 MOD_INIT()
