@@ -16,7 +16,7 @@ m.send_all("OPER netadmin test")
 
 ### KLINE on host
 m.send(c1a, "KLINE user@some.host 60 This is a kline test")
-regex = "K-Line added for user@some\.host on.*from c1a.*to expire at.*This is a kline test"
+regex = "K-Line added: 'user@some\.host' \[reason: This is a kline test\] \[by: $c1a.*\]"
 m.expect(c1a, "K-Line added notice to local IRCOps", regex)
 m.not_expect_all("K-Line added notice NOT to remote IRCOps", regex, skip=c1a)
 m.clearlog()
@@ -30,7 +30,7 @@ m.clearlog()
 print
 
 m.send(c1a, "KLINE -user@some.host")
-regex = "c1a.*removed K-Line user@some\.host.*set at.*This is a kline test"
+regex = "K-Line removed: 'user@some\.host' \[reason: This is a kline test\] \[by: $c1a.*\]"
 m.expect(c1a, "K-Line removed notice shown to local IRCOps", regex)
 m.not_expect_all("K-Line removed notice NOT shown to IRCOps on remote servers", regex, skip=c1a)
 m.clearlog()
@@ -38,7 +38,7 @@ print
 
 ### ZLINE on host
 m.send(c1a, "ZLINE *@4.3.2.1 60 This is a zline test")
-regex = "Z-Line added for \*@4\.3\.2\.1 on.*from c1a.*to expire at.*This is a zline test"
+regex = "Z-Line added: '\*@4\.3\.2\.1' \[reason: This is a zline test\] \[by: $c1a.*\]"
 m.expect(c1a, "Z-Line added notice to local IRCOps", regex)
 m.not_expect_all("Z-Line added notice NOT to remote IRCOps", regex, skip=c1a)
 m.clearlog()
@@ -52,7 +52,7 @@ m.clearlog()
 print
 
 m.send(c1a, "ZLINE -*@4.3.2.1")
-regex = "c1a.*removed Z-Line \*@4\.3\.2\.1.*set at.*This is a zline test"
+regex = "Z-Line removed: '\*@4\.3\.2\.1' \[reason: This is a zline test\] \[by: $c1a.*\]"
 m.expect(c1a, "Z-Line removed notice shown to local IRCOps", regex)
 m.not_expect_all("Z-Line removed notice NOT shown to IRCOps on remote servers", regex, skip=c1a)
 m.clearlog()
@@ -63,7 +63,7 @@ print
 ### GLINE on host
 m.send(c1a, "GLINE user@some.host 60 This is a gline test")
 m.expect_all("G-Line added notice to IRCOps",
-             "G-Line added for user@some\.host on.*from c1a.*to expire at.*This is a gline test")
+             "G-Line added: 'user@some\.host' \[reason: This is a gline test\] \[by: $c1a.*\]")
 m.clearlog()
 print
 
@@ -75,14 +75,14 @@ print
 
 m.send(c1a, "GLINE -user@some.host")
 m.expect_all("G-Line removed notice to IRCOps",
-             "c1a.*removed G-Line user@some\.host.*set at.*This is a gline test")
+             "G-Line removed: 'user@some\.host' \[reason: This is a gline test\] \[by: $c1a.*\]")
 m.clearlog()
 print
 
 ### GLINE on ip
 m.send(c1a, "GLINE user@4.3.2.1 60 This is a gline test on IP")
 m.expect_all("G-Line added notice to IRCOps",
-             "G-Line added for user@4\.3\.2\.1 on.*from c1a.*to expire at.*This is a gline test on IP")
+             "G-Line added: 'user@4\.3\.2\.1' \[reason: This is a gline test on IP\] \[by: $c1a.*\]")
 m.clearlog()
 print
 
@@ -94,14 +94,14 @@ print
 
 m.send(c1a, "GLINE -user@4.3.2.1")
 m.expect_all("G-Line removed notice to IRCOps",
-             "c1a.*removed G-Line user@4\.3\.2\.1.*set at.*This is a gline test on IP")
+             "G-Line removed: 'user@4\.3\.2\.1' \[reason: This is a gline test on IP\] \[by: $c1a.*\]")
 m.clearlog()
 print
 
 ### GZLINE on ip
 m.send(c1a, "GZLINE *@4.3.2.1 60 This is a gzline test on IP")
 m.expect_all("GZ-Line added notice to IRCOps",
-             "Global Z-Line added for \*@4\.3\.2\.1 on.*from c1a.*to expire at.*This is a gzline test on IP")
+             "Global Z-Line added: '\*@4\.3\.2\.1' \[reason: This is a gzline test on IP\] \[by: $c1a.*\]")
 m.clearlog()
 print
 
@@ -113,14 +113,14 @@ print
 
 m.send(c1a, "GZLINE -*@4.3.2.1")
 m.expect_all("GZ-Line removed notice to IRCOps",
-             "c1a.*removed Global Z-Line \*@4\.3\.2\.1.*set at.*This is a gzline test on IP")
+             "Global Z-Line removed: '\*@4\.3\.2\.1' \[reason: This is a gzline test on IP\] \[by: $c1a.*\]")
 m.clearlog()
 print
 
 ### Spamfilter
 m.send(c1a, "SPAMFILTER add -simple p gzline 0 this_is_a_test Please gzline me")
 m.expect_all("Spamfilter added notice to IRCOps",
-             "Spamfilter added: 'Please gzline me' \[type: simple\] \[target: p\] \[action: gzline\] \[reason: this is a test\] on.*from c1a.*")
+             "Spamfilter added: 'Please gzline me' \[type: simple\] \[targets: p\] \[action: gzline\] \[reason: this is a test\] \[by: $c1a.*\]")
 m.clearlog()
 print
 
@@ -132,7 +132,7 @@ print
 
 m.send(c1a, "SPAMFILTER del -simple p gzline - - Please gzline me")
 m.expect_all("Spamfilter removed notice to IRCOps",
-             "c1a.* removed Spamfilter 'Please gzline me'.*set at.*")
+             "Spamfilter removed: 'Please gzline me' \[type: simple\] \[targets: p\] \[action: gzline\] \[reason: this is a test\] \[by: $c1a.*\]")
 m.clearlog()
 print
 

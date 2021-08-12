@@ -23,7 +23,7 @@ m.send(c1a, "OPER netadmin test")
 m.sync = 0
 # Disable syncer, since one of the clients can no longer msg.
 m.send(c1a, "TEMPSHUN $c3a please shut up")
-m.expect(c1a, "Temporary shun added notice", ":irc3.+ NOTICE $c1a :Temporary shun added on user $c3a.* by $c1a \[please shut up\]", timeout = 5)
+m.expect(c1a, "Temporary shun added notice", ":irc3.+ NOTICE $c1a :.*Temporary shun added on user $c3a.* \[reason: please shut up\] \[by: $c1a\]", timeout = 5)
 m.clearlog()
 print
 

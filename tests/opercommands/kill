@@ -22,7 +22,7 @@ m.send(c2a, "OPER netadmin test")
 # Disable syncer since one of the clients is going to die
 m.sync = 0
 m.send(c1a, "KILL $c3a :please die")
-m.expect_all("KILL Notice to opers", ":.+ NOTICE $me :\*\*\* Received KILL message for $c3a.* from $c1a: please die", timeout = 5, skip = c3a)
+m.expect_all("KILL Notice to opers", ":.+ NOTICE $me :.*Client killed.* $c3a.*\[by: $c1a\] \(please die\)", timeout = 5, skip = c3a)
 m.expect(c3a, "Killed client should see KILL notification", ":$c1a.+ KILL $c3a :please die", timeout = 5)
 m.expect(c3a, "Killed client should receive ERROR Closing link", "ERROR :Closing Link: $c3a.*\(Killed by $c1a \(please die\)\)", timeout = 5)
 m.expect_all("See QUIT in channel", ":$c3a.+ QUIT :Killed by $c1a \(please die\)", timeout = 5, skip = c3a)

@@ -19,7 +19,7 @@ print
 
 m.send(c1a, "OPER netadmin test")
 m.send(c1a, "DCCDENY *.forbidden this is not allowed")
-m.expect(c1a, "Added DCCDENY notice", "$c1a added a temp dccdeny for \*\.forbidden \(this is not allowed\)")
+m.expect(c1a, "Added DCCDENY notice", "$c1a added a temporary DCCDENY for \*\.forbidden \(this is not allowed\)")
 m.clearlog()
 print
 
@@ -30,7 +30,7 @@ m.clearlog()
 print
 
 m.send(c1a, "UNDCCDENY *.forbidden")
-m.expect(c1a, "Removed DCCDENY notice", "$c1a removed a temp dccdeny for \*\.forbidden")
+m.expect(c1a, "Removed DCCDENY notice", "$c1a removed a temporary DCCDENY for \*\.forbidden")
 m.clearlog()
 print
 

@@ -23,7 +23,7 @@ print
 m.send(c1a, "OPER netadmin test")
 m.send(c1a, "SAMODE " + chan + " +slk 11 22")
 m.expect_all("Everyone should see MODE change #1", ":irc1.test.net MODE " + chan + " \+slk 11 22")
-m.expect(c1a, "SAMODE notice", ":.+ NOTICE $me :$c1a used SAMODE " + chan + " \(\+slk 11 22\)")
+m.expect(c1a, "SAMODE notice", ":.+ NOTICE $me :.*Client $c1a used SAMODE " + chan + " \(\+slk 11 22\)")
 m.clearlog()
 print
 
