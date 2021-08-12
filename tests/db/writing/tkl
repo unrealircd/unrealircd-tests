@@ -16,7 +16,7 @@ m.send_all("OPER netadmin test")
 
 ### KLINE on host
 m.send(c1a, "KLINE user@some.host666 3600 This is a kline test")
-regex = "K-Line added for user@some\.host666 on.*from c1a.*to expire at.*This is a kline test"
+regex = "K-Line added: 'user@some\.host666'.*This is a kline test"
 m.expect(c1a, "K-Line added notice to local IRCOps", regex)
 m.not_expect_all("K-Line added notice NOT to remote IRCOps", regex, skip=c1a)
 m.clearlog()
@@ -31,7 +31,7 @@ print
 
 ### ZLINE on host
 m.send(c1a, "ZLINE *@192.0.2.2 3600 This is a zline test")
-regex = "Z-Line added for \*@192\.0\.2\.2 on.*from c1a.*to expire at.*This is a zline test"
+regex = "Z-Line added: '\*@192\.0\.2\.2'.*This is a zline test"
 m.expect(c1a, "Z-Line added notice to local IRCOps", regex)
 m.not_expect_all("Z-Line added notice NOT to remote IRCOps", regex, skip=c1a)
 m.clearlog()
@@ -49,7 +49,7 @@ print
 ### GLINE on host
 m.send(c1a, "GLINE user@some.host777 3600 This is a gline test")
 m.expect_all("G-Line added notice to IRCOps",
-             "G-Line added for user@some\.host777 on.*from c1a.*to expire at.*This is a gline test")
+             "G-Line added: 'user@some\.host777'.*This is a gline test")
 m.clearlog()
 print
 
@@ -62,7 +62,7 @@ print
 ### GLINE on ip
 m.send(c1a, "GLINE user@192.0.2.3 3600 This is a gline test on IP")
 m.expect_all("G-Line added notice to IRCOps",
-             "G-Line added for user@192\.0\.2\.3 on.*from c1a.*to expire at.*This is a gline test on IP")
+             "G-Line added: 'user@192\.0\.2\.3'.*This is a gline test on IP")
 m.clearlog()
 print
 
@@ -75,7 +75,7 @@ print
 ### GZLINE on ip
 m.send(c1a, "GZLINE *@192.0.2.4 3600 This is a gzline test on IP")
 m.expect_all("GZ-Line added notice to IRCOps",
-             "Global Z-Line added for \*@192\.0\.2\.4 on.*from c1a.*to expire at.*This is a gzline test on IP")
+             "Global Z-Line added: '\*@192\.0\.2\.4'.*This is a gzline test on IP")
 m.clearlog()
 print
 
@@ -88,7 +88,7 @@ print
 ### Spamfilter
 m.send(c1a, "SPAMFILTER add -simple p gzline 0 this_is_a_test Please gzline me immediately")
 m.expect_all("Spamfilter added notice to IRCOps",
-             "Spamfilter added: 'Please gzline me immediately' \[type: simple\] \[target: p\] \[action: gzline\] \[reason: this is a test\] on.*from c1a.*")
+             "Spamfilter added: 'Please gzline me immediately' \[type: simple\] \[targets: p\] \[action: gzline\] \[reason: this is a test\].*")
 m.clearlog()
 print
 
