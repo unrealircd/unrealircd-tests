@@ -28,7 +28,7 @@ function start_services {
 if [ "$MAXPARALLEL" = "" ]; then
 	MAXPARALLEL="25"
 fi
-TIMEOUT="80"
+TIMEOUT="160"
 KEEPDBS="0"
 INCLUDEFILE=""
 

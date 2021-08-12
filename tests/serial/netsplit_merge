@@ -73,7 +73,7 @@ m.clearlog()
 # CONNECT servers
 for s in [c1o, c3o]:
     m.send(s, "CONNECT irc2.test.net")
-    m.expect(s, "ircX<->irc2 should be linked", "Link irc[0-9].test.net -> irc2.test.net is now synced", timeout=15)
+    m.expect(s, "ircX<->irc2 should be linked", "Link irc[0-9].test.net -> irc2.test.net is now synced", timeout=30)
     m.send(s, "MAP")
     m.expect(s, "End of /MAP", "007.*End of", timeout = 10)
     m.expect(s, "Server connected, should show up in MAP", " 006 .*irc2\.test\.net")
