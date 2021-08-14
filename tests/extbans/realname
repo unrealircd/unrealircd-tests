@@ -14,14 +14,14 @@ m.clearlog()
 print
 
 m.send(c3a, "SETNAME bannedrealname")
-m.send(c1a, "MODE " + chan + " +b ~r:bannedreal*")
+m.send(c1a, "MODE " + chan + " +b ~realname:bannedreal*")
 m.expect(c1a, "expect ban to be set", ":.+ MODE " + chan + " \+b")
 m.clearlog()
 print
 
 m.send(c3a, "JOIN " + chan)
 m.expect(c3a, "Client should receive error on JOIN attempt", ":irc.+ 474 $c3a " + chan + " :Cannot join channel \(\+b\)")
-m.not_expect_all("Client should NOT be able to join with +b ~r", ":c3a.* JOIN ")
+m.not_expect_all("Client should NOT be able to join with +b ~realname", ":c3a.* JOIN ")
 m.clearlog()
 print
 

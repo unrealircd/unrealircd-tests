@@ -14,90 +14,90 @@ m.clearlog()
 print
 
 #### Some syntax and invalid group checks
-m.send(c1a, "MODE " + chan + " +b ~G")
+m.send(c1a, "MODE " + chan + " +b ~security-group")
 m.not_expect(c1a, "no ban should be set that is invalid", ":.+ MODE " + chan + " \+b")
 m.clearlog()
 print
 
-m.send(c1a, "MODE " + chan + " +b ~G:abcdef")
+m.send(c1a, "MODE " + chan + " +b ~security-group:abcdef")
 m.not_expect(c1a, "no ban should be set for non-existant security group", ":.+ MODE " + chan + " \+b")
 m.clearlog()
 print
 
-#### +b ~G:unknown-users
-m.send(c1a, "MODE " + chan + " +b ~G:unknown-users")
-m.expect(c1a, "expect ban to be set", ":.+ MODE " + chan + " \+b ~G:unknown-users")
+#### +b ~security-group:unknown-users
+m.send(c1a, "MODE " + chan + " +b ~security-group:unknown-users")
+m.expect(c1a, "expect ban to be set", ":.+ MODE " + chan + " \+b ~security-group:unknown-users")
 m.clearlog()
 print
 
 m.send(c2a, "FAKEREPUTATION 1")
 m.send(c2a, "JOIN " + chan)
 m.expect(c2a, "Client should receive error on JOIN attempt", ":irc.+ 474 $c2a " + chan + " :Cannot join channel \(\+b\)")
-m.not_expect(c1a, "Client with low reputation should NOT be able to join with +b ~G:unknown-users", ":c2a.* JOIN ")
+m.not_expect(c1a, "Client with low reputation should NOT be able to join with +b ~security-group:unknown-users", ":c2a.* JOIN ")
 m.clearlog()
 print
 
 m.send(c3a, "FAKEREPUTATION 25")
 m.send(c3a, "JOIN " + chan)
 m.not_expect(c3a, "Client should NOT receive error on JOIN attempt", ":irc.+ 474 $c3a " + chan + " :Cannot join channel \(\+b\)")
-m.expect(c1a, "Client with high reputation should be able to join with +b ~G:unknown-users", ":c3a.* JOIN ")
+m.expect(c1a, "Client with high reputation should be able to join with +b ~security-group:unknown-users", ":c3a.* JOIN ")
 m.clearlog()
 print
 
-m.send(c1a, "MODE " + chan + " -b ~G:unknown-users")
-m.expect(c1a, "expect ban to be unset", ":.+ MODE " + chan + " -b ~G:unknown-users")
+m.send(c1a, "MODE " + chan + " -b ~security-group:unknown-users")
+m.expect(c1a, "expect ban to be unset", ":.+ MODE " + chan + " -b ~security-group:unknown-users")
 m.send(c3a, "PART " + chan)
 m.clearlog()
 print
 
-#### +b ~G:!known-users
-m.send(c1a, "MODE " + chan + " +b ~G:!known-users")
-m.expect(c1a, "expect ban to be set", ":.+ MODE " + chan + " \+b ~G:!known-users")
+#### +b ~security-group:!known-users
+m.send(c1a, "MODE " + chan + " +b ~security-group:!known-users")
+m.expect(c1a, "expect ban to be set", ":.+ MODE " + chan + " \+b ~security-group:!known-users")
 m.clearlog()
 print
 
 m.send(c2a, "FAKEREPUTATION 1")
 m.send(c2a, "JOIN " + chan)
 m.expect(c2a, "Client should receive error on JOIN attempt", ":irc.+ 474 $c2a " + chan + " :Cannot join channel \(\+b\)")
-m.not_expect(c1a, "Client with low reputation should NOT be able to join with +b ~G:!known-users", ":c2a.* JOIN ")
+m.not_expect(c1a, "Client with low reputation should NOT be able to join with +b ~security-group:!known-users", ":c2a.* JOIN ")
 m.clearlog()
 print
 
 m.send(c3a, "FAKEREPUTATION 25")
 m.send(c3a, "JOIN " + chan)
 m.not_expect(c3a, "Client should NOT receive error on JOIN attempt", ":irc.+ 474 $c3a " + chan + " :Cannot join channel \(\+b\)")
-m.expect(c1a, "Client with high reputation should be able to join with +b ~G:!known-users", ":c3a.* JOIN ")
+m.expect(c1a, "Client with high reputation should be able to join with +b ~security-group:!known-users", ":c3a.* JOIN ")
 m.clearlog()
 print
 
-m.send(c1a, "MODE " + chan + " -b ~G:!known-users")
-m.expect(c1a, "expect ban to be unset", ":.+ MODE " + chan + " -b ~G:!known-users")
+m.send(c1a, "MODE " + chan + " -b ~security-group:!known-users")
+m.expect(c1a, "expect ban to be unset", ":.+ MODE " + chan + " -b ~security-group:!known-users")
 m.send(c3a, "PART " + chan)
 m.clearlog()
 print
 
-#### +b ~G:known-users
-m.send(c1a, "MODE " + chan + " +b ~G:known-users")
-m.expect(c1a, "expect ban to be set", ":.+ MODE " + chan + " \+b ~G:known-users")
+#### +b ~security-group:known-users
+m.send(c1a, "MODE " + chan + " +b ~security-group:known-users")
+m.expect(c1a, "expect ban to be set", ":.+ MODE " + chan + " \+b ~security-group:known-users")
 m.clearlog()
 print
 
 m.send(c2a, "FAKEREPUTATION 1")
 m.send(c2a, "JOIN " + chan)
 m.not_expect(c2a, "Client should NOT receive error on JOIN attempt", ":irc.+ 474 $c2a " + chan + " :Cannot join channel \(\+b\)")
-m.expect(c1a, "Client with low reputation should be able to join with +b ~G:known-users", ":c2a.* JOIN ")
+m.expect(c1a, "Client with low reputation should be able to join with +b ~security-group:known-users", ":c2a.* JOIN ")
 m.clearlog()
 print
 
 m.send(c3a, "FAKEREPUTATION 25")
 m.send(c3a, "JOIN " + chan)
 m.expect(c3a, "Client should receive error on JOIN attempt", ":irc.+ 474 $c3a " + chan + " :Cannot join channel \(\+b\)")
-m.not_expect(c1a, "Client with high reputation should NOT be able to join with +b ~G:known-users", ":c3a.* JOIN ")
+m.not_expect(c1a, "Client with high reputation should NOT be able to join with +b ~security-group:known-users", ":c3a.* JOIN ")
 m.clearlog()
 print
 
-m.send(c1a, "MODE " + chan + " -b ~G:known-users")
-m.expect(c1a, "expect ban to be unset", ":.+ MODE " + chan + " -b ~G:known-users")
+m.send(c1a, "MODE " + chan + " -b ~security-group:known-users")
+m.expect(c1a, "expect ban to be unset", ":.+ MODE " + chan + " -b ~security-group:known-users")
 m.send(c2a, "PART " + chan)
 m.clearlog()
 print

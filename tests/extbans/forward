@@ -9,7 +9,7 @@ m.connect()
 
 chan = m.randchan()
 m.send(c1a, "JOIN " + chan)
-m.send(c1a, "MODE " + chan + " +b ~f:#redirect:c3a*!*@*")
+m.send(c1a, "MODE " + chan + " +b ~forward:#redirect:c3a*!*@*")
 m.expect(c1a, "user in channel", "JOIN")
 m.clearlog()
 print
@@ -25,10 +25,10 @@ print
 
 m.send(c2a, "PART " + chan)
 m.send(c3a, "PART #redirect")
-m.send(c1a, "MODE " + chan + " -b ~f:#redirect:c3a*!*@*")
-m.send(c1a, "MODE " + chan + " +b ~t:100:~f:#redirect:c3a*!*@*")
-m.expect(c1a, "Unban", "MODE.*-b ~f:#redirect:c3a*!*@*")
-m.expect(c1a, "Ban", "MODE.*\+b ~t:100:~f:#redirect:c3a*!*@*")
+m.send(c1a, "MODE " + chan + " -b ~forward:#redirect:c3a*!*@*")
+m.send(c1a, "MODE " + chan + " +b ~time:100:~forward:#redirect:c3a*!*@*")
+m.expect(c1a, "Unban", "MODE.*-b ~forward:#redirect:c3a*!*@*")
+m.expect(c1a, "Ban", "MODE.*\+b ~time:100:~forward:#redirect:c3a*!*@*")
 m.clearlog()
 print
 

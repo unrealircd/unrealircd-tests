@@ -13,18 +13,18 @@ m.expect(c1a, "users in channel", "JOIN")
 m.clearlog()
 print
 
-m.send(c1a, "MODE " + chan + " +b ~n:$c3a!*@*")
+m.send(c1a, "MODE " + chan + " +b ~nickchange:$c3a!*@*")
 m.expect(c1a, "expect ban to be set", ":.+ MODE " + chan + " \+b")
 m.clearlog()
 print
 
 m.send(c3a, "JOIN " + chan)
-m.expect_all("Client should be able to join with +b ~n", ":c3a.* JOIN ")
+m.expect_all("Client should be able to join with +b ~nickchange", ":c3a.* JOIN ")
 m.clearlog()
 print
 
 m.send(c3a, "PRIVMSG " + chan + " :this should not be blocked")
-m.not_expect(c3a, "Message should NOT be blocked with +b ~n", ":irc.+ 404 $c3a " + chan + " :You are banned")
+m.not_expect(c3a, "Message should NOT be blocked with +b ~nickchange", ":irc.+ 404 $c3a " + chan + " :You are banned")
 m.expect_all("Message should go through", "this should not be blocked", skip = c3a)
 m.clearlog()
 print
