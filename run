@@ -30,6 +30,7 @@ if [ "$MAXPARALLEL" = "" ]; then
 fi
 TIMEOUT="160"
 KEEPDBS="0"
+FAST="0"
 INCLUDEFILE=""
 
 export PYTHONPATH="`pwd`:$PYTHONPATH"
@@ -69,6 +70,12 @@ fi
 
 if [ "$1" = "-single" ]; then
 	MAXPARALLEL=1
+	shift
+fi
+
+if [ "$1" = "-fast" ]; then
+	FAST=1
+	TIMEOUT=30
 	shift
 fi
 
@@ -128,9 +135,11 @@ if [ "$1" = "" ]; then
 		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF /db/|grep -vF /serial/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
 	fi
 	wait
-	# Now do the tests that can only be run in series...
-	echo "Running remaining tests in series..."
-	find tests/serial/ -type f|grep -vF '~'|grep -v README|xargs -L1 -P1 irctestframework/wrapper
+	if [ "$FAST" = 0 ]; then
+		# Now do the tests that can only be run in series...
+		echo "Running remaining tests in series..."
+		find tests/serial/ -type f|grep -vF '~'|grep -v README|xargs -L1 -P1 irctestframework/wrapper
+	fi
 else
 	# Run specific tests:
 	echo "Running specific tests by user request..."
