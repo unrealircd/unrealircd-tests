@@ -87,7 +87,7 @@ for s in servers:
                 continue
             for j in range(1, clones_per_server+1):
                 d_name = d + '-' + str(j)
-                m.expect(clones[s_name], "JOIN on netsync", ":" + d_name + ".*JOIN", timeout=15)
+                m.expect(clones[s_name], "JOIN on netsync: check for " + d_name, ":" + d_name + ".*JOIN", timeout=15)
 
 # Verify all MODEs for bans were seen too
 for s in servers:

@@ -29,7 +29,7 @@ print
 m.send_all("NAMES " + chan)
 for src in clones:
     for dst in clones:
-        m.expect(clones[src], "see all other clones in channel", clones[dst].nick)
+        m.expect(clones[src], "see all other clones in channel: " + clones[dst].nick + " is not seen by " + clones[src].nick, clones[dst].nick)
 m.clearlog()
 print
 
@@ -61,7 +61,7 @@ m.disable_message_tags_check = False
 m.send_all("NAMES " + chan)
 for src in clones:
     for dst in clones:
-        m.expect(clones[src], "see all other clones in channel", clones[dst].nick)
+        m.expect(clones[src], "see all other clones in channel: " + clones[dst].nick + " is not seen by " + clones[src].nick, clones[dst].nick)
 m.clearlog()
 print
 
