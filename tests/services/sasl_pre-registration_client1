@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import irctestframework.irctest
 import base64
 
@@ -23,7 +23,7 @@ m.clearlog()
 print
 
 # Now, authenticate
-auth_string = base64.b64encode(b'client1\000client1\000test')
+auth_string = base64.b64encode(b'client1\000client1\000test').decode()
 m.send(c1a, "AUTHENTICATE " + auth_string)
 m.expect(c1a, "SASL authentication successful", ":.+ 903 .* :SASL authentication successful", timeout = 10)
 m.clearlog()

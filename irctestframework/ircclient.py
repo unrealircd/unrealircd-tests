@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import asynchat
 import asyncore
 import socket
@@ -7,9 +8,10 @@ import re
 import time
 
 class IrcClient(asynchat.async_chat):
-    def __init__(self, (host, port), name, color, syncchan):
+    def __init__(self, xxx_todo_changeme, name, color, syncchan):
+        (host, port) = xxx_todo_changeme
         asynchat.async_chat.__init__(self)
-        self.set_terminator('\r\n')
+        self.set_terminator(b'\r\n')
         self.data_in = ''
         self.name = name
         self.nick = name + '_' + ''.join(random.choice(string.ascii_lowercase) for _ in range(8))
@@ -74,7 +76,7 @@ class IrcClient(asynchat.async_chat):
         m = re.sub("(c1b_[a-z]{8})", self.fgcolor('c1b')+r'\1' + standard, m)
         m = re.sub("(c2b_[a-z]{8})", self.fgcolor('c2b')+r'\1' + standard, m)
         m = re.sub("(c3b_[a-z]{8})", self.fgcolor('c3b')+r'\1' + standard, m)
-        print m
+        print(m)
 #        print "\033[" + str(self.color) + "m" + message + "\033[0m"
 #        for name,obj in self.clients.iteritems():
 #            str = str.replace("$" + name, obj.nick)
@@ -95,9 +97,9 @@ class IrcClient(asynchat.async_chat):
                 return
 
             if not "msgid=" in mtags and not self.disable_message_tags_check:
-                print "\033[1mMissing mandatory message-tag 'msgid' in channel event\033[0m"
-                print "Line :" + line
-                print
+                print("\033[1mMissing mandatory message-tag 'msgid' in channel event\033[0m")
+                print("Line :" + line)
+                print()
                 raise Exception("Missing 'msgid' in channel event")
         return
 
@@ -132,10 +134,11 @@ class IrcClient(asynchat.async_chat):
             # the syncer in tests.
             (zzcmd, newnick) = data.split(" ", 1)
             self.nick = newnick
-        self.push(data + '\r\n')
+        data = data + '\r\n'
+        self.push(data.encode())
 
     def collect_incoming_data(self, data):
-        self.data_in += data
+        self.data_in += data.decode()
 
     def hide_sync_data_check(self, str):
         if not self.hide_sync:
@@ -265,34 +268,34 @@ class IrcClient(asynchat.async_chat):
             if re.search(regex, line, re.DOTALL) != None:
                 #print 'Regex: ' + regex
                 #print 'Matched line: ' + line
-                print '\033[1m' + u'\u2714' + ' Test passed: ' + failmsg + '\033[0m'
+                print('\033[1m' + '\u2714' + ' Test passed: ' + failmsg + '\033[0m')
                 return 1
         if nofail == 1:
             return 0
-        print '\033[1m' + u'\u274e' + ' Test failed: ' + failmsg + '\033[0m'
-        print '******************* EXPECT FAILED ************************'
+        print('\033[1m' + '\u274e' + ' Test failed: ' + failmsg + '\033[0m')
+        print('******************* EXPECT FAILED ************************')
         self.log('Client: ' + self.nick)
-        print 'Fail message: ' + failmsg
-        print 'Regex that SHOULD MATCH (but didn\'t): ' + regex
-        print 'Lines:'
+        print('Fail message: ' + failmsg)
+        print('Regex that SHOULD MATCH (but didn\'t): ' + regex)
+        print('Lines:')
         for line in self.all_lines:
-            print line
-        print '************************************************************'
+            print(line)
+        print('************************************************************')
         raise Exception("An expected response was not found in the result: " + failmsg)
 
     def not_expect(self, failmsg, regex):
         for line in self.all_lines:
             if re.search(regex, line, re.DOTALL) != None:
-                print '\033[1m' + u'\u274e' + ' Test failed: ' + failmsg + '\033[0m'
-                print
-                print '******************* EXPECT FAILED ************************'
-                print 'Fail message: ' + failmsg
-                print 'Regex that SHOULD NOT MATCH (but did): ' + regex
-                print 'Matched line:'
-                print line
-                print '************************************************************'
+                print('\033[1m' + '\u274e' + ' Test failed: ' + failmsg + '\033[0m')
+                print()
+                print('******************* EXPECT FAILED ************************')
+                print('Fail message: ' + failmsg)
+                print('Regex that SHOULD NOT MATCH (but did): ' + regex)
+                print('Matched line:')
+                print(line)
+                print('************************************************************')
                 raise Exception("An unexpected response was found in the result: " + failmsg)
-        print '\033[1m' + u'\u2714' + ' Test passed: ' + failmsg + '\033[0m'
+        print('\033[1m' + '\u2714' + ' Test passed: ' + failmsg + '\033[0m')
 
     def clearlog(self):
         self.all_lines = []

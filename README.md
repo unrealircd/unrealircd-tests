@@ -80,7 +80,7 @@ and the letter is for clones so there can be a `c1b` etc.
 
 A test typically starts with this code:
 ```
-#!/usr/bin/python
+#!/usr/bin/python3
 import irctestframework.irctest
 
 m = irctestframework.irctest.IrcTest()

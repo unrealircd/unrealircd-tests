@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import irctestframework.irctest
 
 m = irctestframework.irctest.IrcTest()
@@ -10,15 +10,15 @@ m.connect()
 chan = m.randchan()
 m.join_all(chan, creator = c2a)
 m.expect(c1a, "users in channel", "JOIN")
-print
+m.clearlog()
 
 m.send(c2a, "MODE " + chan + " +M")
 m.expect(c1a, "MODE +M", ":c2a.*MODE.*\+M")
-print
+m.clearlog()
 
 m.send(c1a, "PRIVMSG " + chan + " :hello")
 m.expect(c1a, "should show a 404 numeric if not identified, with cmode +M", "404 .*You must have a registered nick")
 m.not_expect(c3a, "should block messages if not identified, with cmode +M", ":c1a.*PRIVMSG.*this is red")
-print
+m.clearlog()
 
-print 'TODO: test with registered and +M'
+print('TODO: test with registered and +M')

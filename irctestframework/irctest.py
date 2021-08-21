@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import asynchat
 import asyncore
 import socket
@@ -6,7 +7,7 @@ import random
 import re
 import time
 
-import ircclient
+import irctestframework.ircclient
 
 getmsec = lambda: int(round(time.time() * 1000))
 
@@ -37,14 +38,14 @@ class IrcTest(asynchat.async_chat):
             port = 5663
         else:
             raise Exception("IrcTest.new() expects argument with c1/c2/c3 to indicate server, got: " + name)
-        obj = ircclient.IrcClient((host, port), name, color, self.syncchan)
+        obj = irctestframework.ircclient.IrcClient((host, port), name, color, self.syncchan)
         obj.disable_logging = self.disable_logging
         self.clients[name] = obj
         return obj
 
     # Are all connections synced?
     def synced(self):
-        for name,obj in self.clients.iteritems():
+        for name,obj in self.clients.items():
             if not obj.is_synced():
                 return 0
         return 1
@@ -52,7 +53,7 @@ class IrcTest(asynchat.async_chat):
     def is_ready(self):
         ready_count = 0
         notready_count = 0
-        for name,obj in self.clients.iteritems():
+        for name,obj in self.clients.items():
             if obj.is_ready():
                 ready_count += 1
             else:
@@ -63,8 +64,8 @@ class IrcTest(asynchat.async_chat):
         return 1
 
     def multisynced(self):
-        for name,obj in self.clients.iteritems():
-            for name2,obj2 in self.clients.iteritems():
+        for name,obj in self.clients.items():
+            for name2,obj2 in self.clients.items():
                 if not obj.synctext in obj2.recvd_syncers:
                     #print 'Waiting for sync ' + obj.synctext + ' to be received by ' + name2
                     #print 'Have only: '
@@ -73,14 +74,14 @@ class IrcTest(asynchat.async_chat):
         return 1
 
     def is_multi_ready(self):
-        for name,obj in self.clients.iteritems():
-            for name2,obj2 in self.clients.iteritems():
+        for name,obj in self.clients.items():
+            for name2,obj2 in self.clients.items():
                 if not obj.nick in obj2.recvd_syncers:
                     return 0
         return 1
 
     def start_sync(self):
-        for name,obj in self.clients.iteritems():
+        for name,obj in self.clients.items():
             obj.start_sync()
 
     def socketloop(self, t):
@@ -98,8 +99,8 @@ class IrcTest(asynchat.async_chat):
             while(not self.is_multi_ready()):
                 asyncore.loop(count=1, timeout=0.1)
                 if getmsec() - current_time > 10000:
-                    print 'Multisync@connect failed after 10 seconds'
-                    print 'This only happens if not all servers are linked'
+                    print('Multisync@connect failed after 10 seconds')
+                    print('This only happens if not all servers are linked')
                     raise Exception('sync failed - servers not linked?')
             self.multisync()
 
@@ -120,7 +121,7 @@ class IrcTest(asynchat.async_chat):
 
         # First build a list with all messages from everyone, so we can see which ones are identical
         all_msgs = {}
-        for name,obj in self.clients.iteritems():
+        for name,obj in self.clients.items():
             for full_line in obj.all_lines:
                 # Should we filter purely on channel events? Let's see how long
                 # we can get away with it by not doing it for now ;D
@@ -133,19 +134,19 @@ class IrcTest(asynchat.async_chat):
                         all_msgs[line] = {}
                     all_msgs[line][name] = full_line
         # Now count all lines that are >1
-        for commonline, o in all_msgs.iteritems():
+        for commonline, o in all_msgs.items():
             if len(o) > 1:
                 first = None
-                for name,full_line in o.iteritems():
+                for name,full_line in o.items():
                     if not first:
                         first = full_line
                     else:
                         if self.inconsistent_lines(first, full_line):
-                            print
-                            print '\033[1mInconsistent message-tag use accross server links:\033[0m'
-                            print 'Line (bare): ' + commonline
-                            for name,full_line in o.iteritems():
-                                #print 'Client ' + name + ': '  + full_line
+                            print()
+                            print('\033[1mInconsistent message-tag use accross server links:\033[0m')
+                            print(('Line (bare): ' + commonline))
+                            for name,full_line in o.items():
+                                #print('Client ' + name + ': '  + full_line)
                                 self.clients[name].log('Client ' + name + ': '  + full_line)
 
                             raise Exception('mtags: possible mismatch (by verify_mtags_consistency)')
@@ -170,8 +171,8 @@ class IrcTest(asynchat.async_chat):
         while(not self.multisynced()):
             asyncore.loop(count=1, timeout=0.1)
             if getmsec() - current_time > 10000:
-                print 'Multisync failed after 10 seconds'
-                print 'This can happen if not all servers are linked'
+                print('Multisync failed after 10 seconds')
+                print('This can happen if not all servers are linked')
                 raise Exception('multisync failed - servers not linked?')
         self.verify_mtags_consistency()
 
@@ -181,7 +182,7 @@ class IrcTest(asynchat.async_chat):
         self.multisync()
 
     def send_all(self, message, skip = None):
-        for name,obj in self.clients.iteritems():
+        for name,obj in self.clients.items():
             if obj != skip:
                 message = self.replacestr(obj, message)
                 obj.out(message)
@@ -192,7 +193,7 @@ class IrcTest(asynchat.async_chat):
             # Ensure this user joins first and has ops
             creator.out("JOIN " + chan)
             self.multisync()
-        for name,obj in self.clients.iteritems():
+        for name,obj in self.clients.items():
             if obj != skip:
                 obj.out("JOIN " + chan)
         self.multisync()
@@ -224,7 +225,7 @@ class IrcTest(asynchat.async_chat):
         total = len(self.clients)
         if skip != None:
             total = total - 1 # could be wrong, don't care
-        for name,obj in self.clients.iteritems():
+        for name,obj in self.clients.items():
             if obj == skip:
                 continue
             cnt = cnt + 1
@@ -240,7 +241,7 @@ class IrcTest(asynchat.async_chat):
         total = len(self.clients)
         if skip != None:
             total = total - 1 # could be wrong, don't care
-        for name,obj in self.clients.iteritems():
+        for name,obj in self.clients.items():
             if obj == skip:
                 continue
             cnt = cnt + 1
@@ -248,7 +249,7 @@ class IrcTest(asynchat.async_chat):
             self.not_expect(obj, failmsg, regex)
 
     def replacestr(self, client, str):
-        for name,obj in self.clients.iteritems():
+        for name,obj in self.clients.items():
             str = str.replace("$" + name, obj.nick)
         str = str.replace("$me", client.nick)
         return str
@@ -263,5 +264,5 @@ class IrcTest(asynchat.async_chat):
         if obj:
             obj.clearlog()
         else:
-            for name,obj in self.clients.iteritems():
+            for name,obj in self.clients.items():
                 obj.clearlog()
