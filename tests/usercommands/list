@@ -24,7 +24,7 @@ print
 
 m.send_all("LIST")
 m.expect_all("LIST head (numeric 321)", ":.+ 321 $me Channel :Users  Name")
-m.expect_all("LIST channel entry (numeric 322)", ":.+ 322 $me " + chan + " [0-9]+ :\[\+tn\] this is a nice topic")
+m.expect_all("LIST channel entry (numeric 322)", ":.+ 322 $me " + chan + " [0-9]+ :\[\+nt\] this is a nice topic")
 m.expect_all("LIST end (numeric 323)", ":.+ 323 $me :End of /LIST")
 m.clearlog()
 print

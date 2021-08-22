@@ -21,7 +21,7 @@ m.clearlog()
 print
 
 m.send_all("MODE " + chan)
-m.expect_all("Verify modes set, via MODE #chan, after #1", " 324 .* " + chan + " \+slk 11 22")
+m.expect_all("Verify modes set, via MODE #chan, after #1", " 324 .* " + chan + " \+skl 22 11")
 m.clearlog()
 print
 

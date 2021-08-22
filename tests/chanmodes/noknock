@@ -13,7 +13,7 @@ m.expect(c1a, "users in channel", "JOIN")
 print
 
 m.send(c2a, "MODE " + chan + " +iK")
-m.expect(c1a, "MODE +iK", ":c2a.*MODE.*\+Ki")
+m.expect(c1a, "MODE +iK", ":c2a.*MODE.*\+iK")
 print
 
 m.send(c3a, "KNOCK " + chan)
