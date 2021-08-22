@@ -19,9 +19,9 @@ m.clearlog()
 print
 
 m.send(c1a, "OPER netadmin test")
-m.send(c1a, "MODE " + chan + " +TP")
+m.send(c1a, "MODE " + chan + " +PT")
 m.send(c1a, "MODE " + chan + " +beI ban!*@* exempt!*@* invex!*@*")
-m.expect(c1a, "MODE +TP", "MODE.*\+TP")
+m.expect(c1a, "MODE +PT", "MODE.*\+PT")
 m.expect(c1a, "MODE +beI", "MODE.*\+beI")
 m.clearlog()
 print
