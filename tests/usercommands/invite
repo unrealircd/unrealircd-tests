@@ -44,3 +44,14 @@ m.expect_all("should see JOIN for /INVITE'd user", ":c3a.*JOIN")
 print
 m.clearlog()
 
+m.send(c2a, "PART " + chan)
+m.send(c1a, "CAP REQ :invite-notify")
+m.send(c1a, "MODE " + chan + " +o $c3a")
+m.expect(c3a, "MODE +o", ":$c1a.* MODE .* \+o $c3a")
+m.send(c3a, "INVITE $c2a " + chan)
+m.expect(c1a, "should see INVITE notification", ":$c3a.* INVITE $c2a " + chan)
+m.not_expect(c3a, "should not see INVITE notification", ":$c3a.* INVITE $c2a " + chan)
+m.expect(c3a, "should see NOTICE notification", ":.* NOTICE @" + chan + " :.*$c3a.*$c2a")
+print
+m.clearlog()
+
