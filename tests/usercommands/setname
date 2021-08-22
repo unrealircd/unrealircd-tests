@@ -7,10 +7,17 @@ c2a = m.new('c2a')
 c3a = m.new('c3a')
 m.connect()
 
+chan = m.randchan()
+m.join_all(chan)
+m.send(c2a, 'CAP REQ :setname')
 m.send(c1a, 'SETNAME :my new realname')
+m.not_expect(c3a, "setname notification should not be received (no capability)", ":$c1a.* SETNAME")
+m.expect(c2a, "setname notification received", ":$c1a.* SETNAME :my new realname")
 m.clearlog()
+print
 
 m.send_all('WHOIS $c1a')
 m.expect_all("New realname in WHOIS", ":.* 311 $me $c1a username Clk.* \* :my new realname")
 m.clearlog()
 print
+
