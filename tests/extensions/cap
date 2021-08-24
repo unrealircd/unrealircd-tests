@@ -30,4 +30,4 @@ print
 m.send(c1a, "CAP LS 302")
 m.send(c1a, "CAP REQ chghost")
 m.send(c1a, "CAP LIST")
-m.expect(c1a, "CAP LIST should show cap-notify and chghost", " CAP .* LIST :chghost cap-notify message-tags account-tag")
+m.expect(c1a, "CAP LIST should show cap-notify and chghost", " CAP .* LIST :cap-notify chghost message-tags account-tag")
