@@ -1,5 +1,5 @@
 # About
-This is the automated test system for UnrealIRCd 5, written in Python.
+This is the automated test system for UnrealIRCd 6, written in Python.
 
 The ultimate goal is to have a test for each and every feature.
 Currently it tests about 80+ different commands, usermodes, channel modes,

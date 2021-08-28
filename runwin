@@ -27,10 +27,10 @@ TIMEOUT="40"
 KEEPDBS="0"
 INCLUDEFILE=""
 
-UNREALIRCDDIR="/c/Program Files/UnrealIRCd 5"
+UNREALIRCDDIR="/c/Program Files/UnrealIRCd 6"
 
 # Stupid? Yes!
-find tests/ -type f -exec sed -i -e 's/\#\!\/usr\/bin\/python3/\#\!\/c\/Python30\/python/g' {} \;
+find tests/ -type f -exec sed -i -e 's/\#\!\/usr\/bin\/python3/\#\!\/c\/Python39\/python/g' {} \;
 
 export PYTHONPATH="`pwd`"
 export PYTHONIOENCODING=utf-8
