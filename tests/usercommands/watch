@@ -12,14 +12,14 @@ m.expect(c1a, "604 numeric for user that is online", ":.+ 604 $me $c3a username 
 m.clearlog()
 print
 
-m.send(c1a, "WATCH +somenick")
-m.expect(c1a, "605 numeric for user that is offline", ":.+ 605 $me somenick \* \* 0 :is offline")
+m.send(c1a, "WATCH +somenick-w")
+m.expect(c1a, "605 numeric for user that is offline", ":.+ 605 $me somenick-w \* \* 0 :is offline")
 m.clearlog()
 print
 
 m.send(c1a, "WATCH L")
 m.expect(c1a, "604 numeric for user that is online", ":.+ 604 $me $c3a username Clk.* [0-9]+ :is online")
-m.expect(c1a, "605 numeric for user that is offline", ":.+ 605 $me somenick \* \* [0-9]+ :is offline")
+m.expect(c1a, "605 numeric for user that is offline", ":.+ 605 $me somenick-w \* \* [0-9]+ :is offline")
 m.clearlog()
 print
 
@@ -28,14 +28,14 @@ m.sync = 0
 
 # Test nick change
 c3a_original_nick = c3a.nick
-m.send(c3a, "NICK somenick")
+m.send(c3a, "NICK somenick-w")
 m.expect(c1a, "601 numeric for user that went offline (nick change)", ":.+ 601 $me " + c3a_original_nick + " username Clk-.* [0-9]+ :logged offline", timeout = 10)
-m.expect(c1a, "600 numeric for user that got online (nick change)", ":.+ 600 $me somenick username Clk-.* [0-9]+ :logged online", timeout = 10)
+m.expect(c1a, "600 numeric for user that got online (nick change)", ":.+ 600 $me somenick-w username Clk-.* [0-9]+ :logged online", timeout = 10)
 m.clearlog()
 print
 
 # Test quit
 m.send(c3a, "QUIT :poof!")
-m.expect(c1a, "601 numeric for user that went offline (quit)", ":.+ 601 $me somenick username Clk-.* [0-9]+ :logged offline", timeout = 10)
+m.expect(c1a, "601 numeric for user that went offline (quit)", ":.+ 601 $me somenick-w username Clk-.* [0-9]+ :logged offline", timeout = 10)
 m.clearlog()
 print
