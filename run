@@ -25,6 +25,27 @@ function start_services {
 	fi
 }
 
+function kill_server {
+	echo -n "Killing any old server instances"
+	PROCS="valgrind|valgrind.bin|memcheck|memcheck-amd64-linux|memcheck-x86-linux|ircd|unrealircd|val|atheme-services|services|anope"
+	KILLTIMEOUT="15"
+	T=0
+	# Ask to shutdown gracefully
+	pkill -15 -U "$UID" "$PROCS" 1>/dev/null 2>&1
+	while [ "$T" -lt "$KILLTIMEOUT" ];
+	do
+		# Killed by now?
+		if ! pgrep -U "$UID" "$PROCS" >/dev/null; then
+			break
+		fi
+		T=$(expr $T + 1)
+		echo -n "."
+		sleep 1
+	done
+	echo
+	pkill -9 -U "$UID" "$PROCS"
+}
+
 if [ "$MAXPARALLEL" = "" ]; then
 	MAXPARALLEL="25"
 fi
@@ -94,11 +115,8 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	cd -
 
 	# Boot the ircd
+	kill_server
 	echo "Booting IRC server..."
-	killall -15 valgrind valgrind.bin memcheck memcheck-amd64-linux memcheck-x86-linux ircd unrealircd val atheme-services services anope 1>/dev/null 2>&1
-	sleep 5
-	killall -9 valgrind valgrind.bin memcheck memcheck-amd64-linux memcheck-x86-linux ircd unrealircd val atheme-services services anope 1>/dev/null 2>&1
-	sleep 1
 	cp -av serverconfig/unrealircd/* ~/unrealircd/conf/ || fail "Failed to copy serverconfig/unrealircd"
 	cd ~/unrealircd/ || exit 1
 	if [ "$KEEPDBS" -eq 0 ]; then
