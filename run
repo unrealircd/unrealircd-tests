@@ -59,6 +59,14 @@ export PYTHONIOENCODING=utf-8
 export TIMEOUT
 export ASAN_OPTIONS=abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
 
+if [ "$MAKE" = "" ]; then
+	if gmake --version 1>/dev/null 2>&1; then
+		MAKE="gmake"
+	else
+		MAKE="make"
+	fi
+fi
+
 rm -rf logs
 mkdir logs
 mkdir logs/success
@@ -111,7 +119,7 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	# Compile any modules that are needed (fakereputation etc)
 	cp -av serverconfig/unrealircd/modules/*.c ~/unrealircd/source/src/modules/third/ || exit 1
 	cd ~/unrealircd/source || exit 1
-	make install
+	$MAKE install
 	cd -
 
 	# Boot the ircd
