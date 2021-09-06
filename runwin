@@ -12,11 +12,34 @@ function stopunreal {
 	sleep 2
 }
 
+function show_core_files {
+	echo "UnrealIRCd has CRASHED!!"
+	for f in "$UNREALIRCDDIR/"*.core
+	do
+		echo "*** $f ***"
+		cat "$f"
+	done
+}
+
 function fail {
 	echo "FATAL ERROR: $1"
+	sleep 5
+	if ls "$UNREALIRCDDIR/"*mdmp 1>/dev/null 2>&1; then
+		show_core_files
+		CRASHED=1
+	fi
 	echo "Cleaning up..."
 	stopunreal
-	echo "Tests failed. See errors above."
+	if [ "$CRASHED" = 1 ]; then
+		echo "Tests failed / UnrealIRCd has CRASHED!! See errors above."
+	else
+		if ls "$UNREALIRCDDIR/"*mdmp 1>/dev/null 2>&1; then
+			show_core_files
+			echo "Tests failed AND UnrealIRCd crashed while terminating."
+		else
+			echo "Tests failed. See errors above."
+		fi
+	fi
 	exit 1
 }
 
@@ -25,6 +48,7 @@ if [ "$MAXPARALLEL" = "" ]; then
 fi
 TIMEOUT="40"
 KEEPDBS="0"
+CRASHED="0"
 INCLUDEFILE=""
 
 UNREALIRCDDIR="/c/Program Files/UnrealIRCd 6"
@@ -63,6 +87,12 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	# Boot the ircd
 	echo "Booting IRC server..."
 	stopunreal
+
+	# Move old core files and minidumps to oldcores\ (don't print and ignore errors)
+	mkdir "$UNREALIRCDDIR/oldcores" 1>/dev/null 2>&1
+	mv "$UNREALIRCDDIR/"*.core "$UNREALIRCDDIR/oldcores" 1>/dev/null 2>&1
+	mv "$UNREALIRCDDIR/"*.mdmp "$UNREALIRCDDIR/oldcores" 1>/dev/null 2>&1
+
 	cp -av serverconfig/unrealircd/* "$UNREALIRCDDIR/conf/" || fail "Could not copy configuration files"
 	cd "$UNREALIRCDDIR/bin" || fail "Could not change to UnrealIRCd directory"
 	echo "Now in:"
