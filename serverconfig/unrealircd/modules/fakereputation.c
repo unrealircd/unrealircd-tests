@@ -62,7 +62,7 @@ CMD_FUNC(cmd_fakereputation)
 	if ((strchr(parv[1], '.') || strchr(parv[1], ':')) && !BadPtr(parv[2]))
 	{
 		/* FAKEREPUTATION <ip> <value> */
-		char *parx[4];
+		const char *parx[4];
 		parx[0] = NULL;
 		parx[1] = parv[1];
 		parx[2] = parv[2];
