@@ -11,12 +11,18 @@ chan = m.randchan()
 m.join_all(chan, creator = c1a, skip = c3a)
 m.expect(c1a, "first user in channel", ":c1a.*JOIN")
 m.expect(c2a, "second user in channel", ":c2a.*JOIN")
+m.clearlog()
 print
 
 m.send(c1a, "MODE " + chan + " +i")
 m.expect(c2a, "MODE +i", ":c1a.*MODE.*\+i")
+m.clearlog()
 print
 
+m.send_all("MODE " + chan)
+m.expect_all("See channel as currently +i", ":.* 324 $me " + chan + " \+i")
+m.clearlog()
+print
 m.send(c3a, "JOIN " + chan)
 m.expect(c3a, "unable to join with +i (numeric 473)", "473.*Cannot join channel.*\+i")
 m.not_expect(c1a, "should not see JOIN for user if +i", ":c3a.*JOIN")

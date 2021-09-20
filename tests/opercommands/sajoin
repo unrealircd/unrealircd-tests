@@ -34,3 +34,10 @@ m.expect_all("See c3a leaving", ":c3a.*PART", timeout = 5)
 m.expect(c3a, "See that you are forced to part all channels", ":irc.+ NOTICE $me :\*\*\* You were forced to join 0", timeout = 5)
 m.clearlog()
 print
+
+m.send(c1a, "SAJOIN $c3a @" + chan)
+m.expect_all("See c3a joining", ":c3a.*JOIN", timeout = 5)
+m.expect_all("See c3a receiving ops", ":.*MODE " + chan + " \+o $c3a", timeout = 5)
+m.expect(c3a, "See that you are forced joined", ":irc.+ NOTICE $me :\*\*\* You were forced to join " + chan)
+m.clearlog()
+print
