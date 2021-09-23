@@ -26,6 +26,6 @@ m.clearlog()
 print
 
 m.send(c1a, "DNS c")
-m.expect(c1a, "DNS Cache clear", ":.+ NOTICE $me :.*cleared the DNS cache list")
+m.expect(c1a, "DNS Cache clear", ":.+ NOTICE $me :.*DNS cache cleared")
 m.clearlog()
 print
