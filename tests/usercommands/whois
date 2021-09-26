@@ -17,7 +17,7 @@ m.send_all("WHOIS $c1a")
 # 311 for all:
 m.expect_all("numeric 311", ":.* 311 $me $c1a username Clk.* \* :Test framework")
 # 379 only for self:
-m.expect(c1a, "numeric 379 (local)", ":.* 379 $me $c1a :is using modes \+ixw")
+m.expect(c1a, "numeric 379 (local)", ":.* 379 $me $c1a :is using modes \+iwx")
 # 378 only for self:
 m.expect(c1a, "numeric 378 (local)", ":.* 378 $me $c1a :is connecting from \*@localhost 127\.0\.0\.1")
 # 319 for all:
@@ -38,7 +38,7 @@ m.send_all("WHOIS $c1a $c1a")
 # 311 for all:
 m.expect_all("numeric 311", ":.* 311 $me $c1a username Clk.* \* :Test framework", timeout=10)
 # 379 only for self:
-m.expect(c1a, "numeric 379 (local)", ":.* 379 $me $c1a :is using modes \+ixw")
+m.expect(c1a, "numeric 379 (local)", ":.* 379 $me $c1a :is using modes \+iwx")
 # 378 only for self:
 m.expect(c1a, "numeric 378 (local)", ":.* 378 $me $c1a :is connecting from \*@localhost 127\.0\.0\.1")
 # 319 for all:
