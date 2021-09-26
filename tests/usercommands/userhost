@@ -8,8 +8,8 @@ c3a = m.new('c3a')
 m.connect()
 
 m.send_all("USERHOST :$c1a thisnickdoesnotexist $c2a irc1.test.net $c3a")
-m.expect(c1a, "USERHOST response on client 1", ":.+ 302 $me :$c1a=.*username@localhost $c2a=.*username@Clk-6C400E48 $c3a=.*username@Clk-6C400E48")
-m.expect(c2a, "USERHOST response on client 2", ":.+ 302 $me :$c1a=.*username@Clk-6C400E48 $c2a=.*username@localhost $c3a=.*username@Clk-6C400E48")
-m.expect(c3a, "USERHOST response on client 3", ":.+ 302 $me :$c1a=.*username@Clk-6C400E48 $c2a=.*username@Clk-6C400E48 $c3a=.*username@localhost")
+m.expect(c1a, "USERHOST response on client 1", ":.+ 302 $me :$c1a=.*username@localhost $c2a=.*username@Clk-8608861 $c3a=.*username@Clk-8608861")
+m.expect(c2a, "USERHOST response on client 2", ":.+ 302 $me :$c1a=.*username@Clk-8608861 $c2a=.*username@localhost $c3a=.*username@Clk-8608861")
+m.expect(c3a, "USERHOST response on client 3", ":.+ 302 $me :$c1a=.*username@Clk-8608861 $c2a=.*username@Clk-8608861 $c3a=.*username@localhost")
 m.clearlog()
 print

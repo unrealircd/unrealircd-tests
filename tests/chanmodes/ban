@@ -24,11 +24,11 @@ bantests = [
         "nomatchban":"*!*nomatch@*",
         "bantype":"by username",
       },
-      { "matchban":"*!*@Clk-6C400E48",
+      { "matchban":"*!*@Clk-8608861",
         "nomatchban":"*!*@Clk-6C400E99",
         "bantype":"by cloaked hostname",
       },
-#      { "matchban":"*!*@231FD6C8.9CC7FEA8.DA4798D7.IP",
+#      { "matchban":"*!*@C9BC54D4.CCE2A095.73B42A24.IP",
 #        "nomatchban":"*!*@231FD6C8.9CC7FEA8.9999999.IP",
 #        "bantype":"by cloaked IP",
 #      },
@@ -50,7 +50,7 @@ bantests = [
         "specialcmd":"VHOST test test"
       },
       # A ban on a cloakedhost should still work if using a vhost:
-      { "matchban":"*!*@Clk-6C400E48",
+      { "matchban":"*!*@Clk-8608861",
         "nomatchban":"*!*@Clk-9999999",
         "bantype":"by cloakedhost when using vhost",
         "specialcmd":"VHOST test test"

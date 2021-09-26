@@ -13,16 +13,16 @@ m.expect(c1a, "users in channel", "JOIN")
 print
 
 m.send(c1a, "WHO " + chan)
-m.expect(c1a, "simple WHO #channel output (1 of 3)", "352 $c1a " + chan + " username Clk-6C400E48 irc1\.test\.net $c1a H.*:0 Test framework")
-m.expect(c1a, "simple WHO #channel output (2 of 3)", "352 $c1a " + chan + " username Clk-6C400E48 irc2\.test\.net $c2a H.*:[0-9] Test framework")
-m.expect(c1a, "simple WHO #channel output (3 of 3)", "352 $c1a " + chan + " username Clk-6C400E48 irc3\.test\.net $c3a H.*:[0-9] Test framework")
+m.expect(c1a, "simple WHO #channel output (1 of 3)", "352 $c1a " + chan + " username Clk-8608861 irc1\.test\.net $c1a H.*:0 Test framework")
+m.expect(c1a, "simple WHO #channel output (2 of 3)", "352 $c1a " + chan + " username Clk-8608861 irc2\.test\.net $c2a H.*:[0-9] Test framework")
+m.expect(c1a, "simple WHO #channel output (3 of 3)", "352 $c1a " + chan + " username Clk-8608861 irc3\.test\.net $c3a H.*:[0-9] Test framework")
 m.clearlog()
 print
 
 m.send(c1a, "WHO " + chan + " %tcuihsnfmdlaor")
-m.expect(c1a, "complex WHO #channel output (WHOX) (1 of 3)", "354 $c1a 0 " + chan + " username 127.0.0.1 Clk-6C400E48 irc1\.test\.net $c1a H.* \* 0 [0-9]+ 0 (999|n\/a) :Test framework")
-m.expect(c1a, "complex WHO #channel output (WHOX) (2 of 3)", "354 $c1a 0 " + chan + " username 255.255.255.255 Clk-6C400E48 irc2\.test\.net $c2a H.* \* 0 [0-9]+ 0 (999|n\/a) :Test framework")
-m.expect(c1a, "complex WHO #channel output (WHOX) (3 of 3)", "354 $c1a 0 " + chan + " username 255.255.255.255 Clk-6C400E48 irc3\.test\.net $c3a H.* \* 0 [0-9]+ 0 (999|n\/a) :Test framework")
+m.expect(c1a, "complex WHO #channel output (WHOX) (1 of 3)", "354 $c1a 0 " + chan + " username 127.0.0.1 Clk-8608861 irc1\.test\.net $c1a H.* \* 0 [0-9]+ 0 (999|n\/a) :Test framework")
+m.expect(c1a, "complex WHO #channel output (WHOX) (2 of 3)", "354 $c1a 0 " + chan + " username 255.255.255.255 Clk-8608861 irc2\.test\.net $c2a H.* \* 0 [0-9]+ 0 (999|n\/a) :Test framework")
+m.expect(c1a, "complex WHO #channel output (WHOX) (3 of 3)", "354 $c1a 0 " + chan + " username 255.255.255.255 Clk-8608861 irc3\.test\.net $c3a H.* \* 0 [0-9]+ 0 (999|n\/a) :Test framework")
 m.clearlog()
 print
 
