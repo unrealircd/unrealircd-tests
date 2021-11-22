@@ -15,6 +15,13 @@ m.join_all(chan, creator = c1a)
 m.expect(c1a, "user in channel", "JOIN")
 print
 
+m.send(c2a, "MODE " + chan + " +slk 666 key")
+m.send(c2a, "MODE " + chan + " +b ban")
+m.expect(c2a, "Want 482 / not chanop error", " 482 .* " + chan)
+m.not_expect_all("Nobody should see this unauthorized MODE change", ":$c2a.* MODE " + chan)
+m.clearlog()
+print
+
 m.send(c1a, "MODE " + chan + " +slk 11 22")
 m.expect_all("Everyone should see MODE change #1", ":$c1a.* MODE " + chan + " \+slk 11 22")
 m.clearlog()
