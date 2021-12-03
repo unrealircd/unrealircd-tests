@@ -1,22 +1,74 @@
 #!/usr/bin/python3
 import irctestframework.irctest
 
+kick_allowed_matrix = [
+    { "q":"q" }, { "q":"a" }, { "q":"o" }, { "q":"h" }, { "q":"v" },
+                              { "a":"o" }, { "a":"h" }, { "a":"v" },
+                              { "o":"o" }, { "o":"h" }, { "o":"v" },
+                                                        { "h":"v" },
+    ]
+
+kick_not_allowed_matrix = [
+    # q may do anything, so skipped here...
+    { "a":"q" }, { "a":"a" },
+    { "o":"q" }, { "o":"a" },
+    { "h":"q" }, { "h":"a" }, { "h":"o" }, { "h":"h" },
+    { "v":"v" },
+    ]
+
 m = irctestframework.irctest.IrcTest()
 c1a = m.new('c1a')
+c1o = m.new('c1o')
 c2a = m.new('c2a')
 c3a = m.new('c3a')
 m.connect()
+
+m.send(c1o, "OPER netadmin test")
+m.clearlog()
+print
 
 chan = m.randchan()
 m.join_all(chan, creator = c1a)
 m.expect(c1a, "user in channel", "JOIN")
 print
 
-m.send(c1a, "KICK " + chan + " $c3a :go away plz")
-m.expect_all("Everyone should see user leaving", ":$c1a.*KICK.*" + chan + ".*$c3a :go away plz")
-m.clearlog()
-print
+for e in kick_allowed_matrix:
+    for kicker_level,victim_level in e.items():
+        m.send(c1o, "MODE " + chan + " -vhoaq $c1a $c1a $c1a $c1a $c1a")
+        m.send(c1o, "MODE " + chan + " +" + kicker_level + " $c1a")
+        m.send(c1o, "MODE " + chan + " -vhoaq $c3a $c3a $c3a $c3a $c3a")
+        m.send(c1o, "MODE " + chan + " +" + victim_level + " $c3a")
+        m.clearlog()
+        print
+        m.send(c1a, "KICK " + chan + " $c3a :go away plz")
+        m.expect_all("User should be kicked if a +" + kicker_level + " tries to kick a +" + victim_level, ":$c1a.*KICK.*" + chan + ".*$c3a :go away plz")
+        m.clearlog()
+        print
+        m.send_all("NAMES " + chan)
+        m.not_expect_all("Kicked user should no longer be in channel", "353.*" + chan + " :.*$c3a")
+        m.clearlog()
+        print
+        m.send(c3a, "JOIN " + chan)
+        m.expect(c1a, "user back in channel", ":c3a.*JOIN")
+        m.clearlog()
+        print
 
-m.send_all("NAMES " + chan)
-m.not_expect_all("Kicked user should no longer be in channel", "353.*" + chan + " :.*$c3a")
-print
+for e in kick_not_allowed_matrix:
+    for kicker_level,victim_level in e.items():
+        m.send(c1o, "MODE " + chan + " -vhoaq $c1a $c1a $c1a $c1a $c1a")
+        m.send(c1o, "MODE " + chan + " +" + kicker_level + " $c1a")
+        m.send(c1o, "MODE " + chan + " -vhoaq $c3a $c3a $c3a $c3a $c3a")
+        m.send(c1o, "MODE " + chan + " +" + victim_level + " $c3a")
+        m.clearlog()
+        print
+        m.send(c1a, "KICK " + chan + " $c3a :go away plz")
+        m.not_expect_all("User should NOT be kicked if a +" + kicker_level + " tries to kick a +" + victim_level, ":$c1a.*KICK.*" + chan + ".*$c3a :go away plz")
+        m.clearlog()
+        print
+        m.send_all("NAMES " + chan)
+        m.expect_all("User should still be in channel", "353.*" + chan + " :.*$c3a")
+        m.clearlog()
+        print
+        m.send(c3a, "JOIN " + chan)
+        m.clearlog()
+        print
