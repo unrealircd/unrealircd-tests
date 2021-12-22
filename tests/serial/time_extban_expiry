@@ -1,0 +1,46 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+import time
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, creator = c2a)
+
+# - extban
+m.send(c2a, "MODE " + chan + " +b ~time:1:~text:block:*bantimetest*")
+m.send(c2a, "MODE " + chan + " +b ~time:5:~text:block:*secondary*")
+m.expect_all("MODE +b set", ".*MODE.*\+b.*")
+m.clearlog()
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :aa bantimetest bb")
+m.not_expect(c3a, "text should not be seen with extban in place", ":c1a.*PRIVMSG.*")
+m.expect(c1a, "expect block message", ":.+ 404 .*")
+m.clearlog()
+print
+
+time.sleep(30)
+
+m.not_expect_all("extban should NOT be removed after 30 seconds already (too soon)", ".*MODE.*-b.*")
+m.clearlog()
+print
+
+# Give it another 60 seconds now. Since we already passed 30 seconds,
+# ideally this would hit after 30 seconds, but give it another 30 seconds extra just in case (90s total).
+m.expect_all("Ban automatically unset after 1 minute expiry time", ".*MODE.*-b ~time:1:~text:block:\*bantimetest\*.*", timeout=60)
+time.sleep(5)
+m.not_expect_all("Second longer extban should not expire yet", ".*MODE.*-b ~time:5.*")
+m.clearlog()
+print
+
+# Should no longer be blocking
+m.send(c1a, "PRIVMSG " + chan + " :aa bantimetest bb")
+m.expect(c3a, "text should be seen after extban removal", ":c1a.*PRIVMSG.*")
+m.not_expect(c1a, "don't expect block message", ":.+ 404 .*")
+m.clearlog()
+print
