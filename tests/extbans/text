@@ -1,0 +1,73 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, creator = c2a)
+m.send(c2a, "MODE " + chan + " +b ~text:censor:*fuck*")
+m.expect(c1a, "users in channel", "JOIN")
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :aa fucked bb")
+m.expect(c3a, "should censor badwords with text extban", ":c1a.*PRIVMSG.*aa <censored> bb")
+m.clearlog()
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :aa sunshine bb")
+m.expect(c3a, "should not censor non-badwords with text extban", ":c1a.*PRIVMSG.*aa sunshine bb")
+m.clearlog()
+print
+
+m.send(c2a, "MODE " + chan + " -b ~text:censor:*fuck*")
+m.clearlog()
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :aa fucked bb")
+m.expect(c3a, "should not censor badwords without text extban", ":c1a.*PRIVMSG.*aa fucked bb")
+m.clearlog()
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :aa sunshine bb")
+m.expect(c3a, "should not censor non-badwords without text extban", ":c1a.*PRIVMSG.*aa sunshine bb")
+m.clearlog()
+print
+
+m.send(c2a, "MODE " + chan + " +b ~text:block:*fuck*")
+m.clearlog()
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :aa fucked bb")
+m.not_expect(c3a, "text should not be seen with extban in place", ":c1a.*PRIVMSG.*")
+m.expect(c1a, "expect block message", ":.+ 404 .*")
+m.clearlog()
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :aa sunshine bb")
+m.expect(c3a, "should not censor non-badwords with text extban", ":c1a.*PRIVMSG.*aa sunshine bb")
+m.not_expect(c1a, "expect block message", ":.+ 404 .*")
+m.clearlog()
+print
+
+m.send(c2a, "MODE " + chan + " -b ~text:block:*fuck*")
+m.expect_all("unban", ".*MODE.*-b.*")
+m.send(c2a, "MODE " + chan + " +b ~time:1:~text:block:*fuck*")
+m.clearlog()
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :aa fucked bb")
+m.not_expect(c3a, "text should not be seen with extban in place", ":c1a.*PRIVMSG.*")
+m.expect(c1a, "expect block message", ":.+ 404 .*")
+m.clearlog()
+print
+
+m.send(c1a, "PRIVMSG " + chan + " :aa sunshine bb")
+m.expect(c3a, "should not censor non-badwords with text extban", ":c1a.*PRIVMSG.*aa sunshine bb")
+m.not_expect(c1a, "expect block message", ":.+ 404 .*")
+m.clearlog()
+print
+
