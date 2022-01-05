@@ -170,8 +170,8 @@ class IrcTest(asynchat.async_chat):
         current_time = getmsec()
         while(not self.multisynced()):
             asyncore.loop(count=1, timeout=0.1)
-            if getmsec() - current_time > 15000:
-                print('Multisync failed after 15 seconds')
+            if getmsec() - current_time > 25000:
+                print('Multisync failed after 25 seconds')
                 print('This can happen if not all servers are linked')
                 raise Exception('multisync failed - servers not linked?')
         self.verify_mtags_consistency()
