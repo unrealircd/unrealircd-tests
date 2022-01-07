@@ -21,7 +21,9 @@ print
 m.send(c1a, "DNS l")
 m.expect(c1a, "DNS Cache list (header)", ":.+ 304 $me :DNS CACHE List")
 # should be safe to check for this:
-m.expect(c1a, "DNS Statistics (hits)", ":.+ 304 $me : localhost \[127\.0\.0\.1\]")
+# nope, not anymore: https://github.com/c-ares/c-ares/pull/430
+# too bad. now we can't check this anymore.
+#m.expect(c1a, "DNS Statistics (hits)", ":.+ 304 $me : localhost \[127\.0\.0\.1\]")
 m.clearlog()
 print
 
