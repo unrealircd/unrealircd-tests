@@ -1,0 +1,87 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+mode_allowed_matrix = [
+    { "q":"q" }, { "q":"a" }, { "q":"o" }, { "q":"h" }, { "q":"v" },
+                              { "a":"o" }, { "a":"h" }, { "a":"v" },
+                              { "o":"o" }, { "o":"h" }, { "o":"v" },
+                                                        { "h":"v" },
+    ]
+
+mode_not_allowed_matrix = [
+    # q may do anything, so skipped here...
+    { "a":"q" }, { "a":"a" },
+    { "o":"q" }, { "o":"a" },
+    { "h":"q" }, { "h":"a" }, { "h":"o" }, { "h":"h" },
+    { "v":"v" },
+    ]
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1o = m.new('c1o')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+m.send(c1o, "OPER netadmin test")
+m.clearlog()
+print
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a)
+m.expect(c1a, "user in channel", "JOIN")
+print
+
+# Verify what should be allowed
+for e in mode_allowed_matrix:
+    for op_level,victim_level in e.items():
+        m.send(c1o, "MODE " + chan + " -vhoaq $c1a $c1a $c1a $c1a $c1a")
+        m.send(c1o, "MODE " + chan + " +" + op_level + " $c1a")
+        m.send(c1o, "MODE " + chan + " -vhoaq $c3a $c3a $c3a $c3a $c3a")
+        m.send(c1o, "MODE " + chan + " +" + victim_level + " $c3a")
+        m.clearlog()
+        print
+        m.send(c1a, "MODE " + chan + " -" + victim_level + " $c3a")
+        m.expect_all("User with +" + op_level + " should be able to -" + victim_level, ":$c1a.*MODE.*" + chan + " -" + victim_level + " $c3a")
+        m.clearlog()
+        print
+        m.send(c1a, "MODE " + chan + " +" + victim_level + " $c3a")
+        m.expect_all("User with +" + op_level + " should be able to +" + victim_level, ":$c1a.*MODE.*" + chan + " \\+" + victim_level + " $c3a")
+        m.clearlog()
+        print
+
+# Verify what should NOT be allowed
+for e in mode_not_allowed_matrix:
+    for op_level,victim_level in e.items():
+        m.send(c1o, "MODE " + chan + " -vhoaq $c1a $c1a $c1a $c1a $c1a")
+        m.send(c1o, "MODE " + chan + " +" + op_level + " $c1a")
+        m.send(c1o, "MODE " + chan + " -vhoaq $c3a $c3a $c3a $c3a $c3a")
+        m.send(c1o, "MODE " + chan + " +" + victim_level + " $c3a")
+        m.clearlog()
+        print
+        m.send(c1a, "MODE " + chan + " -" + victim_level + " $c3a")
+        m.not_expect_all("User with +" + op_level + " should NOT be able to -" + victim_level, ":$c1a.*MODE.*" + chan)
+        m.clearlog()
+        print
+        m.send(c1a, "MODE " + chan + " +" + victim_level + " $c3a")
+        m.not_expect_all("User with +" + op_level + " should NOT be able to +" + victim_level, ":$c1a.*MODE.*" + chan)
+        m.clearlog()
+        print
+
+# And finally verify -hoaq removal on self (special case) and
+# also verify that you cannot +hoaq yourself magically :D
+for op_level in { "h", "o", "a", "q" }:
+    m.send(c1o, "MODE " + chan + " -vhoaq $c1a $c1a $c1a $c1a $c1a")
+    m.send(c1o, "MODE " + chan + " +" + op_level + " $c1a")
+    m.clearlog()
+    print
+    # Should be able to remove themselves
+    m.send(c1a, "MODE " + chan + " -" + op_level + " $c1a")
+    m.expect_all("User with +" + op_level + " should be able to -" + op_level, ":$c1a.*MODE.*" + chan + " -" + op_level + " $c1a")
+    m.clearlog()
+    print
+    # Should now be opless with no MODE changes allowed
+    m.send(c1a, "MODE " + chan + " +" + op_level + " $c1a")
+    m.not_expect_all("User with no chanop rights should not be able to set themselves +" + victim_level, ":$c1a.*MODE.*" + chan)
+    m.clearlog()
+    print
