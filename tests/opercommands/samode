@@ -28,7 +28,7 @@ m.clearlog()
 print
 
 m.send_all("MODE " + chan)
-m.expect_all("Verify modes set, via MODE #chan, after #1", " 324 .* " + chan + " \+skl 22 11")
+m.expect_all("Verify modes set, via MODE #chan, after #1", " 324 .* " + chan + " \+kls 22 11")
 m.clearlog()
 print
 
@@ -38,7 +38,7 @@ m.clearlog()
 print
 
 m.send_all("MODE " + chan)
-m.expect_all("Verify modes set, via MODE #chan, after #2", " 324 .* " + chan + " \+sk 22")
+m.expect_all("Verify modes set, via MODE #chan, after #2", " 324 .* " + chan + " \+ks 22")
 m.clearlog()
 print
 
@@ -48,7 +48,7 @@ m.clearlog()
 print
 
 m.send_all("MODE " + chan)
-m.expect_all("Verify modes set, via MODE #chan, after #3", " 324 .* " + chan + " \+sf \[5t\]:10")
+m.expect_all("Verify modes set, via MODE #chan, after #3", " 324 .* " + chan + " \+fs \[5t\]:10")
 m.clearlog()
 print
 
@@ -59,7 +59,7 @@ m.clearlog()
 print
 
 m.send_all("MODE " + chan)
-m.expect_all("Verify modes set, via MODE #chan, after #4", " 324 .* " + chan + " \+sfk \[5t\]:10 one")
+m.expect_all("Verify modes set, via MODE #chan, after #4", " 324 .* " + chan + " \+fks \[5t\]:10 one")
 m.clearlog()
 print
 
@@ -70,7 +70,7 @@ m.clearlog()
 print
 
 m.send_all("MODE " + chan)
-m.expect_all("Verify modes set, via MODE #chan, after #5", " 324 .* " + chan + " \+sk one")
+m.expect_all("Verify modes set, via MODE #chan, after #5", " 324 .* " + chan + " \+ks one")
 m.clearlog()
 print
 
