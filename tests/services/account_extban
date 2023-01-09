@@ -16,15 +16,25 @@ m.expect(c1a, "users in channel", "JOIN")
 m.clearlog()
 print
 
-m.send(c3a, "SETNAME bannedrealname")
-m.send(c1a, "MODE " + chan + " +iI ~a:client3")
+m.send(c1a, "MODE " + chan + " +iI ~a:*")
 m.expect(c1a, "expect ban to be set", ":.+ MODE " + chan + " \+iI")
 m.clearlog()
 print
 
 m.send(c3a, "JOIN " + chan)
 m.expect(c3a, "Client should receive error on JOIN attempt", ":irc.+ 473 $c3a " + chan + " :Cannot join channel \(\+i\)")
-m.not_expect_all("Client should NOT be able to join with +b ~r", ":c3a.* JOIN ")
+m.not_expect_all("Client should NOT be able to join with +b ~a:* when not logged in", ":c3a.* JOIN ")
+m.clearlog()
+print
+
+m.send(c1a, "MODE " + chan + " -I+I ~a:* ~a:client3")
+m.expect(c1a, "expect ban to be set", ":.+ MODE " + chan + " -I\+I")
+m.clearlog()
+print
+
+m.send(c3a, "JOIN " + chan)
+m.expect(c3a, "Client should receive error on JOIN attempt", ":irc.+ 473 $c3a " + chan + " :Cannot join channel \(\+i\)")
+m.not_expect_all("Client should NOT be able to join with +b ~a:client3 when not logged in", ":c3a.* JOIN ")
 m.clearlog()
 print
 
@@ -35,6 +45,29 @@ print
 
 m.send(c3a, "JOIN " + chan)
 m.not_expect(c3a, "Client should NOT receive error on JOIN attempt", ":irc.+ 473")
-m.expect_all("Client should be able to join now", ":c3a.* JOIN ")
+m.expect_all("Client should be able to join now that it is logged in", ":c3a.* JOIN ")
+m.clearlog()
+print
+
+m.send(c3a, "PART " + chan)
+m.send(c1a, "MODE " + chan + " -I+I ~a:client3 ~a:0")
+m.expect(c1a, "expect ban to be set", ":.+ MODE " + chan + " -I\+I")
+print
+
+m.send(c3a, "JOIN " + chan)
+m.expect(c3a, "Client should receive error on JOIN attempt", ":irc.+ 473 $c3a " + chan + " :Cannot join channel \(\+i\)")
+m.not_expect_all("Client should NOT be able to join with +b ~a:0 when logged in", ":c3a.* JOIN ")
+m.clearlog()
+print
+
+m.send(c3a, "NS LOGOUT")
+m.send(c3a, "PART " + chan)
+m.expect(c3a, "NS LOGOUT succesful", "has been logged out")
+m.clearlog()
+print
+
+m.send(c3a, "JOIN " + chan)
+m.not_expect(c3a, "Client should NOT receive error on JOIN attempt", ":irc.+ 473")
+m.expect_all("Client should be able to join now when logged out and with +I ~a:0", ":c3a.* JOIN ")
 m.clearlog()
 print
