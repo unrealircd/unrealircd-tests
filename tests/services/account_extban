@@ -62,7 +62,7 @@ print
 
 m.send(c3a, "NS LOGOUT")
 m.send(c3a, "PART " + chan)
-m.expect(c3a, "NS LOGOUT succesful", "has been logged out")
+m.expect(c3a, "NS LOGOUT succesful", "has been logged out", timeout=10)
 m.clearlog()
 print
 
