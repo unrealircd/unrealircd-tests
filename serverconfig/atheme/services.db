@@ -5,6 +5,7 @@ MDEP protocol/base36uid
 MDEP protocol/unreal 
 MDEP backend/corestorage 
 MDEP backend/opensex 
+MDEP crypto/pbkdf2v2 
 MDEP crypto/posix 
 MDEP nickserv/main 
 MDEP nickserv/badmail 
@@ -170,17 +171,17 @@ MDEP misc/httpd
 MDEP transport/xmlrpc 
 LUID AAAAAAAAE 
 CF +AFHORVabefhioqrstv 
-MU AAAAAAAAC client1 $1$vptepp$f57SDT0KuxMoP20OKxjim1 noreply@unrealircd.org 1574064478 1574066779 +sC default 
+MU AAAAAAAAC client1 $z$6$64000$PPyfxwYylBTzysFv$mx5ptqPr6a6exqioUO8fEAkMo3Fn24+AcuKtRm3sJhnRq3dg/Tac6Nm2zAyjBb30SdptY8l3Io6aVQWgLU54hA== noreply@unrealircd.org 1574064478 1679483612 +sC default 
 MDU client1 private:host:actual username@localhost
 MDU client1 private:host:vhost username@Clk-8608861
-MN client1 client1 1574064478 1574065584 
-MU AAAAAAAAD client2 $1$vmreig$ZiQmxOnKtC9.cG7SWMXiu1 noreply@unrealircd.org 1574064489 1574064491 +sCb default 
-MDU client2 private:host:actual x@localhost
-MDU client2 private:host:vhost x@Clk-8608861
-MN client2 client2 1574064489 1574064491 
-MU AAAAAAAAE client3 $1$vbiluh$rNas8Q6ES5PIPSazNsZPf/ noreply@unrealircd.org 1574064494 1574064495 +sCb default 
-MDU client3 private:host:actual x@localhost
-MDU client3 private:host:vhost x@Clk-8608861
+MN client1 client1 1574064478 1679483612 
+MU AAAAAAAAD client2 $z$6$64000$w1E5a2ddt0bUfSSF$cgtCEUR/CTBKA/1grI9Xu9zR2/fsq2tDJJEbCPjBGNWRq8yR4KoAY88mW+bZ21b50jmO9lRZHJEhFBFAi3qr2w== noreply@unrealircd.org 1574064489 1679483612 +sC default 
+MDU client2 private:host:actual username@localhost
+MDU client2 private:host:vhost username@Clk-8608861
+MN client2 client2 1574064489 1679483612 
+MU AAAAAAAAE client3 $z$6$64000$bABwEn1QRtdq0LnP$YWhwxRR6sn7dXkg7HkOcU51KN3BbfZ/LtSjfGDX6OWM2tzHZA1U4ky625f5nncNkBThFI5ceI+ApdMTzQDiYzA== noreply@unrealircd.org 1574064494 1679483612 +sCb default 
+MDU client3 private:host:actual username@localhost
+MDU client3 private:host:vhost username@Clk-8608861
 MN client3 client3 1574064494 1574064495 
 MU AAAAAAAAB netadmin $1$muoatx$czAvH.o2toZo/cTLxh30n1 noreply@unrealircd.org 1574058981 1574061512 +sC default 
 MDU netadmin private:host:actual x@localhost
