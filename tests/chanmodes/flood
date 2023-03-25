@@ -10,6 +10,13 @@ c2a = m.new('c2a')
 c3a = m.new('c3a')
 m.connect()
 
+# This forces the clients as 'known-users'...
+# TODO: also test 'unknown-users' style bans
+m.send(c1a, "FAKEREPUTATION 25")
+m.send(c2a, "FAKEREPUTATION 25")
+m.send(c3a, "FAKEREPUTATION 25")
+
+
 chan = m.randchan()
 m.send(c1a, "JOIN " + chan)
 m.expect(c1a, "users in channel", "JOIN")
