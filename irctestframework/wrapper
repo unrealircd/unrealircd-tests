@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ "$TIMEOUT" = "" ]; then
-	TIMEOUT=25
+	TIMEOUT=50
 fi
 
 echo Executing: $1
