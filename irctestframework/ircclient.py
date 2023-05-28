@@ -263,15 +263,31 @@ class IrcClient(asynchat.async_chat):
             return 0
         return 1
 
-    def expect(self, failmsg, regex, nofail = 0):
+    def extract_message_tags(self, line):
+        if len(line) == 0 or line[0] != '@':
+            return [] # no message tags
+        (xmtags, input_data) = line[1:].split(" ", 1)
+        xmtags = xmtags.split(";")
+        mtags = {}
+        for e in xmtags:
+            (name, value) = e.split("=", 1)
+            mtags[name] = value
+        return mtags
+
+    def expect(self, failmsg, regex, nofail = 0, msgtag = False):
         for line in self.all_lines:
             if re.search(regex, line, re.DOTALL) != None:
-                #print 'Regex: ' + regex
-                #print 'Matched line: ' + line
-                print('\033[1m' + '\u2714' + ' Test passed: ' + failmsg + '\033[0m')
-                return 1
+                if not msgtag:
+                    print('\033[1m' + '\u2714' + ' Test passed: ' + failmsg + '\033[0m')
+                    return line
+                else:
+                    # Need to check presence of msgtag as well..
+                    tags = self.extract_message_tags(line)
+                    if msgtag in tags:
+                        return tags[msgtag]
+                    # fallthrough? bit confusing.
         if nofail == 1:
-            return 0
+            return False
         print('\033[1m' + '\u274e' + ' Test failed: ' + failmsg + '\033[0m')
         print('******************* EXPECT FAILED ************************')
         self.log('Client: ' + self.nick)

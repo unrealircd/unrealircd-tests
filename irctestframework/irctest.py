@@ -248,6 +248,20 @@ class IrcTest(asynchat.async_chat):
             failmsg = failmsg_orig + ' ('+str(cnt)+' of '+str(total)+')'
             self.not_expect(obj, failmsg, regex)
 
+    def expect_tag(self, client, failmsg, regex, msgtag, timeout = 0):
+        regex = self.replacestr(client, regex)
+        if timeout > 0:
+            t = timeout * 1000
+            current_time = getmsec()
+            while getmsec() - current_time < t:
+                line = client.expect(failmsg, regex, nofail=1, msgtag=msgtag)
+                if line:
+                    return line
+                asyncore.loop(count=1, timeout=0.1)
+        # Without a timeout it's simply one client.expect() call.
+        # ..and also the fallthrough from above (necessary!)
+        return client.expect(failmsg, regex, msgtag=msgtag)
+
     def replacestr(self, client, str):
         for name,obj in self.clients.items():
             str = str.replace("$" + name, obj.nick)
