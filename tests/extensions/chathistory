@@ -75,6 +75,7 @@ for criteria in ["msgid="+five_msgid, "timestamp="+five_time]:
     m.expect(c3a, "Message four (msg -1)", ":four")
     m.expect(c3a, "Message three (msg -2)", ":three")
     m.expect(c3a, "Message two (msg -3)", ":two")
+    m.not_expect(c3a, "Message one (msg -4)", ":one")
     m.clearlog()
     print
 
@@ -108,36 +109,44 @@ for criteria in ["msgid="+five_msgid, "timestamp="+five_time]:
 criteria_start = "msgid="+three_msgid
 criteria_stop = "msgid="+seven_msgid
 m.send(c3a, "CHATHISTORY BETWEEN " + chan + " " + criteria_start + " " + criteria_stop + " 5")
+m.not_expect(c3a, "Message three (start)", ":three")
 m.expect(c3a, "Message four (msg +1)", ":four")
 m.expect(c3a, "Message five (msg +2)", ":five")
 m.expect(c3a, "Message six (msg +3)", ":six")
+m.not_expect(c3a, "Message seven (stop)", ":seven")
 m.clearlog()
 print
 # -> we ask 3-7 so we should get 4/5/6
 criteria_start = "timestamp="+three_time
 criteria_stop = "timestamp="+seven_time
 m.send(c3a, "CHATHISTORY BETWEEN " + chan + " " + criteria_start + " " + criteria_stop + " 5")
+m.not_expect(c3a, "Message three (start)", ":three")
 m.expect(c3a, "Message four (msg +1)", ":four")
 m.expect(c3a, "Message five (msg +2)", ":five")
 m.expect(c3a, "Message six (msg +3)", ":six")
+m.not_expect(c3a, "Message seven (stop)", ":seven")
 m.clearlog()
 print
 # -> we ask 7-3 so we should get 4/5/6
 criteria_start = "msgid="+seven_msgid
 criteria_stop = "msgid="+three_msgid
 m.send(c3a, "CHATHISTORY BETWEEN " + chan + " " + criteria_start + " " + criteria_stop + " 5")
+m.not_expect(c3a, "Message three (stop)", ":three")
 m.expect(c3a, "Message four (msg +1)", ":four")
 m.expect(c3a, "Message five (msg +2)", ":five")
 m.expect(c3a, "Message six (msg +3)", ":six")
+m.not_expect(c3a, "Message seven (start)", ":seven")
 m.clearlog()
 print
 # -> we ask 7-3 so we should get 4/5/6
 criteria_start = "timestamp="+seven_time
 criteria_stop = "timestamp="+three_time
 m.send(c3a, "CHATHISTORY BETWEEN " + chan + " " + criteria_start + " " + criteria_stop + " 5")
+m.not_expect(c3a, "Message three (stop)", ":three")
 m.expect(c3a, "Message four (msg +1)", ":four")
 m.expect(c3a, "Message five (msg +2)", ":five")
 m.expect(c3a, "Message six (msg +3)", ":six")
+m.not_expect(c3a, "Message seven (start)", ":seven")
 m.clearlog()
 print
 
@@ -150,6 +159,7 @@ for criteria in ["msgid="+ten_msgid, "timestamp="+ten_time]:
     m.expect(c3a, "Message nine (msg -1)", ":nine")
     m.expect(c3a, "Message eight (msg -2)", ":eight")
     m.expect(c3a, "Message seven (msg -3)", ":seven")
+    m.not_expect(c3a, "Message six (msg -4)", ":six")
     m.clearlog()
     print
 
@@ -316,5 +326,74 @@ m.expect(c3a, "Message two (msg +2)", ":two")
 m.expect(c3a, "Message three (msg +3)", ":three")
 m.expect(c3a, "Message four (msg +4)", ":four")
 m.not_expect(c3a, "Message five (msg +5)", ":five")
+m.clearlog()
+print
+
+####### PAST-THE-BOTTOM MESSAGE REFERENCE (a message that is in the future) #######
+
+bottom_time='2038-01-01T00:00:00.000Z'
+
+# For msgid=xxx these are simple, should all be empty sets:
+for subcmd in ["BEFORE", "AFTER", "AROUND"]:
+    criteria = "msgid="+"nonexistant"
+    m.send(c3a, "CHATHISTORY " + subcmd + " " + chan + " " + criteria + " 3")
+    m.not_expect(c3a, "Should not return any messages", "PRIVMSG")
+    m.clearlog()
+    print
+
+# "Request up to limit number of messages before and excluding the given timestamp or msgid."
+# -> this should return the latest X messages
+for criteria in ["timestamp="+bottom_time]:
+    m.send(c3a, "CHATHISTORY BEFORE " + chan + " " + criteria + " 3")
+    m.expect(c3a, "Message ten (msg)", ":ten")
+    m.expect(c3a, "Message nine (msg -1)", ":nine")
+    m.expect(c3a, "Message eight (msg -2)", ":eight")
+    m.not_expect(c3a, "Message seven (msg -3)", ":seven")
+    m.clearlog()
+    print
+
+# "Request up to limit number of messages after and excluding the given timestamp or msgid."
+# -> this is requesting any lines after [some time before our buffer]
+#    so should return one/two/three
+for criteria in ["timestamp="+bottom_time]:
+    m.send(c3a, "CHATHISTORY AFTER " + chan + " " + criteria + " 3")
+    m.not_expect(c3a, "Should not return any messages", "PRIVMSG")
+    m.clearlog()
+    print
+
+# "Request a number of messages before and after the timestamp or msgid with the total
+#  number of returned messages not exceeding limit."
+for criteria in ["timestamp="+bottom_time]:
+    m.send(c3a, "CHATHISTORY AROUND " + chan + " " + criteria + " 5")
+    m.expect(c3a, "Message ten (msg)", ":ten")
+    m.expect(c3a, "Message nine (msg -1)", ":nine")
+    m.expect(c3a, "Message eight (msg -2)", ":eight")
+    m.expect(c3a, "Message seven (msg -3)", ":seven")
+    m.expect(c3a, "Message six (msg -4)", ":six")
+    m.clearlog()
+    print
+
+# "Request up to limit number of messages between the given timestamp or
+#   msgid values. With respect to the limit, the returned messages MUST be
+#   counted starting from and excluding the first message selector, while
+#   finishing on and excluding the second."
+# -> we ask 7-future so we should get 8/9/10
+criteria_start = "timestamp="+seven_time
+criteria_stop = "timestamp="+bottom_time
+m.send(c3a, "CHATHISTORY BETWEEN " + chan + " " + criteria_start + " " + criteria_stop + " 5")
+m.not_expect(c3a, "Message seven", ":seven")
+m.expect(c3a, "Message eight (msg +1)", ":eight")
+m.expect(c3a, "Message nine (msg +2)", ":nine")
+m.expect(c3a, "Message ten", ":ten")
+m.clearlog()
+print
+# -> we ask future-7 so we should get 8/9/10
+criteria_start = "timestamp="+seven_time
+criteria_stop = "timestamp="+bottom_time
+m.send(c3a, "CHATHISTORY BETWEEN " + chan + " " + criteria_stop + " " + criteria_start + " 5")
+m.not_expect(c3a, "Message seven", ":seven")
+m.expect(c3a, "Message eight (msg +1)", ":eight")
+m.expect(c3a, "Message nine (msg +2)", ":nine")
+m.expect(c3a, "Message ten", ":ten")
 m.clearlog()
 print
