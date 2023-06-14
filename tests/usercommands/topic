@@ -19,7 +19,7 @@ print
 
 m.send_all("TOPIC " + chan)
 m.expect_all("After querying for topic, see the topic text via numeric 332", " 332 .* " + chan + " :this is a nice new topic")
-m.expect_all("After querying for topic, see the topic setter and time via numeric 333", " 333 .* " + chan + " $c1a [0-9]{10}")
+m.expect_all("After querying for topic, see the topic setter and time via numeric 333", " 333 .* " + chan + " $c1a!.*@.* [0-9]{10}")
 m.clearlog()
 print
 
@@ -30,6 +30,6 @@ print
 
 m.send_all("TOPIC " + chan)
 m.expect_all("After querying for topic, see the (empty) topic text via numeric 332", " 332 .* " + chan + " :")
-m.expect_all("After querying for topic, see the topic setter and time via numeric 333", " 333 .* " + chan + " $c1a [0-9]{10}")
+m.expect_all("After querying for topic, see the topic setter and time via numeric 333", " 333 .* " + chan + " $c1a!.*@.* [0-9]{10}")
 m.clearlog()
 print
