@@ -126,7 +126,7 @@ print
 
 m.send_all("STATS spamfilter")
 m.expect_all("Spamfilter shown in /STATS spamfilter",
-             "229.* F simple p gzline 0 [0-9]* 0 this_is_a_test c1a[^ ]+ :Please gzline me")
+             "229.* F simple p gzline 0 [0-9]* 0 this_is_a_test c1a[^ ]+ [0-9]+ [0-9]+ :Please gzline me")
 m.clearlog()
 print
 
