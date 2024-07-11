@@ -75,12 +75,12 @@ m.clearlog()
 print
 
 m.send(c1a, "MODE #nonexistant")
-m.expect(c1a, "MODE query request for non-existant channel should return 401 numeric", "401.*No such nick\/channel")
+m.expect(c1a, "MODE query request for non-existant channel should return 403 numeric", "403.*No such channel")
 m.clearlog()
 print
 
 m.send(c1a, "MODE #nonexistant +k key")
-m.expect(c1a, "MODE set request for non-existant channel should return 401 numeric", "401.*No such nick\/channel")
+m.expect(c1a, "MODE set request for non-existant channel should return 403 numeric", "403.*No such channel")
 m.clearlog()
 print
 
