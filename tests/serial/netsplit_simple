@@ -21,10 +21,17 @@ m.send(c3o, "OPER netadmin test")
 m.clearlog()
 
 chan = m.randchan()
-m.join_all(chan)
+m.send(c1o, "JOIN " + chan)
+m.send(c1o, "MODE " + chan + " +F off")
+m.join_all(chan, skip = c1o)
 m.expect_all("see join", ":$me.*JOIN.*")
 m.clearlog()
 print
+
+# Put channel -F so we can check that join-flood protection
+# isn't triggered by netmerge later
+m.send(c1o, "MODE " + chan + " -F")
+m.clearlog()
 
 m.send_all("NAMES " + chan)
 for src in clones:
