@@ -208,6 +208,7 @@ class IrcClient(asynchat.async_chat):
             if self.ready < -9:
                 self.ready = -9
                 self.out("JOIN " + self.syncchan)
+                self.out("MODE " + self.syncchan + " +F off")
 
         if '366' in line and self.syncchan in line:
             # We joined the syncchan and are now fully ready.
