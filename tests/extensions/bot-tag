@@ -22,16 +22,16 @@ m.clearlog()
 print
 
 m.send(c2b, "JOIN " + chan)
-m.expect_all("JOIN with bot message tag", ".*draft\\/bot")
+m.expect_all("JOIN with bot message tag", ".*bot")
 m.clearlog()
 print
 
 m.send(c2b, "PRIVMSG " + chan + " :hello everyone!")
-m.expect_all("PRIVMSG with bot message tag", ".*draft\\/bot.*hello everyone", skip = c2b)
+m.expect_all("PRIVMSG with bot message tag", ".*bot.*hello everyone", skip = c2b)
 print
 
 m.send(c2b, "PART " + chan)
-m.expect_all("PART with bot message tag", ".*draft\\/bot")
+m.expect_all("PART with bot message tag", ".*bot")
 m.clearlog()
 print
 
