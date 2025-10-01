@@ -22,7 +22,11 @@ m.expect(c3a, "CAP ACK for multi-prefix", "CAP.*ACK.*multi-prefix")
 print
 
 m.send(c3a, "JOIN " + chan)
-m.expect(c3a, "with CAP multi-prefix it should show all prefixes", "353.*@%\+c1a")
-m.expect(c2a, "without CAP multi-prefix it should only show the highest prefix", "353.*@c1a")
+m.expect(c3a, "with CAP multi-prefix NAMES should show all prefixes", "353.*@%\+c1a")
+m.expect(c2a, "without CAP multi-prefix NAMES should only show the highest prefix", "353.*@c1a")
 print
 
+m.send_all("WHO " + chan)
+m.expect(c3a, "with CAP multi-prefix WHO should show all prefixes", "352.*c1a.* H@%\+ :")
+m.expect(c2a, "without CAP multi-prefix WHO should only show the highest prefix", "352.*c1a.* H@ :")
+print
