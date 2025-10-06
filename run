@@ -103,8 +103,13 @@ if [ "$1" = "-single" ]; then
 fi
 
 if [ "$1" = "-fast" ]; then
-	FAST=1
+	FAST=2
 	TIMEOUT=30
+	shift
+fi
+
+if [ "$1" = "-slightlyfast" ]; then
+	FAST=1
 	shift
 fi
 
@@ -165,6 +170,10 @@ if [ "$1" = "" ]; then
 		# Now do the tests that can only be run in series...
 		echo "Running remaining tests in series..."
 		find tests/serial/ -type f|grep -vF '~'|grep -v README|xargs -L1 -P1 irctestframework/wrapper
+	elif [ "$FAST" = 1 ]; then
+		# The same, but skip the time_extban_expiry test to save a full minute
+		echo "Running remaining tests in series..."
+		find tests/serial/ -type f|grep -vF '~'|grep -v README|grep -vF time_extban_expiry|xargs -L1 -P1 irctestframework/wrapper
 	fi
 else
 	# Run specific tests:
