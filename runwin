@@ -114,16 +114,16 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	fi
 
 	./unrealircd -f irc2.conf&
-	sleep 15
+	sleep 25
 	./unrealircd -f irc1.conf&
-	sleep 15
+	sleep 25
 	./unrealircd -f irc3.conf&
-	sleep 20
+	sleep 40
 	cd -
 
 	COUNTPROCS="`tasklist.exe|grep -i unrealircd|wc -l`"
 	if [ "$COUNTPROCS" -lt 3 ]; then
-		fatal "UnrealIRCd failed to boot"
+		fail "UnrealIRCd failed to boot"
 	fi
 
 	echo "Linking servers..."
