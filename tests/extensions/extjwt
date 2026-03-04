@@ -1,0 +1,327 @@
+#!/usr/bin/python3
+# Tests for the EXTJWT module.
+#
+# Verifies all supported signing methods:
+#   NONE, HS256, HS384, HS512, RS256, RS384, RS512, ES256, ES384, ES512
+#
+# For each method:
+#   - the server sends an EXTJWT response
+#   - the JWT has the correct structure (2 parts for NONE, 3 for signed)
+#   - the header contains the correct "alg" and "typ" fields
+#   - the payload contains correct "iss", "sub", "exp", "umodes", "account"
+#   - the signature is cryptographically valid
+#
+# Also tests the channel target (payload has "channel", "joined", "cmodes")
+# and the unknown-service error path.
+
+import irctestframework.irctest
+import base64, hashlib, hmac as hmac_mod, json, os, re, subprocess, tempfile, time
+
+# ---------------------------------------------------------------------------
+# Paths to private keys (copied to ~/unrealircd/conf/ by the test runner)
+# ---------------------------------------------------------------------------
+
+CONF_DIR = os.path.expanduser('~/unrealircd/conf')
+RSA_KEY   = os.path.join(CONF_DIR, 'extjwt_rsa.pem')
+EC256_KEY = os.path.join(CONF_DIR, 'extjwt_ec256.pem')
+EC384_KEY = os.path.join(CONF_DIR, 'extjwt_ec384.pem')
+EC512_KEY = os.path.join(CONF_DIR, 'extjwt_ec512.pem')
+
+# Secrets must match common.conf
+HS_SECRETS = {
+    'hs256': 'extjwt-hs256-test-secret',
+    'hs384': 'extjwt-hs384-test-secret',
+    'hs512': 'extjwt-hs512-test-secret',
+}
+
+# ---------------------------------------------------------------------------
+# JWT utility helpers
+# ---------------------------------------------------------------------------
+
+def b64url_decode(s):
+    """Decode a base64url string (no padding required)."""
+    s = s.replace('-', '+').replace('_', '/')
+    pad = (4 - len(s) % 4) % 4
+    return base64.b64decode(s + '=' * pad)
+
+
+def collect_jwt(client, target):
+    """Reassemble a (potentially multi-chunk) EXTJWT token from client.all_lines.
+
+    Non-final chunks:  ":server EXTJWT <target> * * <chunk>"
+    Final/only chunk:  ":server EXTJWT <target> * <chunk>"   (no leading "* ")
+    """
+    pat_target = re.escape(target)
+    token = ''
+    for line in client.all_lines:
+        # strip optional message-tags prefix
+        if line.startswith('@'):
+            line = line.split(' ', 1)[1]
+        m = re.match(r':\S+ EXTJWT ' + pat_target + r' \* \* (\S+)', line)
+        if m:
+            token += m.group(1)
+            continue
+        m = re.match(r':\S+ EXTJWT ' + pat_target + r' \* (?!\*)(\S+)', line)
+        if m:
+            token += m.group(1)
+    return token
+
+
+def parse_jwt(token):
+    """Return (header_dict, payload_dict, sig_bytes_or_None).
+
+    NONE tokens have only 2 parts (no signature, no trailing dot).
+    All signed tokens have 3 parts.
+    """
+    parts = token.split('.')
+    if len(parts) == 2:
+        header  = json.loads(b64url_decode(parts[0]))
+        payload = json.loads(b64url_decode(parts[1]))
+        return header, payload, None
+    if len(parts) == 3:
+        header  = json.loads(b64url_decode(parts[0]))
+        payload = json.loads(b64url_decode(parts[1]))
+        sig     = b64url_decode(parts[2])
+        return header, payload, sig
+    raise ValueError(f'Invalid JWT: has {len(parts)} parts')
+
+
+# ---------------------------------------------------------------------------
+# Signature verification helpers
+# ---------------------------------------------------------------------------
+
+def verify_hmac(token, secret, alg):
+    """Verify an HS256/384/512 JWT signature using the standard hmac module."""
+    parts = token.split('.')
+    signing_input = (parts[0] + '.' + parts[1]).encode()
+    sig = b64url_decode(parts[2])
+    digest_map = {'HS256': hashlib.sha256, 'HS384': hashlib.sha384, 'HS512': hashlib.sha512}
+    expected = hmac_mod.new(secret.encode(), signing_input, digest_map[alg]).digest()
+    return hmac_mod.compare_digest(expected, sig)
+
+
+def p1363_to_der(raw_sig):
+    """Convert a JWT ES* signature (IEEE P1363, r||s fixed-width) to DER SEQUENCE.
+
+    OpenSSL's dgst -verify expects DER-encoded ECDSA signatures.
+    Uses proper DER long-form length encoding for body lengths >= 128 bytes,
+    which is required for P-521 (ES512) where coordinates are 66 bytes each.
+    """
+    half = len(raw_sig) // 2
+    r = raw_sig[:half].lstrip(b'\x00') or b'\x00'
+    s = raw_sig[half:].lstrip(b'\x00') or b'\x00'
+    if r[0] & 0x80: r = b'\x00' + r
+    if s[0] & 0x80: s = b'\x00' + s
+    def der_len(n):
+        if n < 128:    return bytes([n])
+        elif n < 256:  return bytes([0x81, n])
+        else:          return bytes([0x82, n >> 8, n & 0xFF])
+    def der_int(n): return bytes([0x02]) + der_len(len(n)) + n
+    body = der_int(r) + der_int(s)
+    return bytes([0x30]) + der_len(len(body)) + body
+
+
+def verify_asymmetric(token, privkey_path, alg):
+    """Verify an RS*/ES* JWT signature using the openssl CLI.
+
+    For ES* the IEEE P1363 signature is converted to DER before passing to
+    openssl dgst -verify, which expects DER-encoded ECDSA signatures.
+    """
+    parts = token.split('.')
+    signing_input = (parts[0] + '.' + parts[1]).encode()
+    sig_raw = b64url_decode(parts[2])
+
+    is_ec = alg.startswith('ES')
+    sig_bytes = p1363_to_der(sig_raw) if is_ec else sig_raw
+
+    hash_map = {
+        'RS256': 'sha256', 'RS384': 'sha384', 'RS512': 'sha512',
+        'ES256': 'sha256', 'ES384': 'sha384', 'ES512': 'sha512',
+    }
+    hash_algo = hash_map[alg]
+
+    # Extract public key (openssl pkey works for both RSA and EC in OpenSSL 3)
+    proc = subprocess.run(['openssl', 'pkey', '-in', privkey_path, '-pubout'],
+                          capture_output=True)
+    pubkey_pem = proc.stdout
+
+    pubkey_f = tempfile.NamedTemporaryFile(delete=False, suffix='.pem')
+    sig_f    = tempfile.NamedTemporaryFile(delete=False, suffix='.bin')
+    try:
+        pubkey_f.write(pubkey_pem); pubkey_f.close()
+        sig_f.write(sig_bytes);     sig_f.close()
+        result = subprocess.run(
+            ['openssl', 'dgst', f'-{hash_algo}',
+             '-verify', pubkey_f.name, '-signature', sig_f.name],
+            input=signing_input, capture_output=True
+        )
+        return b'Verified OK' in result.stdout
+    finally:
+        os.unlink(pubkey_f.name)
+        os.unlink(sig_f.name)
+
+
+# ---------------------------------------------------------------------------
+# Generic per-token checker
+# ---------------------------------------------------------------------------
+
+def check(condition, description):
+    if condition:
+        print('\033[1m\u2714 Test passed: ' + description + '\033[0m')
+    else:
+        print('\033[1m\u274e Test failed: ' + description + '\033[0m')
+        raise Exception('Test failed: ' + description)
+
+
+def verify_token(client, target, service_label, expected_alg, server_name,
+                 hmac_secret=None, privkey_path=None):
+    """Collect, parse, and fully verify a JWT for one method.
+
+    service_label: human-readable name shown in test output (e.g. "NONE", "HS256").
+    expected_alg:  the 'alg' value expected in the JWT header.
+    hmac_secret:   shared secret for HS* methods (None otherwise).
+    privkey_path:  path to private key PEM for RS*/ES* methods (None otherwise).
+    """
+    token = collect_jwt(client, target)
+    check(bool(token), f'{service_label}: server sent an EXTJWT response')
+
+    parts = token.split('.')
+    if expected_alg == 'none':
+        check(len(parts) == 2, f'{service_label}: NONE token has 2 parts (no signature)')
+    else:
+        check(len(parts) == 3, f'{service_label}: signed token has 3 parts')
+
+    header, payload, sig_bytes = parse_jwt(token)
+
+    # Header checks
+    check(header.get('alg') == expected_alg,
+          f'{service_label}: header alg is "{expected_alg}"')
+    check(header.get('typ') == 'JWT',
+          f'{service_label}: header typ is "JWT"')
+
+    # Payload checks
+    check(payload.get('iss') == server_name,
+          f'{service_label}: payload iss is server name')
+    check(payload.get('sub') == client.nick,
+          f'{service_label}: payload sub is client nick')
+    check(isinstance(payload.get('exp'), (int, float)) and payload['exp'] > time.time(),
+          f'{service_label}: payload exp is a future timestamp')
+    check(isinstance(payload.get('umodes'), list),
+          f'{service_label}: payload umodes is an array')
+    check('account' in payload,
+          f'{service_label}: payload contains account field')
+
+    # Signature verification
+    if expected_alg == 'none':
+        pass  # no signature to verify
+    elif hmac_secret is not None:
+        check(verify_hmac(token, hmac_secret, expected_alg),
+              f'{service_label}: HMAC signature is valid')
+    elif privkey_path is not None:
+        check(verify_asymmetric(token, privkey_path, expected_alg),
+              f'{service_label}: asymmetric signature is valid')
+
+
+# ---------------------------------------------------------------------------
+# Test setup
+# ---------------------------------------------------------------------------
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1b = m.new('c1b')
+m.connect()
+
+SERVER = 'irc1.test.net'
+
+# ---------------------------------------------------------------------------
+# NONE (default — no service name)
+# ---------------------------------------------------------------------------
+
+m.send(c1a, 'EXTJWT *')
+verify_token(c1a, '*', 'NONE', 'none', SERVER)
+m.clearlog()
+
+# ---------------------------------------------------------------------------
+# HS256 / HS384 / HS512
+# ---------------------------------------------------------------------------
+
+for svc, alg in [('hs256', 'HS256'), ('hs384', 'HS384'), ('hs512', 'HS512')]:
+    m.send(c1a, f'EXTJWT * {svc}')
+    verify_token(c1a, '*', alg, alg, SERVER, hmac_secret=HS_SECRETS[svc])
+    m.clearlog()
+
+# ---------------------------------------------------------------------------
+# RS256 / RS384 / RS512
+# ---------------------------------------------------------------------------
+
+for svc, alg in [('rs256', 'RS256'), ('rs384', 'RS384'), ('rs512', 'RS512')]:
+    m.send(c1a, f'EXTJWT * {svc}')
+    verify_token(c1a, '*', alg, alg, SERVER, privkey_path=RSA_KEY)
+    m.clearlog()
+
+# ---------------------------------------------------------------------------
+# ES256 / ES384 / ES512
+# ---------------------------------------------------------------------------
+
+for svc, alg, key in [('es256', 'ES256', EC256_KEY),
+                       ('es384', 'ES384', EC384_KEY),
+                       ('es512', 'ES512', EC512_KEY)]:
+    m.send(c1a, f'EXTJWT * {svc}')
+    verify_token(c1a, '*', alg, alg, SERVER, privkey_path=key)
+    m.clearlog()
+
+# ---------------------------------------------------------------------------
+# Channel target: payload must include channel fields
+# ---------------------------------------------------------------------------
+
+chan = m.randchan()
+m.send(c1a, f'JOIN {chan}')
+m.expect(c1a, 'joined test channel for EXTJWT', 'JOIN')
+m.clearlog()
+
+m.send(c1a, f'EXTJWT {chan} hs256')
+token = collect_jwt(c1a, chan)
+check(bool(token), 'channel EXTJWT: server sent a response')
+_, payload, _ = parse_jwt(token)
+check(payload.get('channel') == chan,
+      f'channel EXTJWT: payload channel matches {chan}')
+check(payload.get('joined') == 1,
+      'channel EXTJWT: payload joined is 1 (client is a member)')
+check(isinstance(payload.get('cmodes'), list),
+      'channel EXTJWT: payload cmodes is an array')
+m.clearlog()
+
+# ---------------------------------------------------------------------------
+# Non-member channel target: joined must be 0
+# ---------------------------------------------------------------------------
+
+otherchan = m.randchan()
+# c1b joins otherchan first to keep it alive after c1a parts.
+# (extjwt returns ERR_NOSUCHNICK for non-existent channels)
+m.send(c1b, f'JOIN {otherchan}')
+m.expect(c1b, 'c1b joined otherchan', 'JOIN')
+m.clearlog()
+m.send(c1a, f'JOIN {otherchan}')
+m.expect(c1a, 'c1a joined otherchan', 'JOIN')
+m.clearlog()
+m.send(c1a, f'PART {otherchan}')
+m.expect(c1a, 'c1a parted otherchan', 'PART')
+m.clearlog()
+
+# otherchan still exists (c1b is in it) but c1a is not
+m.send(c1a, f'EXTJWT {otherchan} hs256')
+token = collect_jwt(c1a, otherchan)
+check(bool(token), 'non-member channel EXTJWT: server sent a response')
+_, payload, _ = parse_jwt(token)
+check(payload.get('joined') == 0,
+      'non-member channel EXTJWT: payload joined is 0')
+m.clearlog()
+
+# ---------------------------------------------------------------------------
+# Unknown service: server must send FAIL EXTJWT NO_SUCH_SERVICE
+# ---------------------------------------------------------------------------
+
+m.send(c1a, 'EXTJWT * nosuchservice')
+m.expect(c1a, 'unknown service returns FAIL NO_SUCH_SERVICE',
+         'FAIL EXTJWT NO_SUCH_SERVICE')
+m.clearlog()
