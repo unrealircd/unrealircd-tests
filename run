@@ -161,9 +161,9 @@ if [ "$1" = "" ]; then
 	# Run (almost) all tests:
 	echo "Running tests in parallel..."
 	if [ "$SERVICES" = "none" ]; then
-		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF services/|grep -vF /db/|grep -vF /serial/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF services/|grep -vF /db/|grep -vF /serial/|grep -v README|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
 	else
-		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF /db/|grep -vF /serial/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF /db/|grep -vF /serial/|grep -v README|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
 	fi
 	wait
 	if [ "$FAST" = 0 ]; then
