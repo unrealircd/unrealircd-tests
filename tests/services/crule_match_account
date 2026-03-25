@@ -1,0 +1,33 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Before identifying — match_account('client1') should NOT match
+m.send(c1a, "VHOST crule_match_account test")
+m.expect(c1a, "match_account('client1') should NOT match before IDENTIFY", FAIL)
+m.clearlog()
+print
+
+# Identify as client1
+m.send(c1a, "IDENTIFY client1 test")
+m.expect(c1a, "Identified to account", ":irc.* 900 ", timeout=10)
+m.clearlog()
+print
+
+# After identifying as client1 — match_account('client1') should match
+m.send(c1a, "VHOST crule_match_account test")
+m.expect(c1a, "match_account('client1') should match after IDENTIFY as client1", PASS)
+m.clearlog()
+print
+
+# Negative: match_account('nonexistent') should NOT match
+m.send(c1a, "VHOST crule_match_account_neg test")
+m.expect(c1a, "match_account('nonexistent') should NOT match", FAIL)
+m.clearlog()
+print

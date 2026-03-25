@@ -1,0 +1,39 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Before identifying — is_identified() should NOT match
+m.send(c1a, "VHOST crule_is_identified test")
+m.expect(c1a, "is_identified() should NOT match before IDENTIFY", FAIL)
+m.clearlog()
+print
+
+# Negative rule (!is_identified) should match before identifying
+m.send(c1a, "VHOST crule_is_identified_neg test")
+m.expect(c1a, "!is_identified() should match before IDENTIFY", PASS)
+m.clearlog()
+print
+
+# Identify to services
+m.send(c1a, "IDENTIFY client1 test")
+m.expect(c1a, "Identified to account", ":irc.* 900 ", timeout=10)
+m.clearlog()
+print
+
+# After identifying — is_identified() should match
+m.send(c1a, "VHOST crule_is_identified test")
+m.expect(c1a, "is_identified() should match after IDENTIFY", PASS)
+m.clearlog()
+print
+
+# Negative rule (!is_identified) should NOT match after identifying
+m.send(c1a, "VHOST crule_is_identified_neg test")
+m.expect(c1a, "!is_identified() should NOT match after IDENTIFY", FAIL)
+m.clearlog()
+print
