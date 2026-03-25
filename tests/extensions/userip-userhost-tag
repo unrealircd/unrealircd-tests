@@ -1,0 +1,45 @@
+#!/usr/bin/python3
+#
+# This tests the unrealircd.org/userip and unrealircd.org/userhost message tags.
+# These tags must only be visible to opers, not regular users.
+#
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a)
+m.clearlog()
+print
+
+# --- Regular user should NOT see userip/userhost tags ---
+m.send(c1a, "PRIVMSG " + chan + " :hello from c1a")
+m.not_expect(c2a, "Non-oper should NOT see userip tag", r"unrealircd.org/userip.*hello from c1a")
+m.not_expect(c2a, "Non-oper should NOT see userhost tag", r"unrealircd.org/userhost.*hello from c1a")
+m.clearlog()
+print
+
+# --- Make c2a an oper ---
+m.send(c2a, "OPER netadmin test")
+m.clearlog()
+print
+
+# --- Oper SHOULD see userip/userhost tags ---
+m.send(c1a, "PRIVMSG " + chan + " :hello again from c1a")
+regex = r"unrealircd.org/userip=\S+@\S+.*hello again from c1a"
+m.expect(c2a, "Oper should see userip tag on PRIVMSG", regex)
+regex = r"unrealircd.org/userhost=\S+@\S+.*hello again from c1a"
+m.expect(c2a, "Oper should see userhost tag on PRIVMSG", regex)
+m.clearlog()
+print
+
+# --- Non-oper on another server also should NOT see tags ---
+m.send(c1a, "PRIVMSG " + chan + " :hello yet again")
+m.not_expect(c3a, "Non-oper on remote server should NOT see userip tag", r"unrealircd.org/userip.*hello yet again")
+m.not_expect(c3a, "Non-oper on remote server should NOT see userhost tag", r"unrealircd.org/userhost.*hello yet again")
+m.clearlog()
+print

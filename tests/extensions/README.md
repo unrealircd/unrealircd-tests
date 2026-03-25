@@ -16,10 +16,11 @@ Tests for IRCv3 capabilities, message tags, and related extensions.
 | `labeled-response` | `labeled-response` capability + `label` message tag |
 | `multi-prefix` | `multi-prefix` capability |
 | `userhost-in-names` | `userhost-in-names` capability |
+| `userip-userhost-tag` | `unrealircd.org/userip` + `unrealircd.org/userhost` message tags (oper-only privacy filter) |
 
 ## Message tag coverage
 
-UnrealIRCd registers 16 message tags. Only 2 have dedicated tests:
+UnrealIRCd registers 16 message tags. 4 have dedicated tests:
 
 | Tag | Tested | Notes |
 |---|---|---|
@@ -37,8 +38,8 @@ UnrealIRCd registers 16 message tags. Only 2 have dedicated tests:
 | `unrealircd.org/issued-by` | no | Shows who issued an oper action |
 | `unrealircd.org/json-log` | no | JSON structured log data |
 | `unrealircd.org/real-quit-reason` | no | Real quit reason (visible to opers) |
-| `unrealircd.org/userhost` | no | user@host in message tags |
-| `unrealircd.org/userip` | no | user@ip in message tags |
+| `unrealircd.org/userhost` | **yes** | `userip-userhost-tag` test |
+| `unrealircd.org/userip` | **yes** | `userip-userhost-tag` test |
 
 ## Capability coverage
 

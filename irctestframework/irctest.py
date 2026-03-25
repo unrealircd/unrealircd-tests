@@ -159,6 +159,10 @@ class IrcTest(asynchat.async_chat):
         # So we filter out batch=xyz; here:
         firstline = re.sub("batch=[^; ]+;*", "", firstline)
         secondline = re.sub("batch=[^; ]+;*", "", secondline)
+        # Strip oper-only tags that differ between oper and non-oper clients:
+        for tag in ("unrealircd.org/userip", "unrealircd.org/userhost", "unrealircd.org/issued-by"):
+            firstline = re.sub(tag + "=[^; ]+;*", "", firstline)
+            secondline = re.sub(tag + "=[^; ]+;*", "", secondline)
         if firstline != secondline:
             return 1
         return 0
