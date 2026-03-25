@@ -1,0 +1,24 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1b = m.new('c1b')
+m.connect()
+
+# Negative: tag not set yet — message should pass through
+m.send(c1a, "PRIVMSG $c1b :crule_tag_check hello")
+m.expect(c1b, "tag('CRULE_TESTTAG') should NOT match before tag is set", "crule_tag_check")
+m.clearlog()
+print
+
+# Trigger the set action — sets CRULE_TESTTAG=1 on c1a
+m.send(c1a, "PRIVMSG $c1b :crule_tag_set trigger")
+m.clearlog()
+print
+
+# Positive: tag is now set — message should be blocked
+m.send(c1a, "PRIVMSG $c1b :crule_tag_check hello")
+m.not_expect(c1b, "tag('CRULE_TESTTAG') should match after tag is set", "crule_tag_check")
+m.clearlog()
+print
