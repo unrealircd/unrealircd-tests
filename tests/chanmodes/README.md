@@ -2,7 +2,7 @@
 
 Tests for channel modes in UnrealIRCd.
 
-## Covered (23 test files)
+## Covered (24 test files)
 
 | Mode | Letter | Test file | Notes |
 |---|---|---|---|
@@ -24,6 +24,7 @@ Tests for channel modes in UnrealIRCd.
 | No notice | T | `nonotice` | |
 | Oper only | O | `operonly` | |
 | Permanent | P | `permanent` | |
+| Private | p | `private` | Hides channel from LIST |
 | Registered only join | R | `regonlyjoin` | |
 | Registered only speak | M | `regonlyspeak` | |
 | Strip color | S | `stripcolor` | |
@@ -49,6 +50,5 @@ in other tests:
 
 ## Not covered
 
-- Private (+p) — hides channel from LIST
 - Secure only (+z) — requires TLS
 - Is secure (+Z) — requires TLS, set when all members are on TLS

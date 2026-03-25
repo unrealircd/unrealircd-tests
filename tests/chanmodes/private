@@ -1,0 +1,80 @@
+#!/usr/bin/python3
+#
+# This tests channel mode +p (private).
+# +p hides the channel name from LIST for non-members (shows as "*").
+# +p and +s are mutually exclusive.
+#
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a, skip = c3a)
+m.clearlog()
+print
+
+# --- Set topic and +p ---
+m.send(c1a, "TOPIC " + chan + " :Secret topic")
+m.clearlog()
+print
+
+m.send(c1a, "MODE " + chan + " +p")
+regex = r":$c1a.* MODE " + chan + r" \+p"
+m.expect(c1a, "MODE +p set", regex)
+m.clearlog()
+print
+
+# --- Non-member LIST: should see * instead of channel name ---
+m.send(c3a, "LIST")
+m.expect(c3a, "LIST head", r"321 $me")
+m.expect(c3a, "Non-member sees * instead of channel name", r"322 $me \* [0-9]+")
+m.not_expect(c3a, "Non-member should NOT see real channel name", r"322 $me " + chan)
+m.expect(c3a, "LIST end", r"323 $me")
+m.clearlog()
+print
+
+# --- Member LIST: should see real channel name and topic ---
+m.send(c2a, "LIST")
+m.expect(c2a, "Member sees real channel name", r"322 $me " + chan + r" [0-9]+ :\[\+p\] Secret topic")
+m.clearlog()
+print
+
+# --- Oper override: non-member oper sees real channel name ---
+m.send(c3a, "OPER netadmin test")
+m.clearlog()
+print
+
+m.send(c3a, "LIST")
+m.expect(c3a, "Oper sees real channel name despite +p", r"322 $me " + chan)
+m.clearlog()
+print
+
+# --- Mutual exclusivity: +s clears +p ---
+m.send(c1a, "MODE " + chan + " +s")
+m.expect(c1a, "+s set clears +p", r":$c1a.* MODE " + chan + r" \+s-p")
+m.clearlog()
+print
+
+# --- Mutual exclusivity: +p clears +s ---
+m.send(c1a, "MODE " + chan + " +p")
+m.expect(c1a, "+p set clears +s", r":$c1a.* MODE " + chan + r" \+p-s")
+m.clearlog()
+print
+
+# --- Remove +p: non-member should now see real name ---
+m.send(c3a, "MODE $c3a -o")
+m.clearlog()
+print
+
+m.send(c1a, "MODE " + chan + " -p")
+m.clearlog()
+print
+
+m.send(c3a, "LIST")
+m.expect(c3a, "After -p, non-member sees real channel name", r"322 $me " + chan)
+m.clearlog()
+print
