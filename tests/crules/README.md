@@ -12,7 +12,7 @@ and channel-targeting functions) are tested via spamfilter blocks instead.
 
 ## Covered functions (48/59)
 
-### Tested in this directory (46)
+### Tested in this directory (45)
 
 | Function | Test file |
 |---|---|
@@ -27,7 +27,6 @@ and channel-targeting functions) are tested via spamfilter blocks instead.
 | `destination()` | `destination` |
 | `digit_percentage()` | `digit_percentage` |
 | `directcon()` | `directcon` |
-| `directop()` | `directop` |
 | `has_channel_mode()` | `has_channel_mode` |
 | `has_swhois()` | `has_swhois` |
 | `has_user_mode()` | `has_user_mode` |
@@ -67,6 +66,15 @@ The `logic` test covers `&&` and `!` operators (not a function).
 
 `inchannel()` is a deprecated alias for `in_channel()` and is not tested
 separately.
+
+### Tested in `tests/serial/` (1)
+
+| Function | Test file |
+|---|---|
+| `directop()` | `crule_directop` |
+
+Runs in serial because `directop()` checks global server state (any locally
+connected oper), which is affected by other tests OPERing up in parallel.
 
 ### Tested in `tests/services/` (2)
 
