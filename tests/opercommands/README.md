@@ -27,13 +27,12 @@ Tests for commands that require IRC operator privileges.
 | `TSCTL` | `tsctl` | |
 | `WALLOPS` | `wallops` | |
 
-The `tkl` test covers: `KLINE`, `ZLINE`, `GLINE`, `GZLINE`, `SPAMFILTER`.
+The `tkl` test covers: `KLINE`, `ZLINE`, `GLINE`, `GZLINE`, `ELINE`, `SPAMFILTER`.
 
 ## Not covered
 
 ### TKL subcommands not in `tkl` test
 
-- `ELINE` — exception lines (TKL exemptions)
 - `SHUN` — prevents user from executing commands
 
 ### Other oper commands

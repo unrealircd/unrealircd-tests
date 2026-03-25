@@ -2,7 +2,7 @@
 
 Tests for channel modes in UnrealIRCd.
 
-## Covered (22 test files)
+## Covered (23 test files)
 
 | Mode | Letter | Test file | Notes |
 |---|---|---|---|
@@ -27,6 +27,7 @@ Tests for channel modes in UnrealIRCd.
 | Registered only join | R | `regonlyjoin` | |
 | Registered only speak | M | `regonlyspeak` | |
 | Strip color | S | `stripcolor` | |
+| Topic limit | t | `topiclimit` | Only ops/halfops can change topic |
 | Voice/Halfop/Op/Admin/Owner | v/h/o/a/q | `vhoaq` | Prefix modes |
 
 ## Tested elsewhere
@@ -49,6 +50,5 @@ in other tests:
 ## Not covered
 
 - Private (+p) — hides channel from LIST
-- Topic limit (+t) — only ops can change topic
 - Secure only (+z) — requires TLS
 - Is secure (+Z) — requires TLS, set when all members are on TLS

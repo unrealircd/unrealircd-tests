@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# This tests TKLs such as: KLINE, ZLINE, GLINE, GZLINE, SPAMFILTER
+# This tests TKLs such as: KLINE, ZLINE, GLINE, GZLINE, ELINE, SPAMFILTER
 #
 import irctestframework.irctest
 
@@ -114,6 +114,69 @@ print
 m.send(c1a, "GZLINE -*@4.3.2.1")
 m.expect_all("GZ-Line removed notice to IRCOps",
              "Global Z-Line removed: '\*@4\.3\.2\.1' \[reason: This is a gzline test on IP\] \[by: $c1a.*\]")
+m.clearlog()
+print
+
+### ELINE with multiple ban types (global)
+m.send(c1a, "ELINE user@some.host kGs 0 This is an eline test")
+regex = r"Exception added: 'user@some\.host' \[types: kGs\] \[by: $c1a.*\]"
+m.expect_all("Exception added notice to all IRCOps", regex)
+m.clearlog()
+print
+
+m.send_all("STATS except")
+regex = r"230.* user@some\.host"
+m.expect_all("ELINE shown in /STATS except", regex)
+m.clearlog()
+print
+
+m.send(c1a, "ELINE -user@some.host")
+regex = r"Exception removed: 'user@some\.host' \[types: kGs\] \[by: $c1a.*\]"
+m.expect_all("Exception removed notice to all IRCOps", regex)
+m.clearlog()
+print
+
+m.send_all("STATS except")
+regex = r"230.* user@some\.host kGs"
+m.not_expect_all("ELINE no longer shown in /STATS except after removal", regex)
+m.clearlog()
+print
+
+### ELINE with single ban type
+m.send(c1a, "ELINE user@other.host k 0 Kline exempt only")
+regex = r"Exception added: 'user@other\.host' \[types: k\] \[by: $c1a.*\]"
+m.expect_all("Exception added with single type", regex)
+m.clearlog()
+print
+
+m.send_all("STATS except")
+regex = r"230.* user@other\.host"
+m.expect_all("Single-type ELINE shown in /STATS except", regex)
+m.clearlog()
+print
+
+m.send(c1a, "ELINE -user@other.host")
+regex = r"Exception removed: 'user@other\.host' \[types: k\] \[by: $c1a.*\]"
+m.expect_all("Single-type exception removed", regex)
+m.clearlog()
+print
+
+### ELINE with expiry time
+m.send(c1a, "ELINE user@timed.host kG 60 Timed exception")
+regex = r"Exception added: 'user@timed\.host' \[types: kG\] \[by: $c1a.*\] \[duration:"
+m.expect_all("Timed exception added", regex)
+m.clearlog()
+print
+
+m.send_all("STATS except")
+regex = r"230.* user@timed\.host"
+m.expect_all("Timed ELINE shown in /STATS except", regex)
+m.clearlog()
+print
+
+m.send(c1a, "ELINE -user@timed.host")
+regex = r"Exception removed: 'user@timed\.host'"
+m.expect_all("Timed exception removed", regex)
 m.clearlog()
 print
 

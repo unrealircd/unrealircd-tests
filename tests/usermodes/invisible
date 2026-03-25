@@ -1,0 +1,86 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+import time
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+
+# All users have +i by default (modes-on-connect "+ixw").
+# Join c1a and c2a to the same channel, keep c3a out.
+m.join_all(chan, creator = c1a, skip = c3a)
+m.clearlog()
+print
+
+# --- WHO #channel: +i users ARE visible to members of the same channel ---
+m.send(c2a, "WHO " + chan)
+m.expect(c2a, "WHO #channel shows c1a (same channel)", "352 $c2a " + chan + " .* $c1a")
+m.expect(c2a, "WHO #channel shows c2a (self)", "352 $c2a " + chan + " .* $c2a")
+m.clearlog()
+print
+
+# --- WHO <nick>: specific nick lookup works even with +i ---
+m.send(c3a, "WHO $c1a")
+m.expect(c3a, "WHO <nick> shows the user even with +i", "352 $c3a .* $c1a")
+m.clearlog()
+print
+
+# --- NAMES from outside: +i users should not appear ---
+# c3a is not in chan (skipped join_all), so should not see members
+m.send(c3a, "NAMES " + chan)
+m.not_expect(c3a, "NAMES should not show c1a to outsider with +i", "353.*$c1a")
+m.not_expect(c3a, "NAMES should not show c2a to outsider with +i", "353.*$c2a")
+m.clearlog()
+print
+
+# --- WHO 0: wildcard should hide +i users without common channel ---
+# The framework puts all clients in a shared sync channel, so we must
+# disable sync and have c3a part it first to truly have no common channel.
+m.sync = 0
+m.send(c3a, "PART " + m.syncchan)
+time.sleep(2)
+m.clearlog()
+
+m.send(c3a, "WHO 0")
+time.sleep(5)
+m.not_expect(c3a, "WHO 0 should not show c1a (no common channel, +i)", "352 $c3a .* $c1a")
+m.not_expect(c3a, "WHO 0 should not show c2a (no common channel, +i)", "352 $c3a .* $c2a")
+m.expect(c3a, "WHO 0 should show self", "352 $c3a .* $c3a", timeout = 5)
+m.clearlog()
+print
+
+# --- Oper override: opers can see +i users with WHO * ---
+# Note: WHO 0 always passes operspy=0, so even opers can't see +i users
+# with WHO 0. Use WHO * instead which enables operspy for opers.
+m.send(c3a, "OPER netadmin test")
+time.sleep(2)
+m.clearlog()
+
+m.send(c3a, "WHO *")
+time.sleep(5)
+m.expect(c3a, "Oper WHO * shows c1a despite +i", "352 $c3a .* $c1a", timeout = 5)
+m.expect(c3a, "Oper WHO * shows c2a despite +i", "352 $c3a .* $c2a", timeout = 5)
+m.clearlog()
+print
+
+# --- Remove +i: user should now appear in WHO 0 to non-opers ---
+# De-oper c3a by setting -o
+m.send(c3a, "MODE $c3a -o")
+time.sleep(2)
+m.clearlog()
+
+# Remove +i from c1a
+m.send(c1a, "MODE $c1a -i")
+time.sleep(2)
+m.clearlog()
+
+m.send(c3a, "WHO 0")
+time.sleep(5)
+m.expect(c3a, "c1a visible in WHO 0 after -i", "352 $c3a .* $c1a", timeout = 5)
+m.not_expect(c3a, "c2a still invisible in WHO 0 (still +i)", "352 $c3a .* $c2a")
+m.clearlog()
+print

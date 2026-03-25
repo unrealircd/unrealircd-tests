@@ -2,12 +2,13 @@
 
 Tests for user modes in UnrealIRCd.
 
-## Covered (7 test files)
+## Covered (8 test files)
 
 | Mode | Letter | Test file | Notes |
 |---|---|---|---|
 | Bot | B | `bot` | BOTMOTD, WHOIS bot flag |
 | Censor | G | `censor` | Badword replacement in private messages |
+| Invisible | i | `invisible` | Hides from WHO/NAMES for non-common channels |
 | No CTCPs | T | `noctcp` | Blocks incoming CTCPs |
 | No kick | q | `nokick` | Oper-only unkickable mode |
 | Privacy | p | `privacy` | Hides channels from WHOIS |
@@ -38,10 +39,9 @@ in other tests:
 
 - Service bot (+S) — set by services, `umode_allow_none`
 
-### Other (7)
+### Other (6)
 
 - Wallops (+w) — receives WALLOPS messages
-- Invisible (+i) — hides from WHO/NAMES for non-common channels
 - Server notices (+s) — receives server notice messages
 - Deaf (+d) — deaf to channel messages
 - Private deaf (+D) — deaf to private messages

@@ -1,0 +1,51 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+c3a = m.new('c3a')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a)
+m.clearlog()
+print
+
+# --- Set +t: non-op cannot change topic ---
+m.send(c1a, "MODE " + chan + " +t")
+m.expect(c1a, "MODE +t set", ":$c1a.* MODE " + chan + " \\+t")
+m.clearlog()
+print
+
+m.send(c2a, "TOPIC " + chan + " :I am not an op")
+m.expect(c2a, "Non-op gets ERR_CHANOPRIVSNEEDED with +t", ":.+ 482 $c2a " + chan)
+m.clearlog()
+print
+
+# --- Op can still change topic with +t ---
+m.send(c1a, "TOPIC " + chan + " :Set by the op")
+m.expect_all("Op sets topic with +t", ":$c1a.* TOPIC " + chan + " :Set by the op")
+m.clearlog()
+print
+
+# --- Halfop can change topic with +t ---
+m.send(c1a, "MODE " + chan + " +h $c3a")
+m.clearlog()
+print
+
+m.send(c3a, "TOPIC " + chan + " :Set by halfop")
+m.expect_all("Halfop sets topic with +t", ":$c3a.* TOPIC " + chan + " :Set by halfop")
+m.clearlog()
+print
+
+# --- Remove -t: now non-op (c2a) CAN change topic ---
+m.send(c1a, "MODE " + chan + " -t")
+m.expect(c1a, "MODE -t set", ":$c1a.* MODE " + chan + " -t")
+m.clearlog()
+print
+
+m.send(c2a, "TOPIC " + chan + " :Anyone can set this now")
+m.expect_all("Non-op sets topic after -t", ":$c2a.* TOPIC " + chan + " :Anyone can set this now")
+m.clearlog()
+print
