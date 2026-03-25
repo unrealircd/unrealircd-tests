@@ -1,0 +1,26 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1b = m.new('c1b')
+m.connect()
+
+chan = m.randchan()
+m.join_all(chan, creator=c1a)
+
+# Channel does NOT have +m by default — message should pass through
+m.send(c1a, "PRIVMSG " + chan + " :crule_has_channel_mode hello world test")
+m.expect(c1b, "Message to channel without +m should pass has_channel_mode('m') crule", "crule_has_channel_mode")
+m.clearlog()
+print
+
+# Set +m on the channel
+m.send(c1a, "MODE " + chan + " +m")
+m.clearlog()
+
+# Now has_channel_mode('m') matches — spamfilter should block
+m.send(c1a, "PRIVMSG " + chan + " :crule_has_channel_mode this should be blocked")
+m.not_expect(c1b, "Message to +m channel should be blocked by has_channel_mode('m') crule", "crule_has_channel_mode")
+m.clearlog()
+print

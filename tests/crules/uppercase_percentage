@@ -1,0 +1,19 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+m.connect()
+
+# >80% uppercase — should be blocked by spamfilter rule
+m.send(c1a, "PRIVMSG $c2a :crule_uppercase_percentage " + "A" * 150)
+m.not_expect(c2a, "All-caps should be blocked by uppercase_percentage crule", "crule_uppercase_percentage")
+m.clearlog()
+print
+
+# Mostly lowercase — should pass through
+m.send(c1a, "PRIVMSG $c2a :crule_uppercase_percentage this is lowercase text here and more")
+m.expect(c2a, "Mostly lowercase should pass uppercase crule", "crule_uppercase_percentage")
+m.clearlog()
+print

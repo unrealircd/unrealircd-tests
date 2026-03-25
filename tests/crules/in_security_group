@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Test client is not identified — should be in unknown-users security group
+m.send(c1a, "VHOST crule_in_security_group test")
+m.expect(c1a, "in_security_group('unknown-users') should match for non-identified client", PASS)
+m.clearlog()
+print
+
+# Negative: test client is not identified — should NOT be in known-users group
+m.send(c1a, "VHOST crule_in_security_group_neg test")
+m.expect(c1a, "in_security_group('known-users') should NOT match for non-identified client", FAIL)
+m.clearlog()
+print

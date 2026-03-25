@@ -1,0 +1,22 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# c1a on irc1 port 5661 — should match
+m.send(c1a, "VHOST crule_server_port test")
+m.expect(c1a, "server_port() == 5661 should match for c1a on irc1", PASS)
+m.clearlog()
+print
+
+# c2a on irc2 port 5662 — should NOT match
+m.send(c2a, "VHOST crule_server_port test")
+m.expect(c2a, "server_port() == 5661 should NOT match for c2a on irc2 (port 5662)", FAIL)
+m.clearlog()
+print

@@ -1,0 +1,23 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Not oper — no swhois — should NOT match
+m.send(c1a, "VHOST crule_has_swhois test")
+m.expect(c1a, "has_swhois() should NOT match before OPER", FAIL)
+m.clearlog()
+print
+
+# OPER as netadmin (has swhois "is a Network Administrator") — should match
+m.send(c1a, "OPER netadmin test")
+m.clearlog()
+m.send(c1a, "VHOST crule_has_swhois test")
+m.expect(c1a, "has_swhois() should match after OPER netadmin", PASS)
+m.clearlog()
+print

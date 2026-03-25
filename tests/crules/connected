@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Test env has irc1.test.net, irc2.test.net, irc3.test.net — should match
+m.send(c1a, "VHOST crule_connected test")
+m.expect(c1a, "connected('irc*.test.net') should match in test env", PASS)
+m.clearlog()
+print
+
+# Nonexistent server pattern — should NOT match
+m.send(c1a, "VHOST crule_connected_neg test")
+m.expect(c1a, "connected('nonexistent.*') should NOT match", FAIL)
+m.clearlog()
+print

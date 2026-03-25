@@ -1,0 +1,20 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1b = m.new('c1b')
+m.connect()
+
+# ASCII-only message — non_ascii_percentage should be 0, passes
+m.send(c1a, "PRIVMSG $c1b :crule_non_ascii_percentage hello world ascii only")
+m.expect(c1b, "non_ascii_percentage() > 50 should NOT block ASCII-only message", "crule_non_ascii_percentage")
+m.clearlog()
+print
+
+# Heavily non-ASCII message (Cyrillic text) — should be blocked
+# Each Cyrillic char encodes as 2 UTF-8 bytes with high bit set
+m.send(c1a, "PRIVMSG $c1b :crule_non_ascii_percentage \u0430\u0431\u0432\u0433\u0434\u0435\u0436\u0437\u0438\u043a\u043b\u043c\u043d\u043e\u043f\u0430\u0431\u0432\u0433\u0434\u0435")
+m.not_expect(c1b, "non_ascii_percentage() > 50 should block heavily non-ASCII message", "crule_non_ascii_percentage")
+m.clearlog()
+print

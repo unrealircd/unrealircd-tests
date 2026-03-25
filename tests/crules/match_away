@@ -1,0 +1,31 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Not away — should NOT match
+m.send(c1a, "VHOST crule_match_away test")
+m.expect(c1a, "match_away('*busy*') should NOT match when not away", FAIL)
+m.clearlog()
+print
+
+# Set away with matching message — should match
+m.send(c1a, "AWAY :I am busy now")
+m.clearlog()
+m.send(c1a, "VHOST crule_match_away test")
+m.expect(c1a, "match_away('*busy*') should match with 'I am busy now'", PASS)
+m.clearlog()
+print
+
+# Set away with non-matching message — should NOT match
+m.send(c1a, "AWAY :lunch break")
+m.clearlog()
+m.send(c1a, "VHOST crule_match_away test")
+m.expect(c1a, "match_away('*busy*') should NOT match with 'lunch break'", FAIL)
+m.clearlog()
+print

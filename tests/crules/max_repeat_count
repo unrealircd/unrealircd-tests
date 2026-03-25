@@ -1,0 +1,19 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+m.connect()
+
+# >4 repeated chars — should be blocked (max_repeat_count() > 4)
+m.send(c1a, "PRIVMSG $c2a :crule_max_repeat_count hellooooo")
+m.not_expect(c2a, "Message with 5 repeated 'o' should be blocked", "crule_max_repeat_count")
+m.clearlog()
+print
+
+# <=4 repeated chars — should pass through
+m.send(c1a, "PRIVMSG $c2a :crule_max_repeat_count hello there")
+m.expect(c2a, "Message with max 2 repeated chars should pass", "crule_max_repeat_count")
+m.clearlog()
+print

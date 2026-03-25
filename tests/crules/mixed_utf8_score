@@ -1,0 +1,19 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1b = m.new('c1b')
+m.connect()
+
+# Pure ASCII text — score should be 0, passes
+m.send(c1a, "PRIVMSG $c1b :crule_mixed_utf8_score hello world ascii text")
+m.expect(c1b, "mixed_utf8_score() > 0 should NOT block pure ASCII (score 0)", "crule_mixed_utf8_score")
+m.clearlog()
+print
+
+# Mixed Latin + Cyrillic (привет) — antimixedutf8 score > 0, should be blocked
+m.send(c1a, "PRIVMSG $c1b :crule_mixed_utf8_score hello \u043f\u0440\u0438\u0432\u0435\u0442 world")
+m.not_expect(c1b, "mixed_utf8_score() > 0 should block mixed Latin+Cyrillic text", "crule_mixed_utf8_score")
+m.clearlog()
+print

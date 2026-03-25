@@ -1,0 +1,23 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# modes-on-connect is +ixw, so has_user_mode('w') should match
+m.send(c1a, "VHOST crule_has_user_mode test")
+m.expect(c1a, "has_user_mode('w') should match (modes-on-connect +ixw)", PASS)
+m.clearlog()
+print
+
+# Remove mode w — should NOT match
+m.send(c1a, "MODE $c1a -w")
+m.clearlog()
+m.send(c1a, "VHOST crule_has_user_mode test")
+m.expect(c1a, "has_user_mode('w') should NOT match after MODE -w", FAIL)
+m.clearlog()
+print

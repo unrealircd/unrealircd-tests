@@ -1,0 +1,24 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1b = m.new('c1b')
+m.connect()
+
+chan = "#cruletest_dest"
+m.send(c1a, "JOIN " + chan)
+m.send(c1b, "JOIN " + chan)
+m.clearlog()
+
+# Send to #cruletest_dest — destination('#cruletest*') matches, should be blocked
+m.send(c1a, "PRIVMSG " + chan + " :crule_destination channel message")
+m.not_expect(c1b, "destination('#cruletest*') should block message to #cruletest_dest", "crule_destination")
+m.clearlog()
+print
+
+# Send to a user — destination does NOT match '#cruletest*', should pass
+m.send(c1a, "PRIVMSG $c1b :crule_destination private message")
+m.expect(c1b, "destination('#cruletest*') should NOT block private message to user", "crule_destination")
+m.clearlog()
+print

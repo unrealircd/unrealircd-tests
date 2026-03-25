@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# At least 1 connection from this IP — should match > 0
+m.send(c1a, "VHOST crule_connections_from_ip test")
+m.expect(c1a, "connections_from_ip() > 0 should match for connected client", PASS)
+m.clearlog()
+print
+
+# Negative: connections_from_ip() > 99999 — impossible threshold
+m.send(c1a, "VHOST crule_connections_from_ip_neg test")
+m.expect(c1a, "connections_from_ip() > 99999 should NOT match", FAIL)
+m.clearlog()
+print

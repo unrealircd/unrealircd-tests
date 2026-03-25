@@ -1,0 +1,23 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Not away — should NOT match
+m.send(c1a, "VHOST crule_is_away test")
+m.expect(c1a, "is_away() should NOT match before AWAY", FAIL)
+m.clearlog()
+print
+
+# Set AWAY — should match
+m.send(c1a, "AWAY :busy")
+m.clearlog()
+m.send(c1a, "VHOST crule_is_away test")
+m.expect(c1a, "is_away() should match after AWAY", PASS)
+m.clearlog()
+print

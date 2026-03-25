@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# c1a is on irc1, which has irc2 directly connected — should match
+m.send(c1a, "VHOST crule_directcon test")
+m.expect(c1a, "directcon('irc2.test.net') should match on irc1", PASS)
+m.clearlog()
+print
+
+# Negative: irc3 is connected via hub (irc2), not directly to irc1
+m.send(c1a, "VHOST crule_directcon_neg test")
+m.expect(c1a, "directcon('irc3.test.net') should NOT match on irc1", FAIL)
+m.clearlog()
+print

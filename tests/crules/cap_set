@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Test framework client requests message-tags cap — should match
+m.send(c1a, "VHOST crule_cap_set test")
+m.expect(c1a, "cap_set('message-tags') should match for test client", PASS)
+m.clearlog()
+print
+
+# Negative: test client does not request 'batch' cap — should not match
+m.send(c1a, "VHOST crule_cap_set_neg test")
+m.expect(c1a, "cap_set('batch') should NOT match when cap not requested", FAIL)
+m.clearlog()
+print

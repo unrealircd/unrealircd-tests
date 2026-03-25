@@ -1,0 +1,19 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1b = m.new('c1b')
+m.connect()
+
+# Pure ASCII text — no Cyrillic characters, should pass
+m.send(c1a, "PRIVMSG $c1b :crule_unicode_count hello world ascii text")
+m.expect(c1b, "unicode_count('Cyrillic') > 0 should NOT block pure ASCII", "crule_unicode_count")
+m.clearlog()
+print
+
+# Text with Cyrillic characters (привет) — unicode_count('Cyrillic') > 0, should be blocked
+m.send(c1a, "PRIVMSG $c1b :crule_unicode_count hello \u043f\u0440\u0438\u0432\u0435\u0442 world")
+m.not_expect(c1b, "unicode_count('Cyrillic') > 0 should block text with Cyrillic chars", "crule_unicode_count")
+m.clearlog()
+print

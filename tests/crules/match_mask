@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Test client has ident=username, IP=127.0.0.1 — should match *!username@127.0.0.*
+m.send(c1a, "VHOST crule_match_mask test")
+m.expect(c1a, "match_mask('*!username@127.0.0.*') should match test client", PASS)
+m.clearlog()
+print
+
+# Negative: wrong ident and IP range — should not match
+m.send(c1a, "VHOST crule_match_mask_neg test")
+m.expect(c1a, "match_mask('*!nobody@10.*') should NOT match test client", FAIL)
+m.clearlog()
+print

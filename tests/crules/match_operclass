@@ -1,0 +1,23 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Not oper — should NOT match
+m.send(c1a, "VHOST crule_match_operclass test")
+m.expect(c1a, "match_operclass('netadmin*') should NOT match before OPER", FAIL)
+m.clearlog()
+print
+
+# OPER as netadmin (operclass netadmin-with-override) — should match netadmin*
+m.send(c1a, "OPER netadmin test")
+m.clearlog()
+m.send(c1a, "VHOST crule_match_operclass test")
+m.expect(c1a, "match_operclass('netadmin*') should match after OPER", PASS)
+m.clearlog()
+print

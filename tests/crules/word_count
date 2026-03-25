@@ -1,0 +1,19 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+m.connect()
+
+# >5 words — should be blocked (word_count() > 5)
+m.send(c1a, "PRIVMSG $c2a :crule_word_count one two three four five six")
+m.not_expect(c2a, "Message with >5 words should be blocked", "crule_word_count")
+m.clearlog()
+print
+
+# <=5 words — should pass through
+m.send(c1a, "PRIVMSG $c2a :crule_word_count one two three")
+m.expect(c2a, "Message with <=5 words should pass", "crule_word_count")
+m.clearlog()
+print

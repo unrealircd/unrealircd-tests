@@ -1,0 +1,19 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+m.connect()
+
+# >50 bytes — should be blocked (text_byte_count() > 50)
+m.send(c1a, "PRIVMSG $c2a :crule_text_byte_count this is a long message that should definitely exceed fifty bytes total")
+m.not_expect(c2a, "Message with >50 bytes should be blocked", "crule_text_byte_count")
+m.clearlog()
+print
+
+# <=50 bytes — should pass through
+m.send(c1a, "PRIVMSG $c2a :crule_text_byte_count short")
+m.expect(c2a, "Message with <=50 bytes should pass", "crule_text_byte_count")
+m.clearlog()
+print

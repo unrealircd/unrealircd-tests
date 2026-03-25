@@ -1,0 +1,23 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Default reputation should be low — should NOT match > 100
+m.send(c1a, "VHOST crule_reputation test")
+m.expect(c1a, "reputation() > 100 should NOT match initially", FAIL)
+m.clearlog()
+print
+
+# Set fake reputation to 200 — should match
+m.send(c1a, "FAKEREPUTATION 200")
+m.clearlog()
+m.send(c1a, "VHOST crule_reputation test")
+m.expect(c1a, "reputation() > 100 should match after FAKEREPUTATION 200", PASS)
+m.clearlog()
+print

@@ -1,0 +1,23 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# is_local() && !is_oper() — local non-oper, should match
+m.send(c1a, "VHOST crule_logic test")
+m.expect(c1a, "is_local() && !is_oper() should match for non-oper local user", PASS)
+m.clearlog()
+print
+
+# OPER up — !is_oper() becomes false, should NOT match
+m.send(c1a, "OPER netadmin test")
+m.clearlog()
+m.send(c1a, "VHOST crule_logic test")
+m.expect(c1a, "is_local() && !is_oper() should NOT match after OPER", FAIL)
+m.clearlog()
+print

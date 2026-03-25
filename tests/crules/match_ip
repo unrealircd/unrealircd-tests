@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Test clients connect from 127.0.0.1 — should match 127.0.0.*
+m.send(c1a, "VHOST crule_match_ip test")
+m.expect(c1a, "match_ip('127.0.0.*') should match for localhost client", PASS)
+m.clearlog()
+print
+
+# Negative: client is on 127.0.0.1, not 192.168.*
+m.send(c1a, "VHOST crule_match_ip_neg test")
+m.expect(c1a, "match_ip('192.168.*') should NOT match for localhost client", FAIL)
+m.clearlog()
+print

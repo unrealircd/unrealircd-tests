@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Test client connects from 127.0.0.1, realhost should be localhost
+m.send(c1a, "VHOST crule_match_realhost test")
+m.expect(c1a, "match_realhost('localhost') should match for 127.0.0.1 client", PASS)
+m.clearlog()
+print
+
+# Negative: realhost is localhost, not example.com
+m.send(c1a, "VHOST crule_match_realhost_neg test")
+m.expect(c1a, "match_realhost('example.com') should NOT match for localhost client", FAIL)
+m.clearlog()
+print

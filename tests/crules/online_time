@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# online_time() < 300 should be true for a just-connected client
+m.send(c1a, "VHOST crule_online_time test")
+m.expect(c1a, "online_time() < 300 should match for just-connected client", PASS)
+m.clearlog()
+print
+
+# Negative: online_time() > 99999 — freshly connected client can't be online this long
+m.send(c1a, "VHOST crule_online_time_neg test")
+m.expect(c1a, "online_time() > 99999 should NOT match for freshly connected client", FAIL)
+m.clearlog()
+print

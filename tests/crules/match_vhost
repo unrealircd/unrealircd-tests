@@ -1,0 +1,27 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Before setting any vhost, the visible host is a cloak — should NOT match crule_*
+m.send(c1a, "VHOST crule_match_vhost test")
+m.expect(c1a, "match_vhost('crule_*') should NOT match default cloaked host", FAIL)
+m.clearlog()
+print
+
+# Set a crule_* vhost via is_local (always matches for local users)
+m.send(c1a, "VHOST crule_is_local test")
+m.expect(c1a, "Setting crule_is_local vhost should succeed", PASS)
+m.clearlog()
+print
+
+# Now match_vhost('crule_*') should match
+m.send(c1a, "VHOST crule_match_vhost test")
+m.expect(c1a, "match_vhost('crule_*') should match after setting crule_* vhost", PASS)
+m.clearlog()
+print

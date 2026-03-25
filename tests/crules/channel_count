@@ -1,0 +1,23 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Only in sync channel (count=1) — should NOT match > 1
+m.send(c1a, "VHOST crule_channel_count test")
+m.expect(c1a, "channel_count() > 1 should NOT match with only sync channel", FAIL)
+m.clearlog()
+print
+
+# Join a channel (count=2) — should match > 1
+m.send(c1a, "JOIN #cruletest_chancount")
+m.clearlog()
+m.send(c1a, "VHOST crule_channel_count test")
+m.expect(c1a, "channel_count() > 1 should match after JOIN", PASS)
+m.clearlog()
+print

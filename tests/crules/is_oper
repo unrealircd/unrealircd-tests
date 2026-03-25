@@ -1,0 +1,23 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Not oper yet — should NOT match
+m.send(c1a, "VHOST crule_is_oper test")
+m.expect(c1a, "is_oper() should NOT match before OPER", FAIL)
+m.clearlog()
+print
+
+# OPER up — should match
+m.send(c1a, "OPER netadmin test")
+m.clearlog()
+m.send(c1a, "VHOST crule_is_oper test")
+m.expect(c1a, "is_oper() should match after OPER", PASS)
+m.clearlog()
+print

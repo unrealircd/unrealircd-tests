@@ -1,0 +1,19 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c2a = m.new('c2a')
+m.connect()
+
+# >60% digits — should be blocked (digit_percentage() > 60)
+m.send(c1a, "PRIVMSG $c2a :crule_digit_percentage 1234567890123456789012345678901234567890")
+m.not_expect(c2a, "Message with >60% digits should be blocked", "crule_digit_percentage")
+m.clearlog()
+print
+
+# Low digit percentage — should pass through
+m.send(c1a, "PRIVMSG $c2a :crule_digit_percentage hello world this is normal text")
+m.expect(c2a, "Message with few digits should pass", "crule_digit_percentage")
+m.clearlog()
+print

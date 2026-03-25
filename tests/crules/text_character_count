@@ -1,0 +1,19 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1b = m.new('c1b')
+m.connect()
+
+# Short message (<= 50 characters) — should pass
+m.send(c1a, "PRIVMSG $c1b :crule_text_character_count short")
+m.expect(c1b, "text_character_count() > 50 should NOT block short message", "crule_text_character_count")
+m.clearlog()
+print
+
+# Long message (> 50 characters) — should be blocked
+m.send(c1a, "PRIVMSG $c1b :crule_text_character_count this is a long message with many characters in it")
+m.not_expect(c1b, "text_character_count() > 50 should block long message", "crule_text_character_count")
+m.clearlog()
+print

@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Test clients are in class "clients" — should match
+m.send(c1a, "VHOST crule_match_class test")
+m.expect(c1a, "match_class('clients') should match", PASS)
+m.clearlog()
+print
+
+# Negative: test clients are not in class "opers"
+m.send(c1a, "VHOST crule_match_class_neg test")
+m.expect(c1a, "match_class('opers') should NOT match for regular client", FAIL)
+m.clearlog()
+print

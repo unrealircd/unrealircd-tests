@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# After connecting and sending commands, messages_sent() should be > 0
+m.send(c1a, "VHOST crule_messages_sent test")
+m.expect(c1a, "messages_sent() > 0 should match after client has sent commands", PASS)
+m.clearlog()
+print
+
+# Negative: messages_sent() > 99999 — impossible after just connecting
+m.send(c1a, "VHOST crule_messages_sent_neg test")
+m.expect(c1a, "messages_sent() > 99999 should NOT match", FAIL)
+m.clearlog()
+print

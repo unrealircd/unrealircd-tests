@@ -1,0 +1,30 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1b = m.new('c1b')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# After handshake, bytes_received is ~1000-1500 — should NOT exceed 5000
+m.send(c1a, "VHOST crule_bytes_received test")
+m.expect(c1a, "bytes_received() > 5000 should NOT match right after connect", FAIL)
+m.clearlog()
+print
+
+# Have c1b send 10 PRIVMSGs with ~400 bytes each to c1a
+text = "B" * 400
+for i in range(10):
+    m.send(c1b, "PRIVMSG $c1a :" + text)
+m.expect(c1a, "messages should be received", text)
+m.clearlog()
+print
+
+# Now bytes_received should exceed 5000
+m.send(c1a, "VHOST crule_bytes_received test")
+m.expect(c1a, "bytes_received() > 5000 should match after receiving traffic", PASS)
+m.clearlog()
+print

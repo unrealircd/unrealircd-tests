@@ -1,0 +1,25 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1b = m.new('c1b')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# No opers online yet — should NOT match
+m.send(c1a, "VHOST crule_directop test")
+m.expect(c1a, "directop() should NOT match when no opers online", FAIL)
+m.clearlog()
+print
+
+# OPER up c1b — now there is a local oper
+m.send(c1b, "OPER netadmin test")
+m.clearlog()
+
+m.send(c1a, "VHOST crule_directop test")
+m.expect(c1a, "directop() should match after someone OPERs up", PASS)
+m.clearlog()
+print

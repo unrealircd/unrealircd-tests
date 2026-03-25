@@ -1,0 +1,29 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1b = m.new('c1b')
+m.connect()
+
+chan = "#cruletest_memcount"
+
+# Both users join — channel has 2 members
+m.send(c1a, "JOIN " + chan)
+m.send(c1b, "JOIN " + chan)
+m.clearlog()
+
+# channel_member_count() > 1 should match — message blocked
+m.send(c1a, "PRIVMSG " + chan + " :crule_channel_member_count two users here")
+m.not_expect(c1b, "channel_member_count() > 1 should block when 2 users in channel", "crule_channel_member_count")
+m.clearlog()
+print
+
+# One user parts — channel has 1 member
+m.send(c1b, "PART " + chan)
+m.clearlog()
+
+# channel_member_count() > 1 should NOT match — message passes
+m.send(c1a, "PRIVMSG " + chan + " :crule_channel_member_count only one user")
+m.clearlog()
+print

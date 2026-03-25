@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Test framework clients have realname "Test framework" — should match *Test*
+m.send(c1a, "VHOST crule_match_realname test")
+m.expect(c1a, "match_realname('*Test*') should match 'Test framework'", PASS)
+m.clearlog()
+print
+
+# Negative: realname is "Test framework", not anything with "Production"
+m.send(c1a, "VHOST crule_match_realname_neg test")
+m.expect(c1a, "match_realname('*Production*') should NOT match 'Test framework'", FAIL)
+m.clearlog()
+print

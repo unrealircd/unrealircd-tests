@@ -1,0 +1,19 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1b = m.new('c1b')
+m.connect()
+
+# Pure ASCII text — only Basic Latin block, should pass
+m.send(c1a, "PRIVMSG $c1b :crule_unicode_block_count hello world ascii text")
+m.expect(c1b, "unicode_block_count() > 1 should NOT block pure ASCII (1 block)", "crule_unicode_block_count")
+m.clearlog()
+print
+
+# Mixed Latin + Cyrillic (привет) — 2 Unicode blocks, should be blocked
+m.send(c1a, "PRIVMSG $c1b :crule_unicode_block_count hello \u043f\u0440\u0438\u0432\u0435\u0442 world")
+m.not_expect(c1b, "unicode_block_count() > 1 should block mixed Latin+Cyrillic (2+ blocks)", "crule_unicode_block_count")
+m.clearlog()
+print

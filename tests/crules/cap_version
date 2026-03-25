@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Test framework client sends CAP LS without version — cap_protocol < 302
+m.send(c1a, "VHOST crule_cap_version test")
+m.expect(c1a, "cap_version() < 302 should match for test client", PASS)
+m.clearlog()
+print
+
+# Negative: cap_version() > 999 — no client has version that high
+m.send(c1a, "VHOST crule_cap_version_neg test")
+m.expect(c1a, "cap_version() > 999 should NOT match", FAIL)
+m.clearlog()
+print
