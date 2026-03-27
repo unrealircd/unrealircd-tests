@@ -181,8 +181,13 @@ class IrcTest(asynchat.async_chat):
         self.verify_mtags_consistency()
 
     def send(self, client, message):
-        message = self.replacestr(client, message)
-        client.out(message)
+        if isinstance(message, list):
+            for line in message:
+                line = self.replacestr(client, line)
+                client.out(line)
+        else:
+            message = self.replacestr(client, message)
+            client.out(message)
         self.multisync()
 
     def send_all(self, message, skip = None):
