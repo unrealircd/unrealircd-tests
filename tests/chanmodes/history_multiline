@@ -1,0 +1,255 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')    # channel creator, sets +H
+c1b = m.new('c1b')    # sends 2-line multiline
+c1c = m.new('c1c')    # sends single message
+c1d = m.new('c1d')    # sends 3-line multiline with concat
+c1e = m.new('c1e')    # sends single message
+c1f = m.new('c1f')    # late join: multiline+batch (playback test)
+c1g = m.new('c1g')    # late join: server-time only (fallback test)
+c2a = m.new('c2a')    # chathistory+multiline+batch (CHATHISTORY cmd)
+c3a = m.new('c3a')    # late join server 3: multiline+batch (cross-server)
+m.connect()
+
+# Multiline history replay uses different tags per client type
+m.disable_message_tags_check = 1
+for c in [c1a, c1b, c1c, c1d, c1e, c1f, c1g, c2a, c3a]:
+    c.disable_message_tags_check = 1
+
+##############################################################################
+# 1. CAP Negotiation
+##############################################################################
+print()
+print("=== 1. CAP Negotiation ===")
+
+# Multiline senders
+for client in [c1b, c1d]:
+    m.send(client, "CAP REQ :draft/multiline batch server-time")
+    m.expect(client, "CAP ACK multiline sender",
+             "CAP .* ACK :draft/multiline batch server-time")
+
+# Plain senders (server-time for sync/verification)
+for client in [c1a, c1c, c1e]:
+    m.send(client, "CAP REQ :server-time")
+    m.expect(client, "CAP ACK", "CAP .* ACK :server-time")
+
+# Late joiner: multiline+batch+server-time
+for client in [c1f, c3a]:
+    m.send(client, "CAP REQ :draft/multiline batch server-time")
+    m.expect(client, "CAP ACK multiline joiner",
+             "CAP .* ACK :draft/multiline batch server-time")
+
+# Late joiner: server-time only (fallback)
+m.send(c1g, "CAP REQ :server-time")
+m.expect(c1g, "CAP ACK plain joiner", "CAP .* ACK :server-time")
+
+# CHATHISTORY client
+m.send(c2a, "CAP REQ :server-time draft/chathistory batch draft/multiline")
+m.expect(c2a, "CAP ACK chathistory", "CAP.*ACK")
+
+m.clearlog()
+print()
+
+##############################################################################
+# 2. Setup: channel with +H
+##############################################################################
+print("=== 2. Setup ===")
+
+chan = m.randchan()
+m.send(c1a, "JOIN " + chan)
+m.expect(c1a, "c1a joins", "JOIN")
+m.send(c1a, "MODE " + chan + " +H 15:5")
+m.expect(c1a, "MODE +H set", "MODE.*\\+H")
+m.clearlog()
+
+for client in [c1b, c1c, c1d, c1e]:
+    m.send(client, "JOIN " + chan)
+    m.expect(client, "sender joins", "JOIN")
+
+# c2a joins (chathistory cap suppresses auto-playback)
+m.send(c2a, "JOIN " + chan)
+m.expect(c2a, "c2a joins", "JOIN")
+
+m.clearlog()
+print()
+
+##############################################################################
+# 3. Send messages (4 logical: 2 multiline + 2 single)
+##############################################################################
+print("=== 3. Send messages ===")
+
+# Logical msg 1: 2-line multiline
+m.send(c1b, [
+    "BATCH +hm1 draft/multiline " + chan,
+    "@batch=hm1 PRIVMSG " + chan + " :multi alpha",
+    "@batch=hm1 PRIVMSG " + chan + " :multi beta",
+    "BATCH -hm1",
+])
+m.expect(c1a, "msg 1 delivered", "PRIVMSG.*:multi alpha")
+
+# Logical msg 2: single
+m.send(c1c, "PRIVMSG " + chan + " :single gamma")
+m.expect(c1a, "msg 2 delivered", "PRIVMSG.*:single gamma")
+
+# Logical msg 3: 3-line multiline with concat
+m.send(c1d, [
+    "BATCH +hm2 draft/multiline " + chan,
+    "@batch=hm2 PRIVMSG " + chan + " :long text",
+    "@batch=hm2;draft/multiline-concat PRIVMSG " + chan + " : continued",
+    "@batch=hm2 PRIVMSG " + chan + " :third line",
+    "BATCH -hm2",
+])
+m.expect(c1a, "msg 3 delivered", "PRIVMSG.*:long text")
+
+# Logical msg 4: single
+m.send(c1e, "PRIVMSG " + chan + " :single delta")
+m.expect(c1a, "msg 4 delivered", "PRIVMSG.*:single delta")
+
+m.clearlog()
+print()
+
+##############################################################################
+# 4. Join-time playback: multiline-capable client (nested batches)
+##############################################################################
+print("=== 4. Join-time playback: multiline client ===")
+
+m.send(c1f, "JOIN " + chan)
+m.expect(c1f, "c1f joins", "JOIN")
+
+# Should see chathistory batch wrapper
+m.expect(c1f, "chathistory BATCH",
+         " BATCH \\+[^ ]+ chathistory " + chan)
+
+# Should see nested draft/multiline batch(es)
+m.expect(c1f, "nested draft/multiline BATCH",
+         "BATCH \\+[^ ]+ draft/multiline")
+
+# Msg 1 lines wrapped in a batch
+m.expect(c1f, "multi alpha in batch", "@batch=.*PRIVMSG.*:multi alpha")
+m.expect(c1f, "multi beta in batch", "@batch=.*PRIVMSG.*:multi beta")
+
+# Msg 2: single in batch
+m.expect(c1f, "single gamma in batch", "@batch=.*PRIVMSG.*:single gamma")
+
+# Msg 3: concat tag preserved in nested multiline batch
+m.expect(c1f, "long text in batch", "@batch=.*PRIVMSG.*:long text")
+m.expect(c1f, "concat tag preserved in history",
+         "draft/multiline-concat.*PRIVMSG.*: continued")
+m.expect(c1f, "third line in batch", "@batch=.*PRIVMSG.*:third line")
+
+# Msg 4: single in batch
+m.expect(c1f, "single delta in batch", "@batch=.*PRIVMSG.*:single delta")
+
+m.clearlog()
+print()
+
+##############################################################################
+# 5. Join-time playback: plain client (fallback, no batch support)
+##############################################################################
+print("=== 5. Join-time playback: plain client (fallback) ===")
+
+m.send(c1g, "JOIN " + chan)
+m.expect(c1g, "c1g joins", "JOIN")
+
+# All content present as individual PRIVMSGs
+m.expect(c1g, "fallback: multi alpha", "PRIVMSG.*:multi alpha")
+m.expect(c1g, "fallback: multi beta", "PRIVMSG.*:multi beta")
+m.expect(c1g, "fallback: single gamma", "PRIVMSG.*:single gamma")
+m.expect(c1g, "fallback: long text", "PRIVMSG.*:long text")
+m.expect(c1g, "fallback: continued", "PRIVMSG.*: continued")
+m.expect(c1g, "fallback: third line", "PRIVMSG.*:third line")
+m.expect(c1g, "fallback: single delta", "PRIVMSG.*:single delta")
+
+# No BATCH lines for plain client (no batch cap)
+m.not_expect(c1g, "fallback: no BATCH", " BATCH ")
+
+# First line of multiline batch has msgid, continuation does not
+m.expect_tag(c1g, "fallback: multi alpha has msgid",
+             "PRIVMSG.*:multi alpha", "msgid")
+m.not_expect(c1g, "fallback: multi beta has no msgid",
+             "@.*msgid=.*PRIVMSG.*:multi beta")
+
+m.clearlog()
+print()
+
+##############################################################################
+# 6. Cross-server playback (server 3, multiline-capable)
+##############################################################################
+print("=== 6. Cross-server playback ===")
+
+m.send(c3a, "JOIN " + chan)
+m.expect(c3a, "c3a joins", "JOIN")
+
+# Chathistory batch with nested multiline
+m.expect(c3a, "chathistory BATCH",
+         " BATCH \\+[^ ]+ chathistory " + chan)
+m.expect(c3a, "nested draft/multiline BATCH",
+         "BATCH \\+[^ ]+ draft/multiline")
+
+m.expect(c3a, "multi alpha in batch", "@batch=.*PRIVMSG.*:multi alpha")
+m.expect(c3a, "multi beta in batch", "@batch=.*PRIVMSG.*:multi beta")
+m.expect(c3a, "single gamma in batch", "@batch=.*PRIVMSG.*:single gamma")
+m.expect(c3a, "long text in batch", "@batch=.*PRIVMSG.*:long text")
+m.expect(c3a, "concat tag preserved cross-server",
+         "draft/multiline-concat.*PRIVMSG.*: continued")
+m.expect(c3a, "third line in batch", "@batch=.*PRIVMSG.*:third line")
+m.expect(c3a, "single delta in batch", "@batch=.*PRIVMSG.*:single delta")
+
+m.clearlog()
+print()
+
+##############################################################################
+# 7. CHATHISTORY LATEST: all messages with multiline batches
+##############################################################################
+print("=== 7. CHATHISTORY LATEST ===")
+
+m.send(c2a, "CHATHISTORY LATEST " + chan + " * 10")
+
+# Chathistory batch wrapper
+m.expect(c2a, "chathistory BATCH",
+         " BATCH \\+[^ ]+ chathistory " + chan)
+
+# Nested draft/multiline
+m.expect(c2a, "nested draft/multiline BATCH",
+         "BATCH \\+[^ ]+ draft/multiline")
+
+# All content present in batches
+m.expect(c2a, "multi alpha", "@batch=.*PRIVMSG.*:multi alpha")
+m.expect(c2a, "multi beta", "@batch=.*PRIVMSG.*:multi beta")
+m.expect(c2a, "single gamma", "@batch=.*PRIVMSG.*:single gamma")
+m.expect(c2a, "long text", "@batch=.*PRIVMSG.*:long text")
+m.expect(c2a, "concat preserved in CHATHISTORY",
+         "draft/multiline-concat.*PRIVMSG.*: continued")
+m.expect(c2a, "third line", "@batch=.*PRIVMSG.*:third line")
+m.expect(c2a, "single delta", "@batch=.*PRIVMSG.*:single delta")
+
+m.clearlog()
+print()
+
+##############################################################################
+# 8. CHATHISTORY limit counting (multiline batch = 1 logical message)
+##############################################################################
+print("=== 8. CHATHISTORY limit counting ===")
+
+# Request only last 2 logical messages.
+# Should get: msg 3 (3-line multiline with concat) + msg 4 (single delta)
+# Should NOT get: msg 1 (2-line multiline) or msg 2 (single gamma)
+m.send(c2a, "CHATHISTORY LATEST " + chan + " * 2")
+
+# Present: msg 3 content (all 3 lines of the multiline batch)
+m.expect(c2a, "limit: long text present", "PRIVMSG.*:long text")
+m.expect(c2a, "limit: continued present", "PRIVMSG.*: continued")
+m.expect(c2a, "limit: third line present", "PRIVMSG.*:third line")
+
+# Present: msg 4
+m.expect(c2a, "limit: single delta present", "PRIVMSG.*:single delta")
+
+# Absent: msg 1 and msg 2 (outside the limit of 2)
+m.not_expect(c2a, "limit: multi alpha absent", "PRIVMSG.*:multi alpha")
+m.not_expect(c2a, "limit: multi beta absent", "PRIVMSG.*:multi beta")
+m.not_expect(c2a, "limit: single gamma absent", "PRIVMSG.*:single gamma")
+
+m.clearlog()
+print()

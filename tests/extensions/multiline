@@ -1,0 +1,674 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')    # server 1 - sender (multiline-capable)
+c1b = m.new('c1b')    # server 1 - error test senders (one per test to avoid fake lag buildup)
+c1c = m.new('c1c')
+c1d = m.new('c1d')
+c1e = m.new('c1e')
+c1f = m.new('c1f')
+c1g = m.new('c1g')
+c1h = m.new('c1h')
+c1i = m.new('c1i')    # server 1 - echo-message + labeled-response sender
+c1j = m.new('c1j')    # server 1 - fallback tag test sender
+c1k = m.new('c1k')    # server 1 - STATUSMSG prefix test sender
+c2a = m.new('c2a')    # server 2 - plain client (fallback recipient)
+c2b = m.new('c2b')    # server 2 - multiline-capable recipient
+c2c = m.new('c2c')    # server 2 - fallback recipient with server-time (for tag checks)
+c3a = m.new('c3a')    # server 3 - cross-server multiline recipient
+m.connect()
+
+# Multiline produces fundamentally different tags for different clients:
+# batch-capable clients get @batch=, fallback clients get @msgid=;time=
+# on the first line and time= (no msgid) on subsequent lines. Disable the
+# framework's message tag checks entirely for this test.
+m.disable_message_tags_check = 1
+c1a.disable_message_tags_check = 1
+c1b.disable_message_tags_check = 1
+c1c.disable_message_tags_check = 1
+c1d.disable_message_tags_check = 1
+c1e.disable_message_tags_check = 1
+c1f.disable_message_tags_check = 1
+c1g.disable_message_tags_check = 1
+c1h.disable_message_tags_check = 1
+c1i.disable_message_tags_check = 1
+c1j.disable_message_tags_check = 1
+c1k.disable_message_tags_check = 1
+c2a.disable_message_tags_check = 1
+c2b.disable_message_tags_check = 1
+c2c.disable_message_tags_check = 1
+c3a.disable_message_tags_check = 1
+
+
+##############################################################################
+# 1. CAP Negotiation
+##############################################################################
+print
+print("=== 1. CAP Negotiation ===")
+
+# Request multiline + batch + server-time on the multiline clients
+m.send(c1a, "CAP REQ :draft/multiline batch server-time")
+m.expect(c1a, "c1a: CAP ACK for draft/multiline batch server-time",
+         "CAP .* ACK :draft/multiline batch server-time")
+for client in [c1b, c1c, c1d, c1e, c1f, c1g, c1h, c1j, c1k]:
+    m.send(client, "CAP REQ :draft/multiline batch server-time")
+    m.expect(client, "CAP ACK for draft/multiline batch server-time",
+             "CAP .* ACK :draft/multiline batch server-time")
+m.send(c1i, "CAP REQ :draft/multiline batch server-time echo-message")
+m.expect(c1i, "c1i: CAP ACK for draft/multiline batch server-time echo-message",
+         "CAP .* ACK :draft/multiline batch server-time echo-message")
+m.send(c2b, "CAP REQ :draft/multiline batch server-time")
+m.expect(c2b, "c2b: CAP ACK for draft/multiline batch server-time",
+         "CAP .* ACK :draft/multiline batch server-time")
+m.send(c2c, "CAP REQ :server-time")
+m.expect(c2c, "c2c: CAP ACK for server-time",
+         "CAP .* ACK :server-time")
+m.send(c3a, "CAP REQ :draft/multiline batch server-time")
+m.expect(c3a, "c3a: CAP ACK for draft/multiline batch server-time",
+         "CAP .* ACK :draft/multiline batch server-time")
+
+# Verify CAP value advertises max-bytes (required) and max-lines (recommended)
+m.send(c1a, "CAP LS 302")
+m.expect(c1a, "CAP value includes max-bytes",
+         "draft/multiline=.*max-bytes=")
+m.expect(c1a, "CAP value includes max-lines",
+         "draft/multiline=.*max-lines=")
+m.clearlog()
+print
+
+##############################################################################
+# Setup: join a shared channel
+##############################################################################
+chan = m.randchan()
+m.join_all(chan, creator=c1a)
+m.clearlog()
+print
+
+##############################################################################
+# 2. Basic Multiline PRIVMSG to Channel
+##############################################################################
+print("=== 2. Basic Multiline PRIVMSG to Channel ===")
+
+m.send(c1a, [
+    "BATCH +ml1 draft/multiline " + chan,
+    "@batch=ml1 PRIVMSG " + chan + " :line one",
+    "@batch=ml1 PRIVMSG " + chan + " :line two",
+    "BATCH -ml1",
+])
+
+# Multiline-capable recipient on server 2
+m.expect(c2b, "c2b: BATCH open for multiline",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2b, "c2b: line one in batch",
+         "@batch=.*PRIVMSG.*:line one")
+m.expect(c2b, "c2b: line two in batch",
+         "@batch=.*PRIVMSG.*:line two")
+m.expect(c2b, "c2b: BATCH close",
+         "BATCH -")
+
+# Cross-server multiline recipient on server 3
+m.expect(c3a, "c3a: BATCH open for multiline (cross-server)",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c3a, "c3a: line one in batch (cross-server)",
+         "@batch=.*PRIVMSG.*:line one")
+m.expect(c3a, "c3a: line two in batch (cross-server)",
+         "@batch=.*PRIVMSG.*:line two")
+m.expect(c3a, "c3a: BATCH close (cross-server)",
+         "BATCH -")
+
+# Fallback: plain client receives individual PRIVMSGs, no BATCH
+m.expect(c2a, "c2a fallback: line one as individual PRIVMSG",
+         "PRIVMSG.*:line one")
+m.expect(c2a, "c2a fallback: line two as individual PRIVMSG",
+         "PRIVMSG.*:line two")
+m.not_expect(c2a, "c2a fallback: no BATCH for plain client",
+             " BATCH ")
+m.clearlog()
+print
+
+##############################################################################
+# 3. Basic Multiline NOTICE to Channel
+##############################################################################
+print("=== 3. Basic Multiline NOTICE to Channel ===")
+
+m.send(c1a, [
+    "BATCH +ml2 draft/multiline " + chan,
+    "@batch=ml2 NOTICE " + chan + " :notice one",
+    "@batch=ml2 NOTICE " + chan + " :notice two",
+    "BATCH -ml2",
+])
+
+m.expect(c2b, "c2b: BATCH open for NOTICE multiline",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2b, "c2b: notice one in batch",
+         "@batch=.*NOTICE.*:notice one")
+m.expect(c2b, "c2b: notice two in batch",
+         "@batch=.*NOTICE.*:notice two")
+m.expect(c2b, "c2b: BATCH close for NOTICE",
+         "BATCH -")
+
+m.expect(c2a, "c2a fallback: notice one as individual NOTICE",
+         "NOTICE.*:notice one")
+m.expect(c2a, "c2a fallback: notice two as individual NOTICE",
+         "NOTICE.*:notice two")
+m.not_expect(c2a, "c2a fallback: no BATCH for NOTICE",
+             " BATCH ")
+m.clearlog()
+print
+
+##############################################################################
+# 4. Multiline DM (Private Message)
+##############################################################################
+print("=== 4. Multiline DM ===")
+
+# 4.1 DM to multiline-capable user on server 2
+m.send(c1a, [
+    "BATCH +ml3 draft/multiline " + c2b.nick,
+    "@batch=ml3 PRIVMSG " + c2b.nick + " :dm line one",
+    "@batch=ml3 PRIVMSG " + c2b.nick + " :dm line two",
+    "BATCH -ml3",
+])
+m.expect(c2b, "c2b: DM BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2b, "c2b: DM line one in batch",
+         "@batch=.*PRIVMSG.*:dm line one")
+m.expect(c2b, "c2b: DM line two in batch",
+         "@batch=.*PRIVMSG.*:dm line two")
+m.expect(c2b, "c2b: DM BATCH close",
+         "BATCH -")
+m.clearlog()
+print
+
+# 4.2 DM to plain user on server 2
+m.send(c1a, [
+    "BATCH +ml4 draft/multiline " + c2a.nick,
+    "@batch=ml4 PRIVMSG " + c2a.nick + " :dm plain one",
+    "@batch=ml4 PRIVMSG " + c2a.nick + " :dm plain two",
+    "BATCH -ml4",
+])
+m.expect(c2a, "c2a fallback: DM line one",
+         "PRIVMSG.*:dm plain one")
+m.expect(c2a, "c2a fallback: DM line two",
+         "PRIVMSG.*:dm plain two")
+m.not_expect(c2a, "c2a fallback: no BATCH in DM",
+             " BATCH ")
+m.clearlog()
+print
+
+# 4.3 DM to remote multiline user on server 3
+m.send(c1a, [
+    "BATCH +ml5 draft/multiline " + c3a.nick,
+    "@batch=ml5 PRIVMSG " + c3a.nick + " :dm remote one",
+    "@batch=ml5 PRIVMSG " + c3a.nick + " :dm remote two",
+    "BATCH -ml5",
+])
+m.expect(c3a, "c3a: remote DM BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c3a, "c3a: remote DM line one",
+         "@batch=.*PRIVMSG.*:dm remote one")
+m.expect(c3a, "c3a: remote DM line two",
+         "@batch=.*PRIVMSG.*:dm remote two")
+m.expect(c3a, "c3a: remote DM BATCH close",
+         "BATCH -")
+m.clearlog()
+print
+
+##############################################################################
+# 5. Concat Tag
+##############################################################################
+print("=== 5. Concat Tag ===")
+
+# 5.1 Two lines, second has draft/multiline-concat
+m.send(c1a, [
+    "BATCH +ml6 draft/multiline " + chan,
+    "@batch=ml6 PRIVMSG " + chan + " :this is a very long",
+    "@batch=ml6;draft/multiline-concat PRIVMSG " + chan + " :line that was split",
+    "BATCH -ml6",
+])
+
+# Multiline client sees both lines in a batch, second with concat tag
+m.expect(c2b, "c2b: concat BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2b, "c2b: first part in batch",
+         "@batch=.*PRIVMSG.*:this is a very long")
+m.expect(c2b, "c2b: concat line with tag",
+         "draft/multiline-concat.*PRIVMSG.*:line that was split")
+m.expect(c2b, "c2b: concat BATCH close",
+         "BATCH -")
+
+# Fallback client: lines are concatenated into one PRIVMSG (no separator)
+m.expect(c2a, "c2a fallback: concat merged into one PRIVMSG",
+         "PRIVMSG.*:this is a very longline that was split")
+m.clearlog()
+print
+
+# 5.2 Mixed: 4 lines (line1+concat, line3, line4)
+m.send(c1a, [
+    "BATCH +ml7 draft/multiline " + chan,
+    "@batch=ml7 PRIVMSG " + chan + " :first part",
+    "@batch=ml7;draft/multiline-concat PRIVMSG " + chan + " : continued",
+    "@batch=ml7 PRIVMSG " + chan + " :line B standalone",
+    "@batch=ml7 PRIVMSG " + chan + " :line C standalone",
+    "BATCH -ml7",
+])
+
+# Multiline client sees 4 lines in batch
+m.expect(c2b, "c2b: mixed concat BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2b, "c2b: first part",
+         "@batch=.*PRIVMSG.*:first part")
+m.expect(c2b, "c2b: concat continuation",
+         "draft/multiline-concat.*PRIVMSG.*: continued")
+m.expect(c2b, "c2b: line B",
+         "@batch=.*PRIVMSG.*:line B standalone")
+m.expect(c2b, "c2b: line C",
+         "@batch=.*PRIVMSG.*:line C standalone")
+m.expect(c2b, "c2b: mixed concat BATCH close",
+         "BATCH -")
+
+# Fallback: 3 PRIVMSGs (first two merged, then B and C)
+m.expect(c2a, "c2a fallback: merged line",
+         "PRIVMSG.*:first part continued")
+m.expect(c2a, "c2a fallback: line B",
+         "PRIVMSG.*:line B standalone")
+m.expect(c2a, "c2a fallback: line C",
+         "PRIVMSG.*:line C standalone")
+m.clearlog()
+print
+
+##############################################################################
+# 6. Blank Lines
+##############################################################################
+print("=== 6. Blank Lines ===")
+
+# 6.1 Blank line between content lines
+m.send(c1a, [
+    "BATCH +ml8 draft/multiline " + chan,
+    "@batch=ml8 PRIVMSG " + chan + " :paragraph one",
+    "@batch=ml8 PRIVMSG " + chan + " :",
+    "@batch=ml8 PRIVMSG " + chan + " :paragraph two",
+    "BATCH -ml8",
+])
+
+# Multiline client receives all 3 lines in batch (including blank)
+m.expect(c2b, "c2b: blank line BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2b, "c2b: paragraph one",
+         "@batch=.*PRIVMSG.*:paragraph one")
+m.expect(c2b, "c2b: paragraph two",
+         "@batch=.*PRIVMSG.*:paragraph two")
+m.expect(c2b, "c2b: blank line BATCH close",
+         "BATCH -")
+
+# Fallback: per spec, blank lines MUST NOT be sent to non-multiline clients.
+# So c2a should only see paragraph one and paragraph two, no blank line.
+m.expect(c2a, "c2a fallback: paragraph one",
+         "PRIVMSG.*:paragraph one")
+m.expect(c2a, "c2a fallback: paragraph two",
+         "PRIVMSG.*:paragraph two")
+m.not_expect(c2a, "c2a fallback: no blank PRIVMSG sent to non-multiline client",
+             "PRIVMSG " + chan + " :$")
+m.clearlog()
+print
+
+# 6.2 Batch consisting entirely of blank lines -- should be rejected
+m.send(c1b, [
+    "BATCH +ml9 draft/multiline " + chan,
+    "@batch=ml9 PRIVMSG " + chan + " :",
+    "@batch=ml9 PRIVMSG " + chan + " :",
+    "BATCH -ml9",
+])
+m.expect(c1b, "All-blank batch rejected with FAIL",
+         "FAIL BATCH MULTILINE_INVALID")
+m.not_expect(c2a, "c2a: no message from all-blank batch",
+             "PRIVMSG " + chan)
+m.not_expect(c2b, "c2b: no message from all-blank batch",
+             "PRIVMSG " + chan)
+m.clearlog()
+print
+
+# 6.3 Blank first line + fallback tag verification
+# Tests three spec requirements at once:
+# - Blank lines MUST NOT be sent to non-multiline clients
+# - msgid MUST only be on the first (non-blank) fallback line
+# - Other tags (time, account) MAY be on subsequent fallback lines
+m.send(c1j, "JOIN " + chan)
+m.clearlog()
+
+m.send(c1j, [
+    "BATCH +mlk draft/multiline " + chan,
+    "@batch=mlk PRIVMSG " + chan + " :",
+    "@batch=mlk PRIVMSG " + chan + " :line A",
+    "@batch=mlk PRIVMSG " + chan + " :line B",
+    "BATCH -mlk",
+])
+
+# Multiline-capable client receives all lines (including blank) in batch
+m.expect(c2b, "c2b: blank-first BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2b, "c2b: line A in batch",
+         "@batch=.*PRIVMSG.*:line A")
+m.expect(c2b, "c2b: line B in batch",
+         "@batch=.*PRIVMSG.*:line B")
+m.expect(c2b, "c2b: blank-first BATCH close",
+         "BATCH -")
+
+# Plain fallback client: only content lines, no blank
+m.expect(c2a, "c2a fallback: line A",
+         "PRIVMSG.*:line A")
+m.expect(c2a, "c2a fallback: line B",
+         "PRIVMSG.*:line B")
+m.not_expect(c2a, "c2a fallback: no blank PRIVMSG",
+             "PRIVMSG " + chan + " :$")
+
+# Fallback client with server-time (c2c): verify tag behavior
+# First non-blank fallback line should have msgid
+m.expect_tag(c2c, "c2c fallback: line A has msgid tag",
+             "PRIVMSG.*:line A", "msgid")
+# First non-blank fallback line should have time tag
+m.expect_tag(c2c, "c2c fallback: line A has time tag",
+             "PRIVMSG.*:line A", "time")
+# Second fallback line should have time tag
+m.expect_tag(c2c, "c2c fallback: line B has time tag",
+             "PRIVMSG.*:line B", "time")
+# Second fallback line should NOT have msgid
+m.not_expect(c2c, "c2c fallback: line B has no msgid tag",
+             "@.*msgid=.*PRIVMSG.*:line B")
+# No blank lines
+m.not_expect(c2c, "c2c fallback: no blank PRIVMSG",
+             "PRIVMSG " + chan + " :$")
+m.clearlog()
+print
+
+##############################################################################
+# 7. Error Conditions
+##############################################################################
+print("=== 7. Error Conditions ===")
+
+# 7.1 Exceed max-lines (8 lines, limit is 7)
+m.send(c1c, [
+    "BATCH +mla draft/multiline " + chan,
+    "@batch=mla PRIVMSG " + chan + " :line1",
+    "@batch=mla PRIVMSG " + chan + " :line2",
+    "@batch=mla PRIVMSG " + chan + " :line3",
+    "@batch=mla PRIVMSG " + chan + " :line4",
+    "@batch=mla PRIVMSG " + chan + " :line5",
+    "@batch=mla PRIVMSG " + chan + " :line6",
+    "@batch=mla PRIVMSG " + chan + " :line7",
+    "@batch=mla PRIVMSG " + chan + " :line8",
+    "BATCH -mla",
+])
+m.expect(c1c, "Exceed max-lines: FAIL MULTILINE_MAX_LINES with limit",
+         "FAIL BATCH MULTILINE_MAX_LINES [0-9]+")
+m.not_expect(c2b, "c2b: no delivery when max-lines exceeded",
+             "PRIVMSG.*:line1")
+m.clearlog()
+print
+
+# 7.2 Exactly at max-lines (7 lines) -- should succeed
+m.send(c1a, [
+    "BATCH +mlb draft/multiline " + chan,
+    "@batch=mlb PRIVMSG " + chan + " :maxline1",
+    "@batch=mlb PRIVMSG " + chan + " :maxline2",
+    "@batch=mlb PRIVMSG " + chan + " :maxline3",
+    "@batch=mlb PRIVMSG " + chan + " :maxline4",
+    "@batch=mlb PRIVMSG " + chan + " :maxline5",
+    "@batch=mlb PRIVMSG " + chan + " :maxline6",
+    "@batch=mlb PRIVMSG " + chan + " :maxline7",
+    "BATCH -mlb",
+])
+m.expect(c2b, "c2b: 7-line batch succeeds - BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2b, "c2b: 7-line batch - maxline1",
+         "@batch=.*PRIVMSG.*:maxline1")
+m.expect(c2b, "c2b: 7-line batch - maxline7",
+         "@batch=.*PRIVMSG.*:maxline7")
+m.expect(c2b, "c2b: 7-line batch - BATCH close",
+         "BATCH -")
+m.not_expect(c1a, "No FAIL for exactly max-lines",
+             "FAIL BATCH")
+m.clearlog()
+print
+
+# 7.3 Exceed max-bytes (>1500 bytes total)
+bigtext = "A" * 350
+m.send(c1d, [
+    "BATCH +mlc draft/multiline " + chan,
+    "@batch=mlc PRIVMSG " + chan + " :" + bigtext,
+    "@batch=mlc PRIVMSG " + chan + " :" + bigtext,
+    "@batch=mlc PRIVMSG " + chan + " :" + bigtext,
+    "@batch=mlc PRIVMSG " + chan + " :" + bigtext,
+    "@batch=mlc PRIVMSG " + chan + " :" + bigtext,
+    "BATCH -mlc",
+])
+m.expect(c1d, "Exceed max-bytes: FAIL MULTILINE_MAX_BYTES with limit",
+         "FAIL BATCH MULTILINE_MAX_BYTES [0-9]+")
+m.not_expect(c2b, "c2b: no delivery when max-bytes exceeded",
+             "PRIVMSG.*:" + bigtext[:20])
+m.clearlog()
+print
+
+# 7.4 Target mismatch within batch
+otherchan = m.randchan()
+m.send(c1e, "JOIN " + otherchan)
+m.clearlog()
+print
+
+m.send(c1e, [
+    "BATCH +mld draft/multiline " + chan,
+    "@batch=mld PRIVMSG " + chan + " :correct target",
+    "@batch=mld PRIVMSG " + otherchan + " :wrong target",
+    "BATCH -mld",
+])
+m.expect(c1e, "Target mismatch: FAIL MULTILINE_INVALID_TARGET with both targets",
+         "FAIL BATCH MULTILINE_INVALID_TARGET \\S+ \\S+")
+m.clearlog()
+print
+
+# 7.5 Mix PRIVMSG and NOTICE in same batch
+m.send(c1f, [
+    "BATCH +mle draft/multiline " + chan,
+    "@batch=mle PRIVMSG " + chan + " :a privmsg",
+    "@batch=mle NOTICE " + chan + " :a notice",
+    "BATCH -mle",
+])
+m.expect(c1f, "Mixed PRIVMSG/NOTICE: FAIL MULTILINE_INVALID",
+         "FAIL BATCH MULTILINE_INVALID")
+m.clearlog()
+print
+
+# 7.6 Blank line with concat tag
+m.send(c1g, [
+    "BATCH +mlf draft/multiline " + chan,
+    "@batch=mlf PRIVMSG " + chan + " :some text",
+    "@batch=mlf;draft/multiline-concat PRIVMSG " + chan + " :",
+    "BATCH -mlf",
+])
+m.expect(c1g, "Blank line with concat: FAIL MULTILINE_INVALID",
+         "FAIL BATCH MULTILINE_INVALID")
+m.clearlog()
+print
+
+# 7.7 Empty batch (no PRIVMSG/NOTICE lines)
+m.send(c1h, [
+    "BATCH +mlg draft/multiline " + chan,
+    "BATCH -mlg",
+])
+m.expect(c1h, "Empty batch: FAIL MULTILINE_INVALID",
+         "FAIL BATCH MULTILINE_INVALID")
+m.clearlog()
+print
+
+##############################################################################
+# 9. Echo-message and Labeled Response Interaction
+##############################################################################
+print("=== 9. Echo-message and Labeled Response ===")
+
+# 9.1 Echo-message with multiline batch
+# Verify sender with echo-message receives own multiline batch echoed back
+# as a proper batch (not individual fallback messages)
+m.send(c1i, "JOIN " + chan)
+m.clearlog()
+
+m.send(c1i, [
+    "BATCH +mli draft/multiline " + chan,
+    "@batch=mli PRIVMSG " + chan + " :echo line one",
+    "@batch=mli PRIVMSG " + chan + " :echo line two",
+    "BATCH -mli",
+])
+
+# Sender should receive the batch echoed back
+m.expect(c1i, "c1i echo: BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c1i, "c1i echo: line one in batch",
+         "@batch=.*PRIVMSG.*:echo line one")
+m.expect(c1i, "c1i echo: line two in batch",
+         "@batch=.*PRIVMSG.*:echo line two")
+m.expect(c1i, "c1i echo: BATCH close",
+         "BATCH -")
+
+# Other multiline recipient should also receive normally
+m.expect(c2b, "c2b: echo test BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2b, "c2b: echo test line one",
+         "@batch=.*PRIVMSG.*:echo line one")
+m.expect(c2b, "c2b: echo test BATCH close",
+         "BATCH -")
+m.clearlog()
+print
+
+# 9.2 Labeled echo-message with multiline batch
+# Per spec: "Servers MUST only include the label tag on the opening BATCH
+# command when replying to a client using echo-message."
+m.send(c1i, "CAP REQ :labeled-response")
+m.expect(c1i, "c1i: CAP ACK for labeled-response",
+         "CAP .* ACK :labeled-response")
+m.clearlog()
+
+m.send(c1i, [
+    "@label=echotest BATCH +mlj draft/multiline " + chan,
+    "@batch=mlj PRIVMSG " + chan + " :labeled line one",
+    "@batch=mlj PRIVMSG " + chan + " :labeled line two",
+    "BATCH -mlj",
+])
+
+# Sender: label MUST be on BATCH open
+m.expect(c1i, "c1i labeled echo: BATCH open with label",
+         "@label=echotest.*BATCH \\+[^ ]+ draft/multiline")
+
+# Sender: inner messages received in batch
+m.expect(c1i, "c1i labeled echo: line one in batch",
+         "@batch=.*PRIVMSG.*:labeled line one")
+m.expect(c1i, "c1i labeled echo: line two in batch",
+         "@batch=.*PRIVMSG.*:labeled line two")
+
+# Sender: label MUST NOT appear on inner PRIVMSG lines
+m.not_expect(c1i, "c1i labeled echo: no label on inner PRIVMSG",
+             "@label=.*PRIVMSG.*:labeled line")
+
+# Sender: label MUST NOT appear on BATCH close
+m.not_expect(c1i, "c1i labeled echo: no label on BATCH close",
+             "@label=.*BATCH -")
+
+# Other recipient: should NOT see the label tag at all
+m.expect(c2b, "c2b: labeled echo test BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2b, "c2b: labeled echo test line one",
+         "@batch=.*PRIVMSG.*:labeled line one")
+m.expect(c2b, "c2b: labeled echo test BATCH close",
+         "BATCH -")
+m.not_expect(c2b, "c2b: no label tag on other recipient",
+             "@label=")
+m.clearlog()
+print
+
+## 7.8 Exactly at max-bytes (1500 bytes total: 4x299 + 1x300 content + 4 newlines)
+## TODO: framework multisync() times out with large successful batches
+#exact_text = "B" * 299
+#exact_last = "B" * 300
+#m.send(c1i, "JOIN " + chan)
+#m.clearlog()
+#m.send(c1i, [
+#    "BATCH +mli draft/multiline " + chan,
+#    "@batch=mli PRIVMSG " + chan + " :" + exact_text,
+#    "@batch=mli PRIVMSG " + chan + " :" + exact_text,
+#    "@batch=mli PRIVMSG " + chan + " :" + exact_text,
+#    "@batch=mli PRIVMSG " + chan + " :" + exact_text,
+#    "@batch=mli PRIVMSG " + chan + " :" + exact_last,
+#    "BATCH -mli",
+#])
+#m.expect(c2b, "c2b: exact max-bytes batch succeeds - BATCH open",
+#         "BATCH \\+[^ ]+ draft/multiline")
+#m.expect(c2b, "c2b: exact max-bytes - BATCH close",
+#         "BATCH -")
+#m.not_expect(c1i, "No FAIL for exactly max-bytes",
+#             "FAIL BATCH")
+#m.clearlog()
+#print
+
+##############################################################################
+# 8. Edge Cases
+##############################################################################
+print("=== 8. Edge Cases ===")
+
+# 8.1 Single-line batch -- valid
+m.send(c1a, [
+    "BATCH +mlh draft/multiline " + chan,
+    "@batch=mlh PRIVMSG " + chan + " :single line batch",
+    "BATCH -mlh",
+])
+
+m.expect(c2b, "c2b: single-line BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2b, "c2b: single-line batch content",
+         "@batch=.*PRIVMSG.*:single line batch")
+m.expect(c2b, "c2b: single-line BATCH close",
+         "BATCH -")
+
+# Fallback: single PRIVMSG
+m.expect(c2a, "c2a fallback: single PRIVMSG from single-line batch",
+         "PRIVMSG.*:single line batch")
+m.not_expect(c2a, "c2a fallback: no BATCH",
+             " BATCH ")
+m.clearlog()
+print
+
+##############################################################################
+# 10. STATUSMSG Prefix (@#channel)
+##############################################################################
+print("=== 10. STATUSMSG Prefix (@#channel) ===")
+
+# c1k joins and gets opped by c1a (channel creator)
+m.send(c1k, "JOIN " + chan)
+m.clearlog()
+m.send(c1a, "MODE " + chan + " +o " + c1k.nick)
+m.clearlog()
+
+# c1k (ops, multiline) sends multiline to @#channel
+m.send(c1k, [
+    "BATCH +mls draft/multiline @" + chan,
+    "@batch=mls PRIVMSG @" + chan + " :ops only line one",
+    "@batch=mls PRIVMSG @" + chan + " :ops only line two",
+    "BATCH -mls",
+])
+
+# c1a (ops, multiline) should receive the batch
+m.expect(c1a, "c1a: STATUSMSG BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c1a, "c1a: STATUSMSG line one",
+         "@batch=.*PRIVMSG.*:ops only line one")
+m.expect(c1a, "c1a: STATUSMSG line two",
+         "@batch=.*PRIVMSG.*:ops only line two")
+m.expect(c1a, "c1a: STATUSMSG BATCH close",
+         "BATCH -")
+
+# c2a (no ops, plain) should NOT receive anything
+m.not_expect(c2a, "c2a: no STATUSMSG delivery to non-opped plain client",
+             "ops only line")
+
+# c2b (no ops, multiline) should NOT receive anything
+m.not_expect(c2b, "c2b: no STATUSMSG delivery to non-opped multiline client",
+             "ops only line")
+m.clearlog()
+print

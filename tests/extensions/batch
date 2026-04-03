@@ -1,0 +1,44 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')    # server 1 - sender
+c1b = m.new('c1b')    # server 1 - invalid reftag test sender
+m.connect()
+
+##############################################################################
+# 1. CAP Negotiation
+##############################################################################
+print
+print("=== 1. CAP Negotiation ===")
+
+for client in [c1a, c1b]:
+    m.send(client, "CAP REQ :batch")
+    m.expect(client, "CAP ACK for batch",
+             "CAP .* ACK :batch")
+m.clearlog()
+print
+
+##############################################################################
+# 2. Unknown batch type
+##############################################################################
+print("=== 2. Unknown batch type ===")
+
+m.send(c1a, "BATCH +xyz some/unknown #target")
+m.expect(c1a, "Unknown batch type rejected with FAIL BATCH UNKNOWN_TYPE",
+         "FAIL BATCH UNKNOWN_TYPE")
+m.clearlog()
+print
+
+##############################################################################
+# 3. Invalid reference tag
+##############################################################################
+print("=== 3. Invalid reference tag ===")
+
+# Spec: reference tag MUST contain only ASCII letters, numbers, and/or hyphen.
+# Characters like underscores, dots, or special chars are invalid.
+m.send(c1b, "BATCH +bad_tag draft/multiline #target")
+m.expect(c1b, "Invalid reftag with underscore rejected",
+         "FAIL BATCH INVALID_REFTAG")
+m.clearlog()
+print

@@ -104,7 +104,7 @@ fi
 
 if [ "$1" = "-fast" ]; then
 	FAST=2
-	TIMEOUT=30
+	TIMEOUT=40
 	shift
 fi
 

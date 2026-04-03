@@ -1,0 +1,327 @@
+#!/usr/bin/python3
+# Test that multiline batches respect channel +f flood protection limits.
+# The effective max-lines for a channel is MIN(configured_max_lines, +f_limit).
+# The configured max-lines defaults to 7 for unknown-users.
+# For the +f limit we look at 't' and at 'm', whichever is lower.
+
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')    # server 1 - chanop, success-test sender
+c1b = m.new('c1b')    # server 1 - error test sender 1
+c1c = m.new('c1c')    # server 1 - error test sender 2
+c1d = m.new('c1d')    # server 1 - error test sender 3
+c1e = m.new('c1e')    # server 1 - error test sender 4
+c1f = m.new('c1f')    # server 1 - error test sender 5
+c1g = m.new('c1g')    # server 1 - paste flood test sender 1
+c1h = m.new('c1h')    # server 1 - paste flood test sender 2
+c1i = m.new('c1i')    # server 1 - paste flood test sender 3
+c2a = m.new('c2a')    # server 2 - multiline-capable recipient
+c3a = m.new('c3a')    # server 3 - cross-server multiline recipient
+m.connect()
+
+m.disable_message_tags_check = 1
+c1a.disable_message_tags_check = 1
+c1b.disable_message_tags_check = 1
+c1c.disable_message_tags_check = 1
+c1d.disable_message_tags_check = 1
+c1e.disable_message_tags_check = 1
+c1f.disable_message_tags_check = 1
+c1g.disable_message_tags_check = 1
+c1h.disable_message_tags_check = 1
+c1i.disable_message_tags_check = 1
+c2a.disable_message_tags_check = 1
+c3a.disable_message_tags_check = 1
+
+# Request multiline + batch + server-time on all clients
+for client in [c1a, c1b, c1c, c1d, c1e, c1f, c1g, c1h, c1i, c2a, c3a]:
+    m.send(client, "CAP REQ :draft/multiline batch server-time")
+    m.expect(client, "CAP ACK",
+             "CAP .* ACK :draft/multiline batch server-time")
+
+# Setup: join a shared channel
+chan = m.randchan()
+m.join_all(chan, creator=c1a)
+m.clearlog()
+print
+
+##############################################################################
+# 1. +f 'm' limit tighter than configured max-lines -> batch rejected
+##############################################################################
+print("=== 1. +f 'm' limit (3) tighter than configured max-lines (7) ===")
+
+m.send(c1a, "MODE " + chan + " +f [3m]:15")
+m.clearlog()
+
+# Send 4-line batch -- exceeds effective limit of 3
+m.send(c1b, [
+    "BATCH +t1 draft/multiline " + chan,
+    "@batch=t1 PRIVMSG " + chan + " :line1",
+    "@batch=t1 PRIVMSG " + chan + " :line2",
+    "@batch=t1 PRIVMSG " + chan + " :line3",
+    "@batch=t1 PRIVMSG " + chan + " :line4",
+    "BATCH -t1",
+])
+m.expect(c1b, "+f m=3 rejects 4-line batch",
+         "FAIL BATCH MULTILINE_MAX_LINES")
+m.not_expect(c2a, "c2a: no delivery when +f m limit exceeded",
+             "PRIVMSG.*:line1")
+m.not_expect(c3a, "c3a: no delivery when +f m limit exceeded",
+             "PRIVMSG.*:line1")
+m.clearlog()
+print
+
+##############################################################################
+# 2. Batch at exactly the +f limit -> succeeds
+##############################################################################
+print("=== 2. Batch at exactly +f 'm' limit (3 lines) -> succeeds ===")
+
+m.send(c1a, [
+    "BATCH +t2 draft/multiline " + chan,
+    "@batch=t2 PRIVMSG " + chan + " :exact1",
+    "@batch=t2 PRIVMSG " + chan + " :exact2",
+    "@batch=t2 PRIVMSG " + chan + " :exact3",
+    "BATCH -t2",
+])
+m.expect(c2a, "c2a: 3-line batch succeeds - BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2a, "c2a: 3-line batch - exact1",
+         "@batch=.*PRIVMSG.*:exact1")
+m.expect(c2a, "c2a: 3-line batch - exact3",
+         "@batch=.*PRIVMSG.*:exact3")
+m.expect(c2a, "c2a: 3-line batch - BATCH close",
+         "BATCH -")
+m.expect(c3a, "c3a: 3-line batch succeeds - BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c3a, "c3a: 3-line batch - exact1",
+         "@batch=.*PRIVMSG.*:exact1")
+m.expect(c3a, "c3a: 3-line batch - exact3",
+         "@batch=.*PRIVMSG.*:exact3")
+m.expect(c3a, "c3a: 3-line batch - BATCH close",
+         "BATCH -")
+m.not_expect(c1a, "No FAIL for exactly +f limit",
+             "FAIL BATCH")
+m.clearlog()
+print
+
+##############################################################################
+# 3. +f 't' limit also respected (tighter than 'm')
+##############################################################################
+print("=== 3. +f 't' limit (2) tighter than 'm' limit (3) ===")
+
+m.send(c1a, "MODE " + chan + " +f [3m,2t]:15")
+m.clearlog()
+
+# 3-line batch should now fail (effective limit = MIN(3,2) = 2)
+m.send(c1c, [
+    "BATCH +t3 draft/multiline " + chan,
+    "@batch=t3 PRIVMSG " + chan + " :tline1",
+    "@batch=t3 PRIVMSG " + chan + " :tline2",
+    "@batch=t3 PRIVMSG " + chan + " :tline3",
+    "BATCH -t3",
+])
+m.expect(c1c, "+f t=2 rejects 3-line batch",
+         "FAIL BATCH MULTILINE_MAX_LINES")
+m.not_expect(c2a, "c2a: no delivery when +f t limit exceeded",
+             "PRIVMSG.*:tline1")
+m.not_expect(c3a, "c3a: no delivery when +f t limit exceeded",
+             "PRIVMSG.*:tline1")
+m.clearlog()
+
+# 2-line batch should succeed
+m.send(c1a, [
+    "BATCH +t3b draft/multiline " + chan,
+    "@batch=t3b PRIVMSG " + chan + " :tok1",
+    "@batch=t3b PRIVMSG " + chan + " :tok2",
+    "BATCH -t3b",
+])
+m.expect(c2a, "c2a: 2-line batch succeeds under t=2 limit",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2a, "c2a: 2-line batch - tok2",
+         "@batch=.*PRIVMSG.*:tok2")
+m.expect(c3a, "c3a: 2-line batch succeeds under t=2 limit",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c3a, "c3a: 2-line batch - tok2",
+         "@batch=.*PRIVMSG.*:tok2")
+m.not_expect(c1a, "No FAIL for 2-line batch with t=2",
+             "FAIL BATCH")
+m.clearlog()
+print
+
+##############################################################################
+# 4. +f limit higher than configured max-lines -> no effect
+##############################################################################
+print("=== 4. +f 'm' limit (10) higher than configured max-lines (7) -> no effect ===")
+
+m.send(c1a, "MODE " + chan + " +f [10m]:15")
+m.clearlog()
+
+# 7-line batch should succeed (still limited by configured max-lines=7)
+m.send(c1a, [
+    "BATCH +t4 draft/multiline " + chan,
+    "@batch=t4 PRIVMSG " + chan + " :hi1",
+    "@batch=t4 PRIVMSG " + chan + " :hi2",
+    "@batch=t4 PRIVMSG " + chan + " :hi3",
+    "@batch=t4 PRIVMSG " + chan + " :hi4",
+    "@batch=t4 PRIVMSG " + chan + " :hi5",
+    "@batch=t4 PRIVMSG " + chan + " :hi6",
+    "@batch=t4 PRIVMSG " + chan + " :hi7",
+    "BATCH -t4",
+])
+m.expect(c2a, "c2a: 7-line batch succeeds with +f m=10",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2a, "c2a: 7-line batch - hi7",
+         "@batch=.*PRIVMSG.*:hi7")
+m.expect(c3a, "c3a: 7-line batch succeeds with +f m=10",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c3a, "c3a: 7-line batch - hi7",
+         "@batch=.*PRIVMSG.*:hi7")
+m.not_expect(c1a, "No FAIL for 7-line batch with m=10",
+             "FAIL BATCH")
+m.clearlog()
+
+# 8-line batch should fail at configured limit 7, not +f limit 10
+m.send(c1d, [
+    "BATCH +t4b draft/multiline " + chan,
+    "@batch=t4b PRIVMSG " + chan + " :over1",
+    "@batch=t4b PRIVMSG " + chan + " :over2",
+    "@batch=t4b PRIVMSG " + chan + " :over3",
+    "@batch=t4b PRIVMSG " + chan + " :over4",
+    "@batch=t4b PRIVMSG " + chan + " :over5",
+    "@batch=t4b PRIVMSG " + chan + " :over6",
+    "@batch=t4b PRIVMSG " + chan + " :over7",
+    "@batch=t4b PRIVMSG " + chan + " :over8",
+    "BATCH -t4b",
+])
+m.expect(c1d, "8-line batch still rejected at configured max-lines=7",
+         "FAIL BATCH MULTILINE_MAX_LINES")
+m.not_expect(c2a, "c2a: no delivery for 8-line batch",
+             "PRIVMSG.*:over1")
+m.not_expect(c3a, "c3a: no delivery for 8-line batch",
+             "PRIVMSG.*:over1")
+m.clearlog()
+print
+
+##############################################################################
+# 5. Remove +f -> reverts to configured max-lines
+##############################################################################
+print("=== 5. Remove +f -> reverts to configured max-lines (7) ===")
+
+m.send(c1a, "MODE " + chan + " -f")
+m.clearlog()
+
+# 7-line batch should succeed again
+m.send(c1a, [
+    "BATCH +t5 draft/multiline " + chan,
+    "@batch=t5 PRIVMSG " + chan + " :back1",
+    "@batch=t5 PRIVMSG " + chan + " :back2",
+    "@batch=t5 PRIVMSG " + chan + " :back3",
+    "@batch=t5 PRIVMSG " + chan + " :back4",
+    "@batch=t5 PRIVMSG " + chan + " :back5",
+    "@batch=t5 PRIVMSG " + chan + " :back6",
+    "@batch=t5 PRIVMSG " + chan + " :back7",
+    "BATCH -t5",
+])
+m.expect(c2a, "c2a: 7-line batch succeeds after -f",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2a, "c2a: 7-line batch - back7",
+         "@batch=.*PRIVMSG.*:back7")
+m.expect(c3a, "c3a: 7-line batch succeeds after -f",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c3a, "c3a: 7-line batch - back7",
+         "@batch=.*PRIVMSG.*:back7")
+m.not_expect(c1a, "No FAIL after removing +f",
+             "FAIL BATCH")
+m.clearlog()
+
+# 8-line batch should fail at configured limit
+m.send(c1e, [
+    "BATCH +t5b draft/multiline " + chan,
+    "@batch=t5b PRIVMSG " + chan + " :nof1",
+    "@batch=t5b PRIVMSG " + chan + " :nof2",
+    "@batch=t5b PRIVMSG " + chan + " :nof3",
+    "@batch=t5b PRIVMSG " + chan + " :nof4",
+    "@batch=t5b PRIVMSG " + chan + " :nof5",
+    "@batch=t5b PRIVMSG " + chan + " :nof6",
+    "@batch=t5b PRIVMSG " + chan + " :nof7",
+    "@batch=t5b PRIVMSG " + chan + " :nof8",
+    "BATCH -t5b",
+])
+m.expect(c1e, "8-line batch rejected at configured max-lines after -f",
+         "FAIL BATCH MULTILINE_MAX_LINES")
+m.not_expect(c2a, "c2a: no delivery for 8-line batch after -f",
+             "PRIVMSG.*:nof1")
+m.not_expect(c3a, "c3a: no delivery for 8-line batch after -f",
+             "PRIVMSG.*:nof1")
+m.clearlog()
+print
+
+##############################################################################
+# 6. +f 'p' paste flood: first 3+ line batch succeeds
+##############################################################################
+print("=== 6. +f 'p' paste flood: first 3+ line batch succeeds ===")
+
+m.send(c1a, "MODE " + chan + " +f [1p]:15")
+m.clearlog()
+
+# First 3-line paste: should succeed (counter goes to 1, limit is 1)
+m.send(c1g, [
+    "BATCH +tp1 draft/multiline " + chan,
+    "@batch=tp1 PRIVMSG " + chan + " :paste1a",
+    "@batch=tp1 PRIVMSG " + chan + " :paste1b",
+    "@batch=tp1 PRIVMSG " + chan + " :paste1c",
+    "BATCH -tp1",
+])
+m.expect(c2a, "c2a: first paste succeeds - BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2a, "c2a: first paste - paste1c",
+         "@batch=.*PRIVMSG.*:paste1c")
+m.expect(c2a, "c2a: first paste - BATCH close",
+         "BATCH -")
+m.not_expect(c1g, "No FAIL for first paste",
+             "FAIL BATCH")
+m.clearlog()
+print
+
+##############################################################################
+# 7. +f 'p' paste flood: second 3+ line batch rejected
+##############################################################################
+print("=== 7. +f 'p' paste flood: second 3+ line batch rejected ===")
+
+# Second 3-line paste within 15 seconds: should be rejected
+m.send(c1h, [
+    "BATCH +tp2 draft/multiline " + chan,
+    "@batch=tp2 PRIVMSG " + chan + " :paste2a",
+    "@batch=tp2 PRIVMSG " + chan + " :paste2b",
+    "@batch=tp2 PRIVMSG " + chan + " :paste2c",
+    "BATCH -tp2",
+])
+m.expect(c1h, "second paste rejected by +f p limit",
+         "FAIL BATCH MULTILINE_PASTE_LIMIT")
+m.not_expect(c2a, "c2a: no delivery for second paste",
+             "PRIVMSG.*:paste2a")
+m.clearlog()
+print
+
+##############################################################################
+# 8. +f 'p' paste flood: 2-line batch is exempt (not a paste)
+##############################################################################
+print("=== 8. +f 'p' paste flood: 2-line batch exempt ===")
+
+# 2-line batch: should succeed even though paste limit is exceeded
+m.send(c1i, [
+    "BATCH +tp3 draft/multiline " + chan,
+    "@batch=tp3 PRIVMSG " + chan + " :short1",
+    "@batch=tp3 PRIVMSG " + chan + " :short2",
+    "BATCH -tp3",
+])
+m.expect(c2a, "c2a: 2-line batch exempt from paste limit - BATCH open",
+         "BATCH \\+[^ ]+ draft/multiline")
+m.expect(c2a, "c2a: 2-line batch - short2",
+         "@batch=.*PRIVMSG.*:short2")
+m.expect(c2a, "c2a: 2-line batch - BATCH close",
+         "BATCH -")
+m.not_expect(c1i, "No FAIL for 2-line batch",
+             "FAIL BATCH")
+m.clearlog()
+print
