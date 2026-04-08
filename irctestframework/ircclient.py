@@ -6,6 +6,18 @@ import string
 import random
 import re
 import time
+import os
+
+term = os.environ.get("TERM", "")
+if term == "" or term == "dumb":
+    use_color = False
+else:
+    use_color = True
+
+def bold(text):
+    if use_color:
+        return "\033[1m" + text + "\033[0m"
+    return text
 
 class IrcClient(asynchat.async_chat):
     def __init__(self, xxx_todo_changeme, name, color, syncchan):
@@ -32,6 +44,8 @@ class IrcClient(asynchat.async_chat):
         self.connect((host, port))
 
     def bgcolor(self, name):
+        if not use_color:
+            return ""
         if name[2:3] == 'a':
             c = '80'
         else:
@@ -48,6 +62,8 @@ class IrcClient(asynchat.async_chat):
         return '\033[48;2;210;105;180m' # error
 
     def fgcolor(self, name):
+        if not use_color:
+            return ""
         if name[2:3] == 'a':
             c = '192'
             suffix = ''
@@ -68,8 +84,8 @@ class IrcClient(asynchat.async_chat):
     def log(self, message):
         if self.disable_logging:
             return
-        standard = self.bgcolor(self.name) + "\033[38;2;210;210;210m"
-        m = standard + message + "\033[0m"
+        standard = self.bgcolor(self.name) + ("\033[38;2;210;210;210m" if use_color else "")
+        m = standard + message + ("\033[0m" if use_color else "")
         m = re.sub("(c1a_[a-z]{8})", self.fgcolor('c1a')+r'\1' + standard, m)
         m = re.sub("(c2a_[a-z]{8})", self.fgcolor('c2a')+r'\1' + standard, m)
         m = re.sub("(c3a_[a-z]{8})", self.fgcolor('c3a')+r'\1' + standard, m)
@@ -97,7 +113,7 @@ class IrcClient(asynchat.async_chat):
                 return
 
             if not "msgid=" in mtags and not self.disable_message_tags_check:
-                print("\033[1mMissing mandatory message-tag 'msgid' in channel event\033[0m")
+                print(bold("Missing mandatory message-tag 'msgid' in channel event"))
                 print("Line :" + line)
                 print()
                 raise Exception("Missing 'msgid' in channel event")
@@ -279,7 +295,7 @@ class IrcClient(asynchat.async_chat):
         for line in self.all_lines:
             if re.search(regex, line, re.DOTALL) != None:
                 if not msgtag:
-                    print('\033[1m' + '\u2714' + ' Test passed: ' + failmsg + '\033[0m')
+                    print(bold('\u2714 Test passed: ' + failmsg))
                     return line
                 else:
                     # Need to check presence of msgtag as well..
@@ -289,7 +305,7 @@ class IrcClient(asynchat.async_chat):
                     # fallthrough? bit confusing.
         if nofail == 1:
             return False
-        print('\033[1m' + '\u274e' + ' Test failed: ' + failmsg + '\033[0m')
+        print(bold('\u274e Test failed: ' + failmsg))
         print('******************* EXPECT FAILED ************************')
         self.log('Client: ' + self.nick)
         print('Fail message: ' + failmsg)
@@ -303,7 +319,7 @@ class IrcClient(asynchat.async_chat):
     def not_expect(self, failmsg, regex):
         for line in self.all_lines:
             if re.search(regex, line, re.DOTALL) != None:
-                print('\033[1m' + '\u274e' + ' Test failed: ' + failmsg + '\033[0m')
+                print(bold('\u274e Test failed: ' + failmsg))
                 print()
                 print('******************* EXPECT FAILED ************************')
                 print('Fail message: ' + failmsg)
@@ -312,7 +328,7 @@ class IrcClient(asynchat.async_chat):
                 print(line)
                 print('************************************************************')
                 raise Exception("An unexpected response was found in the result: " + failmsg)
-        print('\033[1m' + '\u2714' + ' Test passed: ' + failmsg + '\033[0m')
+        print(bold('\u2714 Test passed: ' + failmsg))
 
     def clearlog(self):
         self.all_lines = []

@@ -8,6 +8,7 @@ import re
 import time
 
 import irctestframework.ircclient
+from irctestframework.ircclient import bold
 
 getmsec = lambda: int(round(time.time() * 1000))
 
@@ -143,7 +144,7 @@ class IrcTest(asynchat.async_chat):
                     else:
                         if self.inconsistent_lines(first, full_line):
                             print()
-                            print('\033[1mInconsistent message-tag use accross server links:\033[0m')
+                            print(bold('Inconsistent message-tag use accross server links:'))
                             print(('Line (bare): ' + commonline))
                             for name,full_line in o.items():
                                 #print('Client ' + name + ': '  + full_line)
