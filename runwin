@@ -50,6 +50,10 @@ TIMEOUT="40"
 KEEPDBS="0"
 CRASHED="0"
 INCLUDEFILE=""
+SKIPTESTSCONF="$HOME/.config/unrealircd-tests/skip-tests.conf"
+if [ ! -f "$SKIPTESTSCONF" ]; then
+	SKIPTESTSCONF="/dev/null"
+fi
 
 UNREALIRCDDIR="/c/Program Files/UnrealIRCd 6"
 
@@ -135,13 +139,13 @@ if [ "$1" = "" ]; then
 	# Run all tests:
 	echo "Running all tests in parallel..."
 	# NOTE: we skip services tests on Windows! Too much hassle ;)
-	find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -v services/|grep -vF /db/|grep -vF /serial/|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+	find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -v services/|grep -vF /db/|grep -vF /serial/|grep -vFxf "$SKIPTESTSCONF"|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
 	#wait
 	#^ this is annoying: 'wait' will also wait for unrealircd.exe to stop,
 	#  which hopefully will never happen, so we sleep instead:
 	sleep 45
 	echo "Running remaining tests in series..."
-	find tests/serial/ -type f|grep -vF '~'|grep -vF README|xargs -L1 -P1 irctestframework/wrapper
+	find tests/serial/ -type f|grep -vF '~'|grep -vF README|grep -vFxf "$SKIPTESTSCONF"|xargs -L1 -P1 irctestframework/wrapper
 	# And again, we sleep here too, what a joke... convert to some tasklist|find shit ?
 	sleep 45
 	stopunreal
@@ -152,6 +156,10 @@ else
 	do
 		# Skip backup files and such (blah~)
 		if (echo "$f"|egrep -q '~$'); then
+			continue
+		fi
+		if echo "$f" | grep -qFxf "$SKIPTESTSCONF"; then
+			echo "SKIPPED: $f"
 			continue
 		fi
 		if [ "$f" = "tests/db/writing/history" -o "$f" = "tests/db/reading/history" ]; then
