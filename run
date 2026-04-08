@@ -53,6 +53,10 @@ TIMEOUT="160"
 KEEPDBS="0"
 FAST="0"
 INCLUDEFILE=""
+SKIPTESTSCONF="$HOME/.config/unrealircd-tests/skip-tests.conf"
+if [ ! -f "$SKIPTESTSCONF" ]; then
+	SKIPTESTSCONF="/dev/null"
+fi
 
 export PYTHONPATH="`pwd`:$PYTHONPATH"
 export PYTHONIOENCODING=utf-8
@@ -161,19 +165,19 @@ if [ "$1" = "" ]; then
 	# Run (almost) all tests:
 	echo "Running tests in parallel..."
 	if [ "$SERVICES" = "none" ]; then
-		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF services/|grep -vF /db/|grep -vF /serial/|grep -v README|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF services/|grep -vF /db/|grep -vF /serial/|grep -v README|grep -vFxf "$SKIPTESTSCONF"|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
 	else
-		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF /db/|grep -vF /serial/|grep -v README|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
+		find tests -type f|grep -vF '~'|grep -vF _pre_test|grep -vF /db/|grep -vF /serial/|grep -v README|grep -vFxf "$SKIPTESTSCONF"|xargs -L1 -P$MAXPARALLEL irctestframework/wrapper
 	fi
 	wait
 	if [ "$FAST" = 0 ]; then
 		# Now do the tests that can only be run in series...
 		echo "Running remaining tests in series..."
-		find tests/serial/ -type f|grep -vF '~'|grep -v README|xargs -L1 -P1 irctestframework/wrapper
+		find tests/serial/ -type f|grep -vF '~'|grep -v README|grep -vFxf "$SKIPTESTSCONF"|xargs -L1 -P1 irctestframework/wrapper
 	elif [ "$FAST" = 1 ]; then
 		# The same, but skip the time_extban_expiry test to save a full minute
 		echo "Running remaining tests in series..."
-		find tests/serial/ -type f|grep -vF '~'|grep -v README|grep -vF time_extban_expiry|xargs -L1 -P1 irctestframework/wrapper
+		find tests/serial/ -type f|grep -vF '~'|grep -v README|grep -vF time_extban_expiry|grep -vFxf "$SKIPTESTSCONF"|xargs -L1 -P1 irctestframework/wrapper
 	fi
 else
 	# Run specific tests:
@@ -182,6 +186,10 @@ else
 	do
 		# Skip backup files and such (blah~)
 		if (echo "$f"|egrep -q '~$'); then
+			continue
+		fi
+		if echo "$f" | grep -qFxf "$SKIPTESTSCONF"; then
+			echo "SKIPPED: $f"
 			continue
 		fi
 		if [ "$f" = "tests/db/writing/history" -o "$f" = "tests/db/reading/history" ]; then
