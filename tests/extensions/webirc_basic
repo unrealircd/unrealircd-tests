@@ -1,0 +1,35 @@
+#!/usr/bin/python3
+#
+# Sanity check for IrcClient.fake_ip — verify that setting fake_ip causes
+# the server to see the client as the spoofed IP. Confirmed via the
+# unrealircd.org/userip message tag (oper-visible), which carries the
+# server's view of the user's IP.
+#
+# UnrealIRCd stores IPv6 addresses in uncompressed form, so the spoofed
+# 2001:db8:cafe::1 appears in the tag as 2001:db8:cafe:0:0:0:0:1.
+
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1a.fake_ip = '2001:db8:cafe::1'
+c2a = m.new('c2a')
+m.connect()
+
+# c2a connects normally from 127.0.0.1, so the netadmin oper block matches.
+m.send(c2a, "OPER netadmin test")
+m.expect(c2a, "c2a got opered up", ":.* 381 ", timeout = 10)
+m.clearlog()
+print
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a)
+m.clearlog()
+print
+
+# c1a sends; c2a (as oper) sees the userip tag carrying the spoofed IP.
+m.send(c1a, "PRIVMSG " + chan + " :fake-ip check")
+m.expect(c2a, "Oper sees spoofed IPv6 in userip tag",
+         r"unrealircd.org/userip=\S+@2001:db8:cafe:0:0:0:0:1.*fake-ip check")
+m.clearlog()
+print

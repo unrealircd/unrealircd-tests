@@ -62,6 +62,7 @@ CMD_FUNC(cmd_fakereputation)
 	if ((strchr(parv[1], '.') || strchr(parv[1], ':')) && !BadPtr(parv[2]))
 	{
 		/* FAKEREPUTATION <ip> <value> */
+		Client *acptr;
 		const char *parx[4];
 		parx[0] = NULL;
 		parx[1] = parv[1];
@@ -69,6 +70,13 @@ CMD_FUNC(cmd_fakereputation)
 		parx[3] = NULL;
 		sendnotice(client, "Reputation for '%s' set to '%s'", parv[1], parv[2]);
 		do_cmd(&me, NULL, "REPUTATION", 3, parx);
+		/* Force known-user cache update for any matching clients */
+		list_for_each_entry(acptr, &client_list, client_node)
+			if (acptr->ip && !strcmp(acptr->ip, parv[1]))
+				update_known_user_cache(acptr);
+		list_for_each_entry(acptr, &unknown_list, lclient_node)
+			if (acptr->ip && !strcmp(acptr->ip, parv[1]))
+				update_known_user_cache(acptr);
 		return;
 	}
 

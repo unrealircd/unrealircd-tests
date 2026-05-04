@@ -36,6 +36,9 @@ class IrcClient(asynchat.async_chat):
         self.disable_logging = 0
         self.disable_registration = 0
         self.disable_message_tags_check = 0
+        self.fake_ip = None
+        self.fake_hostname = None
+        self.webirc_password = "webirc"
         self.syncchan = syncchan
         self.recvd_syncers = {}
         self.all_lines = []
@@ -124,6 +127,11 @@ class IrcClient(asynchat.async_chat):
         if self.disable_registration:
             self.ready = 1
             return
+        # If a fake IP is requested, send WEBIRC first so the server
+        # rewrites client->ip before any registration-time checks run.
+        if self.fake_ip:
+            host = self.fake_hostname if self.fake_hostname else self.fake_ip
+            self.out("WEBIRC %s * %s %s" % (self.webirc_password, host, self.fake_ip))
         # Generalize this later...
         self.out("CAP LS")
         self.out("CAP REQ :message-tags account-tag")
