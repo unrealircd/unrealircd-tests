@@ -39,6 +39,9 @@ class IrcClient(asynchat.async_chat):
         self.fake_ip = None
         self.fake_hostname = None
         self.webirc_password = "webirc"
+        # Set when the test expects the server to reject this client during
+        # registration; m.connect() and friends won't wait for ready=1.
+        self.expect_rejection = False
         self.syncchan = syncchan
         self.recvd_syncers = {}
         self.all_lines = []
@@ -181,7 +184,7 @@ class IrcClient(asynchat.async_chat):
                 self.log("<<" + self.name + " " + self.data_in)
 
         # ..
-        if self.ready == 1 and not self.hide_sync_data_check(self.data_in):
+        if (self.ready == 1 or self.expect_rejection) and not self.hide_sync_data_check(self.data_in):
             self.all_lines.append(self.data_in)
 
         # Parser

@@ -47,6 +47,8 @@ class IrcTest(asynchat.async_chat):
     # Are all connections synced?
     def synced(self):
         for name,obj in self.clients.items():
+            if obj.expect_rejection:
+                continue
             if not obj.is_synced():
                 return 0
         return 1
@@ -55,6 +57,8 @@ class IrcTest(asynchat.async_chat):
         ready_count = 0
         notready_count = 0
         for name,obj in self.clients.items():
+            if obj.expect_rejection:
+                continue
             if obj.is_ready():
                 ready_count += 1
             else:
@@ -66,7 +70,11 @@ class IrcTest(asynchat.async_chat):
 
     def multisynced(self):
         for name,obj in self.clients.items():
+            if obj.expect_rejection:
+                continue
             for name2,obj2 in self.clients.items():
+                if obj2.expect_rejection:
+                    continue
                 if not obj.synctext in obj2.recvd_syncers:
                     #print 'Waiting for sync ' + obj.synctext + ' to be received by ' + name2
                     #print 'Have only: '
@@ -76,7 +84,11 @@ class IrcTest(asynchat.async_chat):
 
     def is_multi_ready(self):
         for name,obj in self.clients.items():
+            if obj.expect_rejection:
+                continue
             for name2,obj2 in self.clients.items():
+                if obj2.expect_rejection:
+                    continue
                 if not obj.nick in obj2.recvd_syncers:
                     return 0
         return 1
