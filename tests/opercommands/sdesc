@@ -1,0 +1,93 @@
+#!/usr/bin/python3
+#
+# /SDESC test, plus exercise of the per-event-id log throttle.
+#
+# common.conf sets log-throttle::SDESC_COMMAND 2:5, so a 3rd /SDESC
+# call within a 5-second window has its log line suppressed; a
+# LOG_RATE_LIMIT_SUMMARY notice is emitted after the window closes
+# (within ~5s via the periodic flush event).
+#
+# Phases:
+#   A  1st SDESC: log line passes through (within budget)
+#   B  2nd SDESC: log line passes through (still within budget)
+#   C  3rd SDESC: log line suppressed (over threshold)
+#   D  4th SDESC: log line still suppressed
+#   E  Wait for window close + flush; expect LOG_RATE_LIMIT_SUMMARY count=2
+#   F  Post-window SDESC: log line passes through again (window reset)
+#
+# Default oper snomasks (struct.h: OPER_SNOMASKS "+bBcdfxkqsSoO") include 's',
+# the catch-all for unrouted log subsystems. Both the 'sdesc' and 'log'
+# subsystems fall through to 'nomatch' -> snomask s, so the opered observer
+# receives both the SDESC_COMMAND lines and the LOG_RATE_LIMIT_SUMMARY.
+#
+# All test descriptions start with "Primary test server" (the original irc1
+# info) so parallel-running tests like usercommands/links and usercommands/whois
+# that match that prefix still pass even if they sample the description while
+# this test is mid-flight.
+
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+m.sync = 0  # single-server
+
+oper = m.new('c1o')
+m.connect()
+
+m.send(oper, "OPER netadmin test")
+m.expect(oper, "Oper got opered up", ":.* 381 ", timeout=10)
+m.clearlog()
+print
+
+# ============== Phase A: 1st SDESC -- log line passes through ==============
+print("=== Phase A: 1st SDESC -- log line passes through ===")
+m.send(oper, "SDESC :Primary test server (leaf 1)")
+m.expect(oper, "Phase A: SDESC #1 log line received via snomask s",
+         r"Server description.*is now 'Primary test server \(leaf 1\)'", timeout=5)
+m.clearlog()
+print
+
+# ============== Phase B: 2nd SDESC -- still passes through ==============
+print("=== Phase B: 2nd SDESC -- still within 2:5 budget ===")
+m.send(oper, "SDESC :Primary test server (leaf 2)")
+m.expect(oper, "Phase B: SDESC #2 log line received",
+         r"Server description.*is now 'Primary test server \(leaf 2\)'", timeout=5)
+m.clearlog()
+print
+
+# ============== Phase C: 3rd SDESC -- log suppressed ==============
+print("=== Phase C: 3rd SDESC -- log line suppressed by throttle ===")
+m.send(oper, "SDESC :Primary test server (leaf 3)")
+m.not_expect(oper, "Phase C: SDESC #3 log line should NOT arrive (throttled)",
+             r"Server description.*is now 'Primary test server \(leaf 3\)'")
+m.clearlog()
+print
+
+# ============== Phase D: 4th SDESC -- still suppressed ==============
+print("=== Phase D: 4th SDESC -- still suppressed ===")
+m.send(oper, "SDESC :Primary test server (leaf 4)")
+m.not_expect(oper, "Phase D: SDESC #4 log line should NOT arrive (throttled)",
+             r"Server description.*is now 'Primary test server \(leaf 4\)'")
+m.clearlog()
+print
+
+# ============== Phase E: window closes -- summary emitted ==============
+print("=== Phase E: window expires -- LOG_RATE_LIMIT_SUMMARY emitted ===")
+# 5s window + 5s flush event = up to ~10s before summary fires.
+m.expect(oper, "Phase E: LOG_RATE_LIMIT_SUMMARY received with count=2",
+         r"Suppressed 2 log entries with event_id SDESC_COMMAND",
+         timeout=12)
+m.clearlog()
+print
+
+# ============== Phase F: post-window SDESC passes through ==============
+print("=== Phase F: window reset -- new SDESC passes through ===")
+m.send(oper, "SDESC :Primary test server (leaf 5)")
+m.expect(oper, "Phase F: SDESC after window reset received",
+         r"Server description.*is now 'Primary test server \(leaf 5\)'", timeout=5)
+m.clearlog()
+print
+
+# Cleanup: restore irc1's original info from irc1.conf
+m.send(oper, "SDESC :Primary test server (leaf)")
+m.wait(1)
+print

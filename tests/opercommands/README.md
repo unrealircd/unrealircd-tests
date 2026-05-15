@@ -21,6 +21,7 @@ Tests for commands that require IRC operator privileges.
 | `SAJOIN` | `sajoin` | |
 | `SAMODE` | `samode` | |
 | `SAPART` | `sapart` | |
+| `SDESC` | `sdesc` | Also exercises the `set::log-throttle` rate-limit machinery |
 | `SETHOST` | `sethost` | |
 | `SETIDENT` | `setident` | |
 | `TEMPSHUN` | `tempshun` | |
@@ -43,7 +44,6 @@ The `tkl` test covers: `KLINE`, `ZLINE`, `GLINE`, `GZLINE`, `ELINE`, `SPAMFILTER
 - `CONNECT` — connects to another server
 - `JUMPSERVER` — redirects users to another server
 - `RMTKL` — removes TKL entries by pattern
-- `SDESC` — changes server description
 - `SPAMINFO` — shows spamfilter match details
 - `SQUIT` — disconnects a server
 - `TLINE` — tests how many users match a host/IP mask
