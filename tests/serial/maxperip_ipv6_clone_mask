@@ -52,11 +52,10 @@ for i in range(1, 4):
     phase_a.append(c)
 m.connect()
 
-# /STATS 8 emits the masked rawip in uncompressed form via inetntop.
-# /64 mask of 2001:dbe::1 yields rawip 2001:0dbe:0:0:0:0:0:0 →
-# inetntop renders as "2001:dbe:0:0:0:0:0:0".
+# /STATS 8 emits the masked address in <addr>/<prefix> form
+# (compressed). /64 of 2001:dbe::1 renders as "2001:dbe::/64".
 expect_stats("Phase A: /64 bucket has 3 clients (proves /64 grouping)",
-             r"IPv6 #\d+ 2001:dbe:0:0:0:0:0:0: 3 local / 3 global")
+             r"IPv6 #\d+ 2001:dbe::/64: 3 local / 3 global")
 
 # 4th client in the same /64 should be rejected by maxperip's cap of 3.
 c_reject = m.new('c1Ar')
@@ -73,7 +72,7 @@ m.clearlog()
 # decrease wrapper, which works correctly here because membership is
 # tracked via CLIENT_FLAG_IPUSERS_BUMPED, not moddata).
 expect_stats("Phase A: /64 still 3 (rejected client unbumped on close)",
-             r"IPv6 #\d+ 2001:dbe:0:0:0:0:0:0: 3 local / 3 global")
+             r"IPv6 #\d+ 2001:dbe::/64: 3 local / 3 global")
 print
 
 
@@ -88,7 +87,7 @@ m.wait(3)
 m.clearlog()
 
 expect_stats("Phase B: /64 still 3 after rehash (rebuilt from live clients)",
-             r"IPv6 #\d+ 2001:dbe:0:0:0:0:0:0: 3 local / 3 global")
+             r"IPv6 #\d+ 2001:dbe::/64: 3 local / 3 global")
 
 quit_all(phase_a)
 print
