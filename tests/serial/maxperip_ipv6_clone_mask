@@ -1,0 +1,94 @@
+#!/usr/bin/python3
+#
+# Functional test for the IPv6 /64 grouping in maxperip (Piece 1 of the
+# IPv6 clone-limiting work).
+#
+# Pre-Piece-1, maxperip hashed full /128: 4 clients in the same /64 with
+# different /128s would each get their own bucket and never trip a cap.
+# Post-Piece-1, the configured default-ipv6-clone-mask (/64 by default)
+# is honoured: those 4 clients share one bucket, so the 4th hits the
+# *@* allow's maxperip cap (3) and is rejected.
+#
+# Phases:
+#   A  /64 grouping fires the maxperip cap on the 4th client
+#   B  /REHASH unloads/reloads maxperip; the rebuild walks live clients
+#      and reconstructs the /64 bucket with the correct count
+#
+
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+m.sync = 0  # single-server, no multi-server sync needed
+
+oper = m.new('c1o')
+m.connect()
+
+m.send(oper, "OPER netadmin test")
+m.expect(oper, "Oper got opered up", ":.* 381 ", timeout=10)
+m.clearlog()
+print
+
+def expect_stats(label, regex):
+    # Anchor on the IRC server-prefixed numeric 304 (sendtxtnumeric);
+    # avoids false hits from snomask notices arriving at any moment.
+    m.send(oper, "STATS 8")
+    m.expect(oper, label, "^:.* 304 .*" + regex, timeout=5)
+    m.clearlog()
+
+def quit_all(clients):
+    for c in clients:
+        m.send(c, "QUIT :phase done")
+    m.wait(2)
+
+
+# ============== Phase A: /64 grouping fires maxperip cap ==============
+print("=== Phase A: /64 grouping fires the maxperip cap ===")
+# 3 clients with distinct /128s but sharing /64 = 2001:dbe::/64.
+# IPs in this range fall through to the *@* allow (maxperip 3).
+phase_a = []
+for i in range(1, 4):
+    c = m.new('c1A%d' % i)
+    c.fake_ip = '2001:dbe::%d' % i
+    phase_a.append(c)
+m.connect()
+
+# /STATS 8 emits the masked rawip in uncompressed form via inetntop.
+# /64 mask of 2001:dbe::1 yields rawip 2001:0dbe:0:0:0:0:0:0 →
+# inetntop renders as "2001:dbe:0:0:0:0:0:0".
+expect_stats("Phase A: /64 bucket has 3 clients (proves /64 grouping)",
+             r"IPv6 #\d+ 2001:dbe:0:0:0:0:0:0: 3 local / 3 global")
+
+# 4th client in the same /64 should be rejected by maxperip's cap of 3.
+c_reject = m.new('c1Ar')
+c_reject.fake_ip = '2001:dbe::4'
+c_reject.expect_rejection = True
+m.connect()
+m.expect(c_reject, "Phase A: 4th client rejected by /64 maxperip cap",
+         r"ERROR.*Too many connections from your IPv6 range.*\[maxperip\]",
+         timeout=5)
+m.clearlog()
+
+# Bucket count should still be 3 — the rejected client was bumped
+# transiently then unbumped on close (HOOKTYPE_FREE_USER → maxperip's
+# decrease wrapper, which works correctly here because membership is
+# tracked via CLIENT_FLAG_IPUSERS_BUMPED, not moddata).
+expect_stats("Phase A: /64 still 3 (rejected client unbumped on close)",
+             r"IPv6 #\d+ 2001:dbe:0:0:0:0:0:0: 3 local / 3 global")
+print
+
+
+# ============== Phase B: /REHASH rebuilds the bucket ==============
+print("=== Phase B: /REHASH rebuilds the maxperip bucket from live clients ===")
+# phase_a clients are still connected. /REHASH unloads/reloads maxperip
+# (no MOD_OPT_PERM); MOD_UNLOAD frees the bucket tables, MOD_LOAD calls
+# rebuild_ipusers_buckets which walks client_list/unknown_list and
+# rebumps each eligible client into its /64 bucket.
+m.send(oper, "REHASH")
+m.wait(3)
+m.clearlog()
+
+expect_stats("Phase B: /64 still 3 after rehash (rebuilt from live clients)",
+             r"IPv6 #\d+ 2001:dbe:0:0:0:0:0:0: 3 local / 3 global")
+
+quit_all(phase_a)
+print

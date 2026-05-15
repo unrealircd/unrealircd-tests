@@ -1,0 +1,75 @@
+#!/usr/bin/python3
+#
+# Functional test for the IPv6 /64 grouping in connect-flood (Piece 1 of
+# the IPv6 clone-limiting work).
+#
+# Pre-Piece-1, connect-flood keyed on the full /128: clones in the same
+# /64 with different /128s each got their own bucket and never trip the
+# rate limit collectively. Post-Piece-1, the configured
+# default-ipv6-clone-mask (/64 by default) is honoured: clones in the
+# same /64 share one bucket, so the (cap+1)th in that /64 trips with
+# "Throttled: Reconnecting too fast".
+#
+# Test config (common.conf) lowers connect-flood to 5:60 and adds an
+# except-throttle for *@127.0.0.1, so loopback test traffic is exempt
+# (otherwise the framework's own clients would trip the limit). For
+# WEBIRC-spoofed clients connect-flood re-checks at HOOKTYPE_IP_CHANGE
+# under the spoofed IP, which is what we exercise here.
+#
+# We use a /64 within 2001:db8:dead::/48 because that range has its own
+# allow block with maxperip 8 — without it, maxperip 3 (from *@*) would
+# reject the 4th client before connect-flood ever fires on the 6th.
+#
+# IMPORTANT: run with -boot if common.conf changed since the last run.
+#
+
+import irctestframework.irctest
+import random
+
+m = irctestframework.irctest.IrcTest()
+m.sync = 0  # single-server, no multi-server sync needed
+
+oper = m.new('c1o')
+m.connect()
+
+m.send(oper, "OPER netadmin test")
+m.expect(oper, "Oper got opered up", ":.* 381 ", timeout=10)
+m.clearlog()
+print
+
+def quit_all(clients):
+    for c in clients:
+        m.send(c, "QUIT :phase done")
+    m.wait(2)
+
+
+# ============== /64 grouping trips the connect-flood rate limit ==============
+print("=== /64 grouping trips the connect-flood rate limit on 6th client ===")
+# Randomise the /64 so re-runs within THROTTLING_PERIOD (60s) don't see a
+# stale bucket from a previous run. We vary byte 6 (high byte of group 3)
+# within 2001:db8:dead::/48, keeping byte 7 = 0 so all clients share the /64.
+prefix_byte = random.randint(0x10, 0xfe)
+slash64_template = '2001:db8:dead:%x00::%%d' % prefix_byte
+
+# 5 clients (= cap) sharing the /64; all should be accepted.
+phase = []
+for i in range(1, 6):
+    c = m.new('c1A%d' % i)
+    c.fake_ip = slash64_template % i
+    phase.append(c)
+m.connect()
+
+# 6th client in the same /64 should trip connect-flood with the
+# "Throttled: Reconnecting too fast" message. Pre-Piece-1 the 6 clients
+# would have had 6 separate /128 buckets and all been accepted.
+c_reject = m.new('c1Ar')
+c_reject.fake_ip = slash64_template % 6
+c_reject.expect_rejection = True
+m.connect()
+m.expect(c_reject, "6th client tripped connect-flood under /64 grouping",
+         r"ERROR.*Throttled: Reconnecting too fast",
+         timeout=5)
+m.clearlog()
+
+quit_all(phase)
+print

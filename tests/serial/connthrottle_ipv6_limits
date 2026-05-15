@@ -1,0 +1,274 @@
+#!/usr/bin/python3
+#
+# Multi-phase test for connthrottle's IPv6 prefix-limit machinery.
+#
+# IMPORTANT: This test may only run once, so don't run without -boot,
+# otherwise persisted FAKEREPUTATION state from a prior run will fail
+# in Phase D/E.
+#
+# Single-server. WEBIRC fake_ip spoofing + /STATS 9 (connthrottle) for
+# bucket-state introspection. /FAKEREPUTATION drives the known/unknown
+# classification.
+#
+# Test config (common.conf) sets:
+#   ipv6-unknown-users-limit { cidr-56 { max 4; } cidr-48 { max 8; } cidr-32 { max 16; } }
+#
+# Each phase uses a distinct /32 base so phases don't share buckets, and
+# disconnects its clones at the end so subsequent phases start clean.
+#
+# Phases:
+#   A  /56 cap fires at the 5th unknown sharing one /56
+#   B  /48 cap fires at the 9th unknown sharing one /48 across distinct /56s
+#   C  /32 cap fires at the 17th unknown sharing one /32 across distinct /48s
+#   D  Known user (high reputation) bypasses a full /56
+#   E  Unknown -> known transition decrements unknown counter
+#   F  /REHASH rebuilds buckets correctly from live clients
+#   H  IPv4 traffic is not subject to the prefix limits
+#
+
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+m.sync = 0  # single-server test, no multi-server sync required
+
+oper = m.new('c1o')
+m.connect()
+
+m.send(oper, "OPER netadmin test")
+m.expect(oper, "Oper got opered up", ":.* 381 ", timeout=10)
+m.clearlog()
+print
+
+def expect_stats(label, regex):
+    # Match against /STATS response lines specifically (numeric 304 from
+    # sendtxtnumeric); avoids false hits from snomask notices that may
+    # arrive at any moment while the test is running.
+    m.send(oper, "STATS 9")
+    m.expect(oper, label, "^:.* 304 .*" + regex, timeout=5)
+    m.clearlog()
+
+def not_expect_stats(label, regex):
+    m.send(oper, "STATS 9")
+    m.not_expect(oper, label, "^:.* 304 .*" + regex)
+    m.clearlog()
+
+def quit_all(clients):
+    for c in clients:
+        m.send(c, "QUIT :phase done")
+    m.wait(2)
+
+
+# ============== Phase A: /56 cap ==============
+print("=== Phase A: /56 unknown-user limit fires at 5th client ===")
+phase_a = []
+for i in range(1, 5):
+    c = m.new('c1A%d' % i)
+    c.fake_ip = '2001:db8:cafe:000%d::1' % i
+    phase_a.append(c)
+m.connect()
+
+expect_stats("Phase A: /56 has 4 unknowns",
+             r"2001:db8:cafe::/56 known=0 excepted=0 unknown=4")
+
+# 5th attempt is rejected by the /56 cap with the IPv6-range reject reason.
+c_reject_a = m.new('c1Ar')
+c_reject_a.fake_ip = '2001:db8:cafe:0005::1'
+c_reject_a.expect_rejection = True
+m.connect()
+m.expect(c_reject_a, "Phase A: 5th client rejected with /56 reject reason",
+         r"ERROR.*Too many new connections from this IPv6 range.*\(2001:db8:cafe::/56\)",
+         timeout=5)
+m.clearlog()
+
+expect_stats("Phase A: /56 still 4 (rejected client unbumped on close)",
+             r"2001:db8:cafe::/56 known=0 excepted=0 unknown=4")
+
+quit_all(phase_a)
+not_expect_stats("Phase A: /56 bucket drained after disconnect",
+                 r"2001:db8:cafe::/56.*unknown=[1-9]")
+print
+
+
+# ============== Phase B: /48 cap ==============
+print("=== Phase B: /48 unknown-user limit fires at 9th client ===")
+phase_b = []
+# 8 clients, each in a distinct /56 within 2001:db9:beef::/48 (vary byte 6)
+for i in range(1, 9):
+    c = m.new('c1B%d' % i)
+    c.fake_ip = '2001:db9:beef:%02x00::1' % i
+    phase_b.append(c)
+m.connect()
+
+expect_stats("Phase B: /48 has 8 unknowns",
+             r"2001:db9:beef::/48 known=0 excepted=0 unknown=8")
+
+c_reject_b = m.new('c1Br')
+c_reject_b.fake_ip = '2001:db9:beef:0900::1'
+c_reject_b.expect_rejection = True
+m.connect()
+m.expect(c_reject_b, "Phase B: 9th client rejected with /48 reject reason",
+         r"ERROR.*Too many new connections from this IPv6 range.*\(2001:db9:beef::/48\)",
+         timeout=5)
+m.clearlog()
+
+quit_all(phase_b)
+not_expect_stats("Phase B: /48 bucket drained after disconnect",
+                 r"2001:db9:beef::/48.*unknown=[1-9]")
+print
+
+
+# ============== Phase C: /32 cap ==============
+print("=== Phase C: /32 unknown-user limit fires at 17th client ===")
+phase_c = []
+# 16 clients, each in a distinct /48 within 2001:dba::/32 (vary group 2)
+for i in range(1, 17):
+    c = m.new('c1C%02d' % i)
+    c.fake_ip = '2001:dba:%04x::1' % i
+    phase_c.append(c)
+m.connect()
+
+expect_stats("Phase C: /32 has 16 unknowns",
+             r"2001:dba::/32 known=0 excepted=0 unknown=16")
+
+c_reject_c = m.new('c1Cr')
+c_reject_c.fake_ip = '2001:dba:0011::1'
+c_reject_c.expect_rejection = True
+m.connect()
+m.expect(c_reject_c, "Phase C: 17th client rejected with /32 reject reason",
+         r"ERROR.*Too many new connections from this IPv6 range.*\(2001:dba::/32\)",
+         timeout=5)
+m.clearlog()
+
+quit_all(phase_c)
+not_expect_stats("Phase C: /32 bucket drained after disconnect",
+                 r"2001:dba::/32.*unknown=[1-9]")
+print
+
+
+# ============== Phase D: known user bypasses ==============
+print("=== Phase D: known user bypasses a full /56 ===")
+# Reputation lookup uses the uncompressed form of client->ip — pass the same
+# uncompressed form to FAKEREPUTATION so the entry key matches.
+known_ip = '2001:dbb:f00d:0:0:0:0:100'
+m.send(oper, "FAKEREPUTATION %s 100" % known_ip)
+m.expect(oper, "Phase D: reputation set", "Reputation for", timeout=2)
+m.clearlog()
+
+# Fill /56 with 4 unknowns
+phase_d = []
+for i in range(1, 5):
+    c = m.new('c1D%d' % i)
+    c.fake_ip = '2001:dbb:f00d:000%d::1' % i
+    phase_d.append(c)
+m.connect()
+
+expect_stats("Phase D: /56 has 4 unknowns",
+             r"2001:dbb:f00d::/56 known=0 excepted=0 unknown=4")
+
+# Known user — bypass should let them register normally past the full /56.
+c_known = m.new('c1Dk')
+c_known.fake_ip = known_ip
+m.connect()
+
+expect_stats("Phase D: /56 has 1 known + 4 unknown",
+             r"2001:dbb:f00d::/56 known=1 excepted=0 unknown=4")
+
+quit_all(phase_d + [c_known])
+not_expect_stats("Phase D: /56 bucket drained after disconnect",
+                 r"2001:dbb:f00d::/56")
+print
+
+
+# ============== Phase E: unknown -> known transition ==============
+print("=== Phase E: unknown -> known transition decrements unknown counter ===")
+e_ip = '2001:dbc:cafe:0:0:0:0:42'
+c_e = m.new('c1E1')
+c_e.fake_ip = e_ip
+m.connect()
+
+expect_stats("Phase E: starts as unknown",
+             r"2001:dbc:cafe::/56 known=0 excepted=0 unknown=1")
+
+m.send(oper, "FAKEREPUTATION %s 100" % e_ip)
+m.expect(oper, "Phase E: reputation set", "Reputation for", timeout=2)
+m.clearlog()
+
+expect_stats("Phase E: transitioned unknown -> known",
+             r"2001:dbc:cafe::/56 known=1 excepted=0 unknown=0")
+
+quit_all([c_e])
+not_expect_stats("Phase E: /56 bucket drained after disconnect",
+                 r"2001:dbc:cafe::/56")
+print
+
+
+# ============== Phase F: REHASH rebuilds buckets ==============
+print("=== Phase F: /REHASH rebuilds buckets correctly ===")
+phase_f = []
+for i in range(1, 5):
+    c = m.new('c1F%d' % i)
+    c.fake_ip = '2001:dbd:cafe:000%d::1' % i
+    phase_f.append(c)
+m.connect()
+
+expect_stats("Phase F: /56 has 4 unknowns before rehash",
+             r"2001:dbd:cafe::/56 known=0 excepted=0 unknown=4")
+
+m.send(oper, "REHASH")
+m.wait(3)  # let MOD_UNLOAD/MOD_INIT/MOD_LOAD complete; rebuild walks live clients
+m.clearlog()
+
+expect_stats("Phase F: /56 still has 4 after rehash (rebuilt from live clients)",
+             r"2001:dbd:cafe::/56 known=0 excepted=0 unknown=4")
+
+quit_all(phase_f)
+not_expect_stats("Phase F: /56 bucket drained after disconnect",
+                 r"2001:dbd:cafe::/56")
+print
+
+
+# ============== Phase G: per-allow global-maxperip raises /56 effective limit ==============
+print("=== Phase G: allow::global-maxperip raises /56 effective limit ===")
+# An allow block in common.conf sets global-maxperip 8 for 2001:db8:dead::/48.
+# That raises the connthrottle /56 effective limit from 4 to max(4, 8) = 8.
+# So 8 unknowns sharing one /56 within that range are accepted; 9th rejected.
+phase_g = []
+for i in range(1, 9):
+    c = m.new('c1G%d' % i)
+    c.fake_ip = '2001:db8:dead:000%d::1' % i
+    phase_g.append(c)
+m.connect()
+
+expect_stats("Phase G: /56 has 8 unknowns (raised limit accepted them)",
+             r"2001:db8:dead::/56 known=0 excepted=0 unknown=8")
+
+c_reject_g = m.new('c1Gr')
+c_reject_g.fake_ip = '2001:db8:dead:0009::1'
+c_reject_g.expect_rejection = True
+m.connect()
+m.expect(c_reject_g, "Phase G: 9th client rejected at raised /56 limit",
+         r"ERROR.*Too many new connections from this IPv6 range.*\(2001:db8:dead::/56\)",
+         timeout=5)
+m.clearlog()
+
+quit_all(phase_g)
+not_expect_stats("Phase G: /56 bucket drained after disconnect",
+                 r"2001:db8:dead::/56")
+print
+
+
+# ============== Phase H: IPv4 not subject ==============
+print("=== Phase H: IPv4 traffic not subject to prefix limits ===")
+phase_h = []
+for i in range(1, 6):
+    c = m.new('c1H%d' % i)  # no fake_ip -> connects from real 127.0.0.1
+    phase_h.append(c)
+m.connect()
+
+# IPv4 clients are filtered out at ct_allow_client's IsIPV6 check, so they
+# never enter any bucket regardless of except. /STATS 9's bucket section
+# should contain no IPv4 entries.
+not_expect_stats("Phase H: no IPv4 buckets in /STATS 9", r"127\.")
+
+quit_all(phase_h)
+print
