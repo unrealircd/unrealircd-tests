@@ -3,6 +3,7 @@
 # This tests TKLs such as: KLINE, ZLINE, GLINE, GZLINE, ELINE, SPAMFILTER
 #
 import irctestframework.irctest
+import re
 
 m = irctestframework.irctest.IrcTest()
 c1a = m.new('c1a')
@@ -189,13 +190,64 @@ print
 
 m.send_all("STATS spamfilter")
 m.expect_all("Spamfilter shown in /STATS spamfilter",
-             "229.* F simple p gzline 0 [0-9]* 0 this_is_a_test c1a[^ ]+ [0-9]+ [0-9]+ :Please gzline me")
+             "229.* F simple p gzline 0 [0-9]* 0 this_is_a_test c1a[^ ]+ [0-9]+ [0-9]+ [0-9]+ [0-9]+ [^ ]+ :Please gzline me")
 m.clearlog()
 print
 
 m.send(c1a, "SPAMFILTER del -simple p gzline - - Please gzline me")
 m.expect_all("Spamfilter removed notice to IRCOps",
              "Spamfilter removed: 'Please gzline me' \[type: simple\] \[targets: p\] \[action: gzline\] \[reason: this is a test\] \[by: $c1a.*\]")
+m.clearlog()
+print
+
+### GLINE rejection across the network, and the unique [ID: ...] in the ban
+### message. Kept last because it connects throwaway WEBIRC clients that the
+### server rejects on sight; multi-server sync is turned off for this section
+### (framework convention for clients that disconnect). The gline is set with
+### sync still on, so it has already propagated to all servers before we flip
+### sync off. It is scoped to a fake host so only these clients match, never
+### the opers (who are on 127.0.0.1).
+m.send(c1a, "GLINE *@ban.test 60 You are banned by the gline test")
+m.expect_all("G-Line (reject test) added notice to all IRCOps",
+             "G-Line added: '\*@ban\.test' \[reason: You are banned by the gline test\] \[by: $c1a.*\]")
+m.clearlog()
+print
+
+m.sync = 0
+rej1 = m.new('c1g')        # irc1: same server as the oper that set the gline
+rej1.fake_ip = '203.0.113.66'
+rej1.fake_hostname = 'ban.test'
+rej1.expect_rejection = True
+rej3 = m.new('c3g')        # irc3: farthest server (irc1 <-> irc2 <-> irc3)
+rej3.fake_ip = '203.0.113.66'
+rej3.fake_hostname = 'ban.test'
+rej3.expect_rejection = True
+m.connect()
+m.expect(rej1, "G-Line rejects matching client locally, ban message carries the id",
+         "G-Line.*\[ID: G[0-9A-Z]+\]", timeout=5)
+m.expect(rej3, "G-Line rejects matching client on farthest server (propagated network-wide), with the id",
+         "G-Line.*\[ID: G[0-9A-Z]+\]", timeout=5)
+
+# Network-wide id consistency: the id is generated once on irc1 and carried to
+# irc3 via the s2s-tkl/id tag (it is not re-generated per server), so both
+# rejected clients must see the exact same id.
+def gline_ban_id(client):
+    for line in client.all_lines:
+        match = re.search(r"\[ID: (G[0-9A-Z]+)\]", line)
+        if match:
+            return match.group(1)
+    return None
+banid_local = gline_ban_id(rej1)
+banid_far = gline_ban_id(rej3)
+if not banid_local or banid_local != banid_far:
+    raise Exception("G-Line id must be identical network-wide, got local=%r farthest=%r"
+                    % (banid_local, banid_far))
+print("✔ Test passed: G-Line id identical on local (irc1) and farthest (irc3) server: " + banid_local)
+m.clearlog()
+print
+
+m.send(c1a, "GLINE -*@ban.test")
+m.expect(c1a, "G-Line (reject test) removed", "G-Line removed: '\*@ban\.test'", timeout=5)
 m.clearlog()
 print
 
