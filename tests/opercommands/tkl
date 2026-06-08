@@ -4,6 +4,7 @@
 #
 import irctestframework.irctest
 import re
+import time
 
 m = irctestframework.irctest.IrcTest()
 c1a = m.new('c1a')
@@ -243,6 +244,33 @@ if not banid_local or banid_local != banid_far:
     raise Exception("G-Line id must be identical network-wide, got local=%r farthest=%r"
                     % (banid_local, banid_far))
 print("✔ Test passed: G-Line id identical on local (irc1) and farthest (irc3) server: " + banid_local)
+m.clearlog()
+print
+
+# The two rejections above recorded real gline hits. Hits are counted locally
+# per server, so rej1 (on irc1, where oper c1a lives) bumped the gline's hit
+# counter on irc1. STATS gline on irc1 must therefore show at least one hit and
+# a recent absolute last-hit timestamp (this also guards against the columns
+# regressing to 0 or to a relative value).
+m.send(c1a, "STATS gline")
+m.expect(c1a, "G-Line shown in /STATS gline (reject test)", r"223.*G \*@ban\.test", timeout=5)
+
+# Format after the mask: <expire> <setdelta> <setby> <hits> <lasthit> <spamfilter_id> <id> :reason
+def gline_hits_lasthit(client):
+    for line in client.all_lines:
+        match = re.search(r"G \*@ban\.test \d+ \d+ \S+ (\d+) (\d+) \S+ \S+ :", line)
+        if match:
+            return int(match.group(1)), int(match.group(2))
+    return None, None
+hits, lasthit = gline_hits_lasthit(c1a)
+now = int(time.time())
+if hits is None:
+    raise Exception("Could not parse hits/last-hit from STATS gline output")
+if hits < 1:
+    raise Exception("G-Line hit counter must be >= 1 after a rejection, got %r" % hits)
+if abs(now - lasthit) > 120:
+    raise Exception("G-Line last-hit must be a recent absolute unix timestamp, got %r (now=%r)" % (lasthit, now))
+print("✔ Test passed: G-Line STATS shows hits=%d and a recent last-hit timestamp" % hits)
 m.clearlog()
 print
 
