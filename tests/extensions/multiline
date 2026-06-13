@@ -237,9 +237,13 @@ m.expect(c2b, "c2b: concat line with tag",
 m.expect(c2b, "c2b: concat BATCH close",
          "BATCH -")
 
-# Fallback client: lines are concatenated into one PRIVMSG (no separator)
-m.expect(c2a, "c2a fallback: concat merged into one PRIVMSG",
-         "PRIVMSG.*:this is a very longline that was split")
+# Fallback client: each line is sent as its own PRIVMSG; concat lines are not merged
+m.expect(c2a, "c2a fallback: first line as individual PRIVMSG",
+         "PRIVMSG.*:this is a very long")
+m.expect(c2a, "c2a fallback: concat line as its own PRIVMSG",
+         "PRIVMSG.*:line that was split")
+m.not_expect(c2a, "c2a fallback: concat lines not merged",
+         "this is a very longline that was split")
 m.clearlog()
 print
 
@@ -267,13 +271,38 @@ m.expect(c2b, "c2b: line C",
 m.expect(c2b, "c2b: mixed concat BATCH close",
          "BATCH -")
 
-# Fallback: 3 PRIVMSGs (first two merged, then B and C)
-m.expect(c2a, "c2a fallback: merged line",
-         "PRIVMSG.*:first part continued")
+# Fallback: 4 PRIVMSGs - each line separate, concat line not merged
+m.expect(c2a, "c2a fallback: first part as its own PRIVMSG",
+         "PRIVMSG.*:first part")
+m.expect(c2a, "c2a fallback: concat continuation as its own PRIVMSG",
+         "PRIVMSG.*: continued")
 m.expect(c2a, "c2a fallback: line B",
          "PRIVMSG.*:line B standalone")
 m.expect(c2a, "c2a fallback: line C",
          "PRIVMSG.*:line C standalone")
+m.not_expect(c2a, "c2a fallback: concat not merged into previous line",
+         "first part continued")
+m.clearlog()
+print
+
+# 5.3 Concat where the combined message exceeds the 512-byte line limit but
+#     each line fits on its own. Verify the fallback client gets both lines
+#     intact (merging them would truncate the second line). Ref: bug #6628.
+long_a = "A" * 400
+long_b = "B" * 300
+m.send(c1a, [
+    "BATCH +mltr draft/multiline " + chan,
+    "@batch=mltr PRIVMSG " + chan + " :" + long_a,
+    "@batch=mltr;draft/multiline-concat PRIVMSG " + chan + " :" + long_b,
+    "BATCH -mltr",
+])
+
+# Fallback: two separate PRIVMSGs, each intact. A 300-char run of B's only
+# survives if the lines are sent separately (a merged line is cut at ~510).
+m.expect(c2a, "c2a fallback: long first line intact",
+         "PRIVMSG.*:" + long_a)
+m.expect(c2a, "c2a fallback: long concat line intact, not truncated",
+         "PRIVMSG.*:" + long_b)
 m.clearlog()
 print
 
