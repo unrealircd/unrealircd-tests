@@ -1,0 +1,30 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+m.connect()
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+# Before any flood: the FLOOD_AWAY session counter is unset, so the rule
+# "tag('FLOOD_AWAY') > 0" should NOT match.
+m.send(c1a, "VHOST crule_flood_away test")
+m.expect(c1a, "tag('FLOOD_AWAY') > 0 should NOT match before flooding", FAIL)
+m.clearlog()
+print
+
+# Trigger away-flood. The default limit is 4:120, so sending more than 4 AWAY
+# commands trips it. Each block bumps the per-session FLOOD_AWAY (and FLOOD) tag.
+for i in range(6):
+    m.send(c1a, "AWAY :flood%d" % i)
+m.clearlog()
+print
+
+# After the flood: FLOOD_AWAY is now > 0, so the rule should match and the
+# vhost is applied.
+m.send(c1a, "VHOST crule_flood_away test")
+m.expect(c1a, "tag('FLOOD_AWAY') > 0 should match after away-flood", PASS)
+m.clearlog()
+print

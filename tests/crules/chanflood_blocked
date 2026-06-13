@@ -1,0 +1,47 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')   # channel op, sets +f
+c2a = m.new('c2a')   # the flooder we assert on (a plain member)
+m.connect()
+
+# Force known-users so flood behaviour is predictable (as in chanmodes/flood).
+m.send(c1a, "FAKEREPUTATION 25")
+m.send(c2a, "FAKEREPUTATION 25")
+
+PASS = "Your vhost is now"
+FAIL = "No vHost lines available"
+
+chan = m.randchan()
+m.send(c1a, "JOIN " + chan)
+m.send(c2a, "JOIN " + chan)
+m.expect(c2a, "c2a joined the channel", "JOIN")
+m.clearlog()
+print
+
+# Before any channel flood: the counter is 0, so the rule must NOT match.
+m.send(c2a, "VHOST crule_chanflood_msg test")
+m.expect(c2a, "total_channel_flood_count('msg') should NOT match before flooding", FAIL)
+m.clearlog()
+print
+
+# message-flood: +f [2m]:15 (limit 2 messages per 15s).
+m.send(c1a, "MODE " + chan + " +f [2m]:15")
+m.expect(c1a, "+f set", r":c1a.*MODE.*f.*\[2m\]:15")
+m.clearlog()
+print
+
+# c2a sends several messages; the 3rd is over the limit and increments the
+# channel msg-flood counter for c2a (later ones are dropped by the +m that
+# just got set, but the block was already counted).
+for i in range(5):
+    m.send(c2a, "PRIVMSG " + chan + " :flood message %d" % i)
+m.clearlog()
+print
+
+# After the flood: total_channel_flood_count('msg') > 0 -> vhost applied.
+m.send(c2a, "VHOST crule_chanflood_msg test")
+m.expect(c2a, "total_channel_flood_count('msg') should match after channel msg-flood", PASS)
+m.clearlog()
+print

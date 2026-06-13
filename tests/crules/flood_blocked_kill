@@ -1,0 +1,43 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')   # the victim: arms the marker, away-floods, then is KILLed
+c1b = m.new('c1b')   # PRIVMSG target only; never floods, never gets the marker tag
+m.connect()
+
+# c1a is going to be killed by the rule-only spamfilter, so disable the auto-syncer
+# (a dead client can never round-trip a sync). With sync = 0 m.send() just sends and
+# skips the sync, so it stays safe to call. Same pattern as usercommands/quit.
+m.sync = 0
+
+# (1) Arm the marker tag CRULE_FLOODKILL=1 on c1a via the unique set-action text.
+#     Must happen BEFORE the flood so the marker is already set when the away-flood
+#     counter bumps and triggers the rule-only kill at the parse boundary.
+m.send(c1a, "PRIVMSG $c1b :crule_floodkill_set arm")
+m.clearlog()
+print
+
+# (2) Away-flood c1a. Default away-flood is 4:120 (not overridden in common.conf),
+#     so >4 AWAY within 120s trips it and bumps flood('away'). Use 6 to be safe.
+for i in range(6):
+    m.send(c1a, "AWAY :flood%d" % i)
+print
+
+# (3) With CRULE_FLOODKILL set AND flood('away') > 0, the rule-only spamfilter fires
+#     and KILLs c1a. The killed client gets an ERROR closing-link line right before its
+#     socket closes (same exit_client path as opercommands/kill). The kill runs at the
+#     parse boundary, a beat after the last AWAY, so allow time for it to arrive.
+m.expect(c1a, "rule-only flood-kill spamfilter must KILL the away-flooding client",
+         "ERROR :Closing Link", timeout = 10)
+print
+
+# (4) Prove the kill is gated on the marker: c1b away-floods too but never sent the
+#     marker text, so it must survive and keep talking.
+for i in range(6):
+    m.send(c1b, "AWAY :flood%d" % i)
+m.send(c1b, "VHOST crule_flood_away test")
+m.expect(c1b, "sibling that never armed the marker must NOT be killed",
+         "Your vhost is now", timeout = 10)
+m.not_expect(c1b, "sibling must not get a closing-link", "ERROR :Closing Link")
+print
