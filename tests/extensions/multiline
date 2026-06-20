@@ -3,16 +3,8 @@ import irctestframework.irctest
 
 m = irctestframework.irctest.IrcTest()
 c1a = m.new('c1a')    # server 1 - sender (multiline-capable)
-c1b = m.new('c1b')    # server 1 - error test senders (one per test to avoid fake lag buildup)
-c1c = m.new('c1c')
-c1d = m.new('c1d')
-c1e = m.new('c1e')
-c1f = m.new('c1f')
-c1g = m.new('c1g')
-c1h = m.new('c1h')
+c1b = m.new('c1b')    # server 1 - secondary sender (error tests, fallback-tag, STATUSMSG)
 c1i = m.new('c1i')    # server 1 - echo-message + labeled-response sender
-c1j = m.new('c1j')    # server 1 - fallback tag test sender
-c1k = m.new('c1k')    # server 1 - STATUSMSG prefix test sender
 c2a = m.new('c2a')    # server 2 - plain client (fallback recipient)
 c2b = m.new('c2b')    # server 2 - multiline-capable recipient
 c2c = m.new('c2c')    # server 2 - fallback recipient with server-time (for tag checks)
@@ -26,15 +18,7 @@ m.connect()
 m.disable_message_tags_check = 1
 c1a.disable_message_tags_check = 1
 c1b.disable_message_tags_check = 1
-c1c.disable_message_tags_check = 1
-c1d.disable_message_tags_check = 1
-c1e.disable_message_tags_check = 1
-c1f.disable_message_tags_check = 1
-c1g.disable_message_tags_check = 1
-c1h.disable_message_tags_check = 1
 c1i.disable_message_tags_check = 1
-c1j.disable_message_tags_check = 1
-c1k.disable_message_tags_check = 1
 c2a.disable_message_tags_check = 1
 c2b.disable_message_tags_check = 1
 c2c.disable_message_tags_check = 1
@@ -51,10 +35,9 @@ print("=== 1. CAP Negotiation ===")
 m.send(c1a, "CAP REQ :draft/multiline batch server-time")
 m.expect(c1a, "c1a: CAP ACK for draft/multiline batch server-time",
          "CAP .* ACK :draft/multiline batch server-time")
-for client in [c1b, c1c, c1d, c1e, c1f, c1g, c1h, c1j, c1k]:
-    m.send(client, "CAP REQ :draft/multiline batch server-time")
-    m.expect(client, "CAP ACK for draft/multiline batch server-time",
-             "CAP .* ACK :draft/multiline batch server-time")
+m.send(c1b, "CAP REQ :draft/multiline batch server-time")
+m.expect(c1b, "c1b: CAP ACK for draft/multiline batch server-time",
+         "CAP .* ACK :draft/multiline batch server-time")
 m.send(c1i, "CAP REQ :draft/multiline batch server-time echo-message")
 m.expect(c1i, "c1i: CAP ACK for draft/multiline batch server-time echo-message",
          "CAP .* ACK :draft/multiline batch server-time echo-message")
@@ -362,10 +345,7 @@ print
 # - Blank lines MUST NOT be sent to non-multiline clients
 # - msgid MUST only be on the first (non-blank) fallback line
 # - Other tags (time, account) MAY be on subsequent fallback lines
-m.send(c1j, "JOIN " + chan)
-m.clearlog()
-
-m.send(c1j, [
+m.send(c1b, [
     "BATCH +mlk draft/multiline " + chan,
     "@batch=mlk PRIVMSG " + chan + " :",
     "@batch=mlk PRIVMSG " + chan + " :line A",
@@ -416,7 +396,7 @@ print
 print("=== 7. Error Conditions ===")
 
 # 7.1 Exceed max-lines (8 lines, limit is 7)
-m.send(c1c, [
+m.send(c1b, [
     "BATCH +mla draft/multiline " + chan,
     "@batch=mla PRIVMSG " + chan + " :line1",
     "@batch=mla PRIVMSG " + chan + " :line2",
@@ -428,7 +408,7 @@ m.send(c1c, [
     "@batch=mla PRIVMSG " + chan + " :line8",
     "BATCH -mla",
 ])
-m.expect(c1c, "Exceed max-lines: FAIL MULTILINE_MAX_LINES with limit",
+m.expect(c1b, "Exceed max-lines: FAIL MULTILINE_MAX_LINES with limit",
          "FAIL BATCH MULTILINE_MAX_LINES [0-9]+")
 m.not_expect(c2b, "c2b: no delivery when max-lines exceeded",
              "PRIVMSG.*:line1")
@@ -462,7 +442,7 @@ print
 
 # 7.3 Exceed max-bytes (>1500 bytes total)
 bigtext = "A" * 350
-m.send(c1d, [
+m.send(c1b, [
     "BATCH +mlc draft/multiline " + chan,
     "@batch=mlc PRIVMSG " + chan + " :" + bigtext,
     "@batch=mlc PRIVMSG " + chan + " :" + bigtext,
@@ -471,7 +451,7 @@ m.send(c1d, [
     "@batch=mlc PRIVMSG " + chan + " :" + bigtext,
     "BATCH -mlc",
 ])
-m.expect(c1d, "Exceed max-bytes: FAIL MULTILINE_MAX_BYTES with limit",
+m.expect(c1b, "Exceed max-bytes: FAIL MULTILINE_MAX_BYTES with limit",
          "FAIL BATCH MULTILINE_MAX_BYTES [0-9]+")
 m.not_expect(c2b, "c2b: no delivery when max-bytes exceeded",
              "PRIVMSG.*:" + bigtext[:20])
@@ -480,51 +460,51 @@ print
 
 # 7.4 Target mismatch within batch
 otherchan = m.randchan()
-m.send(c1e, "JOIN " + otherchan)
+m.send(c1b, "JOIN " + otherchan)
 m.clearlog()
 print
 
-m.send(c1e, [
+m.send(c1b, [
     "BATCH +mld draft/multiline " + chan,
     "@batch=mld PRIVMSG " + chan + " :correct target",
     "@batch=mld PRIVMSG " + otherchan + " :wrong target",
     "BATCH -mld",
 ])
-m.expect(c1e, "Target mismatch: FAIL MULTILINE_INVALID_TARGET with both targets",
+m.expect(c1b, "Target mismatch: FAIL MULTILINE_INVALID_TARGET with both targets",
          "FAIL BATCH MULTILINE_INVALID_TARGET \\S+ \\S+")
 m.clearlog()
 print
 
 # 7.5 Mix PRIVMSG and NOTICE in same batch
-m.send(c1f, [
+m.send(c1b, [
     "BATCH +mle draft/multiline " + chan,
     "@batch=mle PRIVMSG " + chan + " :a privmsg",
     "@batch=mle NOTICE " + chan + " :a notice",
     "BATCH -mle",
 ])
-m.expect(c1f, "Mixed PRIVMSG/NOTICE: FAIL MULTILINE_INVALID",
+m.expect(c1b, "Mixed PRIVMSG/NOTICE: FAIL MULTILINE_INVALID",
          "FAIL BATCH MULTILINE_INVALID")
 m.clearlog()
 print
 
 # 7.6 Blank line with concat tag
-m.send(c1g, [
+m.send(c1b, [
     "BATCH +mlf draft/multiline " + chan,
     "@batch=mlf PRIVMSG " + chan + " :some text",
     "@batch=mlf;draft/multiline-concat PRIVMSG " + chan + " :",
     "BATCH -mlf",
 ])
-m.expect(c1g, "Blank line with concat: FAIL MULTILINE_INVALID",
+m.expect(c1b, "Blank line with concat: FAIL MULTILINE_INVALID",
          "FAIL BATCH MULTILINE_INVALID")
 m.clearlog()
 print
 
 # 7.7 Empty batch (no PRIVMSG/NOTICE lines)
-m.send(c1h, [
+m.send(c1b, [
     "BATCH +mlg draft/multiline " + chan,
     "BATCH -mlg",
 ])
-m.expect(c1h, "Empty batch: FAIL MULTILINE_INVALID",
+m.expect(c1b, "Empty batch: FAIL MULTILINE_INVALID",
          "FAIL BATCH MULTILINE_INVALID")
 m.clearlog()
 print
@@ -668,14 +648,12 @@ print
 ##############################################################################
 print("=== 10. STATUSMSG Prefix (@#channel) ===")
 
-# c1k joins and gets opped by c1a (channel creator)
-m.send(c1k, "JOIN " + chan)
-m.clearlog()
-m.send(c1a, "MODE " + chan + " +o " + c1k.nick)
+# c1b gets opped by c1a (channel creator)
+m.send(c1a, "MODE " + chan + " +o " + c1b.nick)
 m.clearlog()
 
-# c1k (ops, multiline) sends multiline to @#channel
-m.send(c1k, [
+# c1b (ops, multiline) sends multiline to @#channel
+m.send(c1b, [
     "BATCH +mls draft/multiline @" + chan,
     "@batch=mls PRIVMSG @" + chan + " :ops only line one",
     "@batch=mls PRIVMSG @" + chan + " :ops only line two",
