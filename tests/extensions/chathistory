@@ -397,3 +397,44 @@ m.expect(c3a, "Message nine (msg +2)", ":nine")
 m.expect(c3a, "Message ten", ":ten")
 m.clearlog()
 print
+
+####### END-OF-PAGINATION TAG (draft/chathistory-end) #######
+# The tag must be present exactly when the server returned the final page
+# (no more history beyond it), and absent when more history is available.
+# AROUND is a centered window and never carries the tag.
+# The buffer currently holds messages one..ten (10 messages).
+
+# Exactly 'limit' messages exist and all are returned -> this IS the end.
+# (the old count<limit heuristic was blind at count==limit and missed this)
+m.send(c3a, "CHATHISTORY LATEST " + chan + " * 10")
+m.expect(c3a, "LATEST all 10 -> end tag present", "draft/chathistory-end")
+m.clearlog()
+print
+
+# More messages available than the limit -> not the end, no tag.
+m.send(c3a, "CHATHISTORY LATEST " + chan + " * 3")
+m.expect(c3a, "LATEST 3 returns ten", ":ten")
+m.not_expect(c3a, "more available -> no end tag", "draft/chathistory-end")
+m.clearlog()
+print
+
+# Fewer than limit returned (eight/nine/ten for a requested 5) -> end tag present.
+m.send(c3a, "CHATHISTORY AFTER " + chan + " msgid=" + seven_msgid + " 5")
+m.expect(c3a, "AFTER seven returns eight", ":eight")
+m.expect(c3a, "fewer than limit -> end tag present", "draft/chathistory-end")
+m.clearlog()
+print
+
+# Empty result (nothing after the newest message) -> still the end, tag present.
+m.send(c3a, "CHATHISTORY AFTER " + chan + " msgid=" + ten_msgid + " 5")
+m.expect(c3a, "empty page -> end tag present", "draft/chathistory-end")
+m.not_expect(c3a, "nothing after ten", "PRIVMSG")
+m.clearlog()
+print
+
+# AROUND never carries the end tag, even when returning fewer than the limit.
+m.send(c3a, "CHATHISTORY AROUND " + chan + " msgid=" + five_msgid + " 20")
+m.expect(c3a, "AROUND returns five", ":five")
+m.not_expect(c3a, "AROUND never gets end tag", "draft/chathistory-end")
+m.clearlog()
+print
