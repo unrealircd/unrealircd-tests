@@ -8,7 +8,7 @@ c3a = m.new('c3a')
 m.connect()
 
 m.send(c1a, "CAP LS")
-m.expect(c1a, "versionless CAP LS should not show capability values", " CAP .* LS .*:.*unrealircd.org/link-security( |$)")
+m.expect(c1a, "versionless CAP LS should not show capability values", " CAP .* LS .*:.*draft/multiline( |$)")
 m.clearlog()
 print
 
@@ -18,7 +18,7 @@ m.clearlog()
 print
 
 m.send(c2a, "CAP LS 300")
-m.expect(c2a, "CAP LS 300 should not show capability values", " CAP .* LS .*:.*unrealircd.org/link-security( |$)")
+m.expect(c2a, "CAP LS 300 should not show capability values", " CAP .* LS .*:.*draft/multiline( |$)")
 m.clearlog()
 print
 
