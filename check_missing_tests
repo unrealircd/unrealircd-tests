@@ -1,12 +1,16 @@
 #!/bin/bash
-if [ ! -f ~/unrealircd/data/cmds.txt ]; then
-	echo "File ~/unrealircd/data/cmds.txt not found"
+if [ "$TESTS_UNREALIRCD_DIR" = "" ]; then
+	TESTS_UNREALIRCD_DIR="$HOME/unrealircd"
+fi
+
+if [ ! -f "$TESTS_UNREALIRCD_DIR/data/cmds.txt" ]; then
+	echo "File $TESTS_UNREALIRCD_DIR/data/cmds.txt not found"
 	echo "This means the 'third/dumpcmds' module was not loaded"
 	echo "or the ircd is not running."
 	exit 1
 fi
 
-cat ~/unrealircd/data/cmds.txt|\
+cat "$TESTS_UNREALIRCD_DIR/data/cmds.txt"|\
 grep 'USER'|\
 grep -v 'ALIAS'|\
 awk '{ print $1 }'|\
@@ -18,7 +22,7 @@ do
 	fi
 done
 
-cat ~/unrealircd/data/cmds.txt|\
+cat "$TESTS_UNREALIRCD_DIR/data/cmds.txt"|\
 grep 'OPER'|\
 grep -v 'ALIAS'|\
 awk '{ print $1 }'|\

@@ -18,10 +18,10 @@ import irctestframework.irctest
 import base64, hashlib, hmac as hmac_mod, json, os, re, subprocess, tempfile, time
 
 # ---------------------------------------------------------------------------
-# Paths to private keys (copied to ~/unrealircd/conf/ by the test runner)
+# Paths to private keys (copied to the conf/ dir by the test runner)
 # ---------------------------------------------------------------------------
 
-CONF_DIR = os.path.expanduser('~/unrealircd/conf')
+CONF_DIR = os.path.join(os.environ.get('TESTS_UNREALIRCD_DIR') or os.path.expanduser('~/unrealircd'), 'conf')
 RSA_KEY   = os.path.join(CONF_DIR, 'extjwt_rsa.pem')
 EC256_KEY = os.path.join(CONF_DIR, 'extjwt_ec256.pem')
 EC384_KEY = os.path.join(CONF_DIR, 'extjwt_ec384.pem')

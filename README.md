@@ -13,8 +13,6 @@ overwrite the services databases. This is all done without prompting!
 
 # How to run
 You run all the test with the `./run -services [anope|atheme]` command.
-This script assumes that UnrealIRCd is installed in ~/unrealircd/,
-atheme in ~/atheme and anope in ~/anope.
 It will kill all UnrealIRCd and services instances on the account,
 boot up 3 IRC servers (irc1, irc2 and irc3), link them together
 and run the tests.
@@ -23,6 +21,16 @@ You can run a specific test via `./run -services xx tests/sometest`.
 If you use this syntax then UnrealIRCd is assumed to be already up and
 running and linked. If this isn't the case then use
 `./run -services xx -boot tests/sometest`.
+
+# Default directories
+By default the following directories are assumed. You can override them
+by setting an environment variable:
+
+| Software | Default directory | Environment variable |
+|---|---|---|
+| UnrealIRCd | `~/unrealircd` | `TESTS_UNREALIRCD_DIR` |
+| Anope | `~/anope` | `TESTS_ANOPE_DIR` |
+| Atheme | `~/atheme` | `TESTS_ATHEME_DIR` |
 
 # Main features
 ## Tests

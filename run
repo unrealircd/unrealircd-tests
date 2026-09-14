@@ -7,16 +7,16 @@ function fail {
 function start_services {
 	echo "Booting services ($SERVICES)..."
 	if [ "$SERVICES" = "atheme" ]; then
-		cp -av serverconfig/atheme/atheme.conf ~/atheme/etc/ || fail "Failed to copy atheme.conf"
-		cp -av serverconfig/atheme/services.db ~/atheme/etc/ || fail "Failed to copy services.db"
-		cd ~/atheme || exit 1
+		cp -av serverconfig/atheme/atheme.conf "$TESTS_ATHEME_DIR/etc/" || fail "Failed to copy atheme.conf"
+		cp -av serverconfig/atheme/services.db "$TESTS_ATHEME_DIR/etc/" || fail "Failed to copy services.db"
+		cd "$TESTS_ATHEME_DIR" || exit 1
 		bin/atheme-services || fail "atheme failed to start"
 		cd -
 	fi
 	if [ "$SERVICES" = "anope" ]; then
-		cp -av serverconfig/anope/services.conf ~/anope/conf/ || fail "Failed to copy services.conf"
-		cp -av serverconfig/anope/anope.db ~/anope/data/ || fail "Failed to copy anope.db"
-		cd ~/anope || exit 1
+		cp -av serverconfig/anope/services.conf "$TESTS_ANOPE_DIR/conf/" || fail "Failed to copy services.conf"
+		cp -av serverconfig/anope/anope.db "$TESTS_ANOPE_DIR/data/" || fail "Failed to copy anope.db"
+		cd "$TESTS_ANOPE_DIR" || exit 1
 		bin/services || fail "anope failed to start"
 		cd -
 	fi
@@ -69,6 +69,18 @@ if [ "$MAKE" = "" ]; then
 	else
 		MAKE="make"
 	fi
+fi
+
+if [ "$TESTS_UNREALIRCD_DIR" = "" ]; then
+	TESTS_UNREALIRCD_DIR="$HOME/unrealircd"
+fi
+
+if [ "$TESTS_ATHEME_DIR" = "" ]; then
+	TESTS_ATHEME_DIR="$HOME/atheme"
+fi
+
+if [ "$TESTS_ANOPE_DIR" = "" ]; then
+	TESTS_ANOPE_DIR="$HOME/anope"
 fi
 
 rm -rf logs
@@ -126,16 +138,16 @@ if [ "$1" = "-boot" -o "$1" = "" ]; then
 	shift
 
 	# Compile any modules that are needed (fakereputation etc)
-	cp -av serverconfig/unrealircd/modules/*.c ~/unrealircd/source/src/modules/third/ || exit 1
-	cd ~/unrealircd/source || exit 1
+	cp -av serverconfig/unrealircd/modules/*.c "$TESTS_UNREALIRCD_DIR/source/src/modules/third/" || exit 1
+	cd "$TESTS_UNREALIRCD_DIR/source" || exit 1
 	$MAKE install
 	cd -
 
 	# Boot the ircd
 	kill_server
 	echo "Booting IRC server..."
-	cp -av serverconfig/unrealircd/* ~/unrealircd/conf/ || fail "Failed to copy serverconfig/unrealircd"
-	cd ~/unrealircd/ || exit 1
+	cp -av serverconfig/unrealircd/* "$TESTS_UNREALIRCD_DIR/conf/" || fail "Failed to copy serverconfig/unrealircd"
+	cd "$TESTS_UNREALIRCD_DIR" || exit 1
 	if [ "$KEEPDBS" -eq 0 ]; then
 		mkdir data/old 2>/dev/null
 		mv data/*.db data/old/ 2>/dev/null
