@@ -1,0 +1,77 @@
+#!/usr/bin/python3
+import irctestframework.irctest
+
+# A message to a prefixed channel target, eg PRIVMSG @#chan, must only reach
+# members of that rank and higher.
+# See https://bugs.unrealircd.org/view.php?id=6491
+
+# Target prefix -> the member modes that should receive it, and a label for the text
+matrix = [
+    ( "+", "vhoaq", "voice"     ),
+    ( "%", "hoaq",  "halfop"    ),
+    ( "@", "oaq",   "chanop"    ),
+    ( "&", "aq",    "chanadmin" ),
+    ( "~", "q",     "chanowner" ),
+    ]
+
+# Our recipients and the single member mode each of them gets ('' is no modes).
+# Spread over all three servers so we test remote delivery as well.
+levels = [
+    ( 'c1b', ''  ),
+    ( 'c1c', 'v' ),
+    ( 'c2a', 'h' ),
+    ( 'c2b', 'o' ),
+    ( 'c3a', 'a' ),
+    ( 'c3b', 'q' ),
+    ]
+
+def describe(mode):
+    if mode == '':
+        return "A user with no modes"
+    return "A user with +" + mode
+
+def check_delivery(m, clients, sender, cmd, prefix, allowed, chan, text):
+    prefix_re = "\\+" if prefix == "+" else prefix
+    m.send(sender, cmd + " " + prefix + chan + " :" + text)
+    for name,mode in levels:
+        if mode != '' and mode in allowed:
+            m.expect(clients[name],
+                     describe(mode) + " should receive " + cmd + " to " + prefix + chan,
+                     ":$c1a.* " + cmd + " " + prefix_re + chan + " :" + text)
+        else:
+            m.not_expect(clients[name],
+                         describe(mode) + " should NOT receive " + cmd + " to " + prefix + chan,
+                         ":$c1a.* " + cmd + " ")
+    m.clearlog()
+    print
+
+m = irctestframework.irctest.IrcTest()
+c1a = m.new('c1a')
+c1o = m.new('c1o')
+clients = {}
+for name,mode in levels:
+    clients[name] = m.new(name)
+m.connect()
+
+m.send(c1o, "OPER netadmin test")
+m.clearlog()
+print
+
+chan = m.randchan()
+m.join_all(chan, creator = c1a)
+m.expect_all("all in channel", "NAMES")
+m.clearlog()
+print
+
+# The oper sets the modes, a regular chanop could not set +a or +q
+for name,mode in levels:
+    if mode != '':
+        m.send(c1o, "MODE " + chan + " +" + mode + " $" + name)
+m.clearlog()
+print
+
+for prefix,allowed,label in matrix:
+    check_delivery(m, clients, c1a, "PRIVMSG", prefix, allowed, chan, "message for " + label)
+
+# The original report was about NOTICE, so check that one too, on the sharpest case
+check_delivery(m, clients, c1a, "NOTICE", "~", "q", chan, "notice for chanowner")
