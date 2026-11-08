@@ -1,0 +1,141 @@
+#!/usr/bin/python3
+#
+# Regression test: QUIT and NICK of members of a +D (delayjoin) channel.
+#
+# Rule: a member who is still hidden under +D (joined, never spoke, no +vhoaq)
+# is only shown to chanops (+hoaq), so their QUIT and NICK must go to exactly
+# those members, and to nobody else. A visible member's QUIT and NICK must go
+# to everyone, including members who are hidden themselves.
+#
+# Two bugs broke this and made ghost users stack up in chanops' nick lists:
+# - sendto_local_common_channels() had its +D check inverted, so a hidden
+#   member's NICK (and plain QUIT) went to everyone EXCEPT the chanops.
+# - quit_sendto_local_common_channels() (QUITs that carry an
+#   unrealircd.org/real-quit-reason tag, eg. bans with a hidden reason)
+#   checked whether the *recipient* was hidden instead of the quitting user.
+#
+# The quitting users connect through WEBIRC, as in the original report.
+#
+import re
+import irctestframework.irctest
+
+def quit_re(nick):
+    return r"^(@\S+ )?:" + re.escape(nick) + r"!\S+ QUIT"
+
+def nick_re(nick):
+    return r"^(@\S+ )?:" + re.escape(nick) + r"!\S+ NICK"
+
+m = irctestframework.irctest.IrcTest()
+op1 = m.new('c1op')     # chanop on irc1
+op3 = m.new('c3op')     # chanop on irc3
+ircop = m.new('c1ircop')  # IRCop without channel status: hidden, like any non-op
+hid = m.new('c1hid')    # regular user who never speaks: hidden
+vis = m.new('c1vis')    # regular user who speaks: visible
+wa = m.new('c3wa')      # WEBIRC user on irc3, never speaks (hidden): NICK, then plain QUIT
+wa.fake_ip = '203.0.113.81'
+wb = m.new('c1wb')      # WEBIRC user on irc1, never speaks (hidden): banned
+wb.fake_ip = '203.0.113.82'
+wc = m.new('c3wc')      # WEBIRC user on irc3, speaks (visible): NICK, then banned
+wc.fake_ip = '203.0.113.83'
+m.connect()
+
+chan = m.randchan()
+m.send(op1, "JOIN " + chan)
+m.send(op1, "MODE " + chan + " +D")
+m.expect(op1, "MODE +D", r"MODE.*\+D")
+m.send(ircop, "OPER netadmin test")
+m.expect(ircop, "IRCop is opered up", " 381 ")
+# Op the remote chanop before anyone else joins. (Opping later makes delayjoin
+# replay the hidden JOINs with new msgids, which the framework's cross-server
+# message-tag consistency check flags. That is not what this test is about.)
+m.send(op3, "JOIN " + chan)
+m.send(op1, "MODE " + chan + " +o $c3op")
+m.expect(op3, "Remote chanop got +o", "MODE " + chan + r" \+o")
+for c in [ircop, hid, vis, wa, wb, wc]:
+    m.send(c, "JOIN " + chan)
+m.send(vis, "PRIVMSG " + chan + " :I am visible now")
+m.send(wc, "PRIVMSG " + chan + " :I am visible now too")
+m.expect(hid, "Hidden member sees a member that became visible", ":$c3wc!.* JOIN")
+m.expect(op3, "Remote chanop sees JOINs of hidden members", ":$c3wa!.* JOIN")
+m.not_expect(ircop, "IRCop without channel status does not see hidden JOINs", ":$c3wa!.* JOIN")
+m.clearlog()
+print
+
+# The framework puts every client in a shared sync channel (without +D), and
+# NICK/QUIT go out through every common channel. So the users whose NICK and
+# QUIT we test must leave it, or everyone would see them there. Without the
+# sync channel the auto-syncer can't work: turn it off and use timeouts and
+# waits from here on (same approach as tests/usermodes/invisible).
+m.sync = 0
+for c in [wa, wb, wc]:
+    m.send(c, "PART " + m.syncchan)
+m.wait(2)
+m.clearlog()
+
+#### NICK ####
+
+old = wa.nick
+m.send(wa, "NICK c3wa_renamed" + m.random(4))
+m.expect(op1, "Chanop (local) sees NICK change of hidden member", nick_re(old), timeout=10)
+m.expect(op3, "Chanop (remote) sees NICK change of hidden member", nick_re(old), timeout=10)
+m.wait(1)
+m.not_expect(hid, "Hidden member does not see NICK change of hidden member", nick_re(old))
+m.not_expect(vis, "Visible member does not see NICK change of hidden member", nick_re(old))
+m.not_expect(ircop, "IRCop without channel status does not see NICK change of hidden member", nick_re(old))
+m.clearlog()
+print
+
+old = wc.nick
+m.send(wc, "NICK c3wc_renamed" + m.random(4))
+for c, who in [(op1, "Chanop"), (hid, "Hidden member"), (vis, "Visible member"), (ircop, "IRCop")]:
+    m.expect(c, who + " sees NICK change of visible member", nick_re(old), timeout=10)
+m.clearlog()
+print
+
+#### QUIT ####
+
+# Plain QUIT (no real-quit-reason tag) of a hidden member.
+q = wa.nick
+m.send(wa, "QUIT :bye")
+m.expect(op1, "Chanop (local) sees QUIT of hidden member", quit_re(q), timeout=10)
+m.expect(op3, "Chanop (remote) sees QUIT of hidden member", quit_re(q), timeout=10)
+m.wait(1)
+m.not_expect(hid, "Hidden member does not see QUIT of hidden member", quit_re(q))
+m.not_expect(vis, "Visible member does not see QUIT of hidden member", quit_re(q))
+m.not_expect(ircop, "IRCop without channel status does not see QUIT of hidden member", quit_re(q))
+m.clearlog()
+print
+
+# Ban QUIT of a hidden member. The ban reason contains the client IP, so
+# hide-ban-reason (auto) hides it and puts the real reason in the
+# unrealircd.org/real-quit-reason tag: that is the other QUIT code path.
+q = wb.nick
+m.send(ircop, "GLINE *@203.0.113.82 60 :Banned client 203.0.113.82")
+m.expect(op1, "Chanop (local) sees ban QUIT of hidden member, reason hidden",
+         quit_re(q) + r" :Banned \(G-Lined\)", timeout=10)
+m.not_expect(op1, "Ban reason with the IP is not shown to a non-oper", quit_re(q) + r".*203\.0\.113\.82")
+m.expect(op3, "Chanop (remote) sees ban QUIT of hidden member", quit_re(q), timeout=10)
+m.wait(1)
+m.not_expect(hid, "Hidden member does not see ban QUIT of hidden member", quit_re(q))
+m.not_expect(vis, "Visible member does not see ban QUIT of hidden member", quit_re(q))
+m.not_expect(ircop, "IRCop without channel status does not see ban QUIT of hidden member", quit_re(q))
+m.clearlog()
+print
+
+# Ban QUIT of a visible member: everyone must see it, including hidden members.
+q = wc.nick
+m.send(ircop, "GLINE *@203.0.113.83 60 :Banned client 203.0.113.83")
+m.expect(op1, "Chanop (local) sees ban QUIT of visible member", quit_re(q), timeout=10)
+m.expect(op3, "Chanop (remote) sees ban QUIT of visible member", quit_re(q), timeout=10)
+m.expect(vis, "Visible member sees ban QUIT of visible member", quit_re(q), timeout=10)
+m.expect(hid, "Hidden member sees ban QUIT of visible member", quit_re(q), timeout=10)
+m.expect(ircop, "IRCop sees ban QUIT of visible member, with the real reason",
+         quit_re(q) + r" :Banned \(G-Lined\): Banned client 203\.0\.113\.83", timeout=10)
+m.clearlog()
+print
+
+m.send(ircop, "GLINE -*@203.0.113.82")
+m.expect(ircop, "G-Line removed (1 of 2)", r"G-Line removed: '\*@203\.0\.113\.82'", timeout=5)
+m.send(ircop, "GLINE -*@203.0.113.83")
+m.expect(ircop, "G-Line removed (2 of 2)", r"G-Line removed: '\*@203\.0\.113\.83'", timeout=5)
+print
